@@ -58,6 +58,7 @@ import Premium from './pages/Premium';
 import Integrations from './pages/Integrations';
 import About from './pages/About';
 import FAQ from './pages/FAQ';
+import Support from './pages/Support';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Integrations": Integrations,
     "About": About,
     "FAQ": FAQ,
+    "Support": Support,
 }
 
 export const pagesConfig = {
