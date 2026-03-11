@@ -4,11 +4,15 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 export default function WeeklyChart({ activities }) {
-  // Generate mock weekly data based on activities count
-  const data = DAYS.map((day, i) => ({
-    day,
-    kp: Math.floor(Math.random() * 40) + (activities.length > 0 ? 10 : 0),
-  }));
+  // Build real weekly data from activities (last 7 days)
+  const data = DAYS.map((day, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    const dayStr = date.toISOString().split("T")[0];
+    const dayActivities = activities.filter(a => a.created_date?.startsWith(dayStr));
+    const kp = dayActivities.reduce((sum, a) => sum + (a.kp_earned || 0), 0);
+    return { day, kp };
+  });
 
   return (
     <div className="bg-card rounded-xl border border-border p-5">
