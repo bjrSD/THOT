@@ -54,6 +54,7 @@ import ContentDetail from './pages/ContentDetail';
 import Challenges from './pages/Challenges';
 import Discover from './pages/Discover';
 import Profile from './pages/Profile';
+import Premium from './pages/Premium';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Challenges": Challenges,
     "Discover": Discover,
     "Profile": Profile,
+    "Premium": Premium,
 }
 
 export const pagesConfig = {
