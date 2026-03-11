@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { name: "Bibliothèque", page: "Library", icon: Library },
   { name: "Défis", page: "Challenges", icon: Trophy },
   { name: "Découvrir", page: "Discover", icon: Compass },
+  { name: "Feed", page: "Feed", icon: MessageCircle },
   { name: "Intégrations", page: "Integrations", icon: Zap },
   { name: "Profil", page: "Profile", icon: User },
   { name: "Paramètres", page: "Settings", icon: Settings },
