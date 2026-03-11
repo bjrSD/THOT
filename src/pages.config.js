@@ -52,6 +52,7 @@ import Dashboard from './pages/Dashboard';
 import Library from './pages/Library';
 import ContentDetail from './pages/ContentDetail';
 import Challenges from './pages/Challenges';
+import Discover from './pages/Discover';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +62,7 @@ export const PAGES = {
     "Library": Library,
     "ContentDetail": ContentDetail,
     "Challenges": Challenges,
+    "Discover": Discover,
 }
 
 export const pagesConfig = {
