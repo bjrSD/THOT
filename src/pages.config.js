@@ -56,6 +56,7 @@ import Discover from './pages/Discover';
 import Profile from './pages/Profile';
 import Premium from './pages/Premium';
 import Integrations from './pages/Integrations';
+import About from './pages/About';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "Profile": Profile,
     "Premium": Premium,
     "Integrations": Integrations,
+    "About": About,
 }
 
 export const pagesConfig = {
