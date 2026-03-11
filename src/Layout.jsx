@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
-  Menu, Plus, LogIn, Zap, Settings, HelpCircle, Crown,
+  Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
   Twitter, Instagram
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
