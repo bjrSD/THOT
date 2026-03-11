@@ -62,6 +62,7 @@ import Support from './pages/Support';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Settings from './pages/Settings';
+import Feed from './pages/Feed';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +82,7 @@ export const PAGES = {
     "Privacy": Privacy,
     "Terms": Terms,
     "Settings": Settings,
+    "Feed": Feed,
 }
 
 export const pagesConfig = {
