@@ -50,6 +50,7 @@
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Library from './pages/Library';
+import ContentDetail from './pages/ContentDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +58,7 @@ export const PAGES = {
     "Home": Home,
     "Dashboard": Dashboard,
     "Library": Library,
+    "ContentDetail": ContentDetail,
 }
 
 export const pagesConfig = {
