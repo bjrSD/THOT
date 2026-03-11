@@ -2,22 +2,36 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { 
+import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
-  Menu, X, Plus, LogIn
+  Menu, Plus, LogIn, Zap, Settings, HelpCircle, Crown,
+  Twitter, Instagram
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import QuickAddModal from "@/components/shared/QuickAddModal";
+import ChatBot from "@/components/shared/ChatBot";
 
 const NAV_ITEMS = [
   { name: "Accueil", page: "Home", icon: Home },
   { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
-  { name: "Challenges", page: "Challenges", icon: Trophy },
   { name: "Bibliothèque", page: "Library", icon: Library },
+  { name: "Défis", page: "Challenges", icon: Trophy },
   { name: "Découvrir", page: "Discover", icon: Compass },
+  { name: "Intégrations", page: "Integrations", icon: Zap },
   { name: "Profil", page: "Profile", icon: User },
+  { name: "Paramètres", page: "Settings", icon: Settings },
 ];
+
+function ThotLogo() {
+  return (
+    <span className="font-heading font-bold text-xl tracking-tight">
+      <span style={{ color: "hsl(var(--primary))" }}>TH</span>
+      <span style={{ color: "hsl(var(--accent))", fontStyle: "italic", letterSpacing: "-0.05em" }}>O</span>
+      <span style={{ color: "hsl(var(--primary))" }}>T</span>
+    </span>
+  );
+}
 
 export default function Layout({ children, currentPageName }) {
   const [isAuth, setIsAuth] = useState(false);
@@ -26,9 +40,28 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(setIsAuth);
+
+    // Apply saved theme
+    const saved = localStorage.getItem("thot-theme") || "auto";
+    const root = document.documentElement;
+    if (saved === "dark") root.classList.add("dark");
+    else if (saved === "light") root.classList.remove("dark");
+    else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) root.classList.add("dark");
+    }
   }, []);
 
   const isLanding = currentPageName === "Home";
+
+  const FOOTER_LEGAL_LINKS = [
+    { name: "À propos", page: "About" },
+    { name: "FAQ", page: "FAQ" },
+    { name: "Support", page: "Support" },
+    { name: "Confidentialité", page: "Privacy" },
+    { name: "CGU", page: "Terms" },
+    { name: "Premium", page: "Premium" },
+  ];
 
   if (isLanding) {
     return (
@@ -39,25 +72,37 @@ export default function Layout({ children, currentPageName }) {
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">T</span>
               </div>
-              <span className="font-heading font-bold text-xl text-foreground">THOT</span>
+              <ThotLogo />
             </Link>
             <div className="hidden md:flex items-center gap-6">
-              {NAV_ITEMS.slice(1, 5).map(item => (
+              {[
+                { name: "Découvrir", page: "Discover" },
+                { name: "Intégrations", page: "Integrations" },
+                { name: "Premium", page: "Premium" },
+                { name: "À propos", page: "About" },
+              ].map(item => (
                 <Link key={item.page} to={createPageUrl(item.page)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   {item.name}
                 </Link>
               ))}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {isAuth ? (
-                <Link to={createPageUrl("Dashboard")}>
-                  <Button size="sm">Dashboard</Button>
-                </Link>
+                <>
+                  <Link to={createPageUrl("Dashboard")}>
+                    <Button size="sm" variant="outline">Dashboard</Button>
+                  </Link>
+                  <Link to={createPageUrl("Premium")}>
+                    <Button size="sm" className="bg-accent hover:bg-accent/90">
+                      <Crown className="w-4 h-4 mr-1.5" /> Premium
+                    </Button>
+                  </Link>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => base44.auth.redirectToLogin()}>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Connexion
+                    <LogIn className="w-4 h-4 mr-1.5" />
+                    Se connecter
                   </Button>
                   <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>
                     S'inscrire
@@ -68,6 +113,80 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </header>
         <main className="pt-16">{children}</main>
+
+        {/* Landing Footer */}
+        <footer className="bg-card border-t border-border">
+          <div className="max-w-7xl mx-auto px-4 py-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+              <div className="col-span-2 md:col-span-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                    <span className="text-primary-foreground font-bold text-xs">T</span>
+                  </div>
+                  <ThotLogo />
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">Le Strava du savoir. Suivez, progressez, brillez.</p>
+                <div className="flex gap-3">
+                  <a href="https://twitter.com/thotapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-accent/20 transition-colors">
+                    <Twitter className="w-4 h-4" />
+                  </a>
+                  <a href="https://instagram.com/thotapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-accent/20 transition-colors">
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <a href="https://tiktok.com/@thotapp" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-accent/20 transition-colors">
+                    <span className="text-xs font-bold">TK</span>
+                  </a>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-3">Produit</h4>
+                <ul className="space-y-2">
+                  {[{n:"Fonctionnalités",p:"Dashboard"},{n:"Intégrations",p:"Integrations"},{n:"Premium",p:"Premium"},{n:"Défis",p:"Challenges"}].map(l => (
+                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-3">Entreprise</h4>
+                <ul className="space-y-2">
+                  {[{n:"À propos",p:"About"},{n:"FAQ",p:"FAQ"},{n:"Support",p:"Support"},{n:"Blog",p:"About"}].map(l => (
+                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-3">Légal</h4>
+                <ul className="space-y-2">
+                  {[{n:"Confidentialité",p:"Privacy"},{n:"CGU",p:"Terms"}].map(l => (
+                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* App store badges */}
+            <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <p className="text-sm text-muted-foreground">© 2026 THOT SAS. Tous droits réservés.</p>
+              <div className="flex items-center gap-4">
+                <a href="#" className="flex items-center gap-2 bg-foreground text-background px-4 py-2 rounded-xl hover:opacity-80 transition-opacity">
+                  <span className="text-lg">🍎</span>
+                  <div className="text-left">
+                    <p className="text-xs opacity-70">Télécharger sur</p>
+                    <p className="text-sm font-semibold">App Store</p>
+                  </div>
+                </a>
+                <a href="#" className="flex items-center gap-2 bg-foreground text-background px-4 py-2 rounded-xl hover:opacity-80 transition-opacity">
+                  <span className="text-lg">▶</span>
+                  <div className="text-left">
+                    <p className="text-xs opacity-70">Disponible sur</p>
+                    <p className="text-sm font-semibold">Google Play</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <ChatBot />
       </>
     );
   }
@@ -78,13 +197,13 @@ export default function Layout({ children, currentPageName }) {
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border flex-col z-40">
         <div className="h-16 px-6 flex items-center border-b border-border">
           <Link to={createPageUrl("Home")} className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">T</span>
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xs">T</span>
             </div>
-            <span className="font-heading font-bold text-xl">THOT</span>
+            <ThotLogo />
           </Link>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map(item => {
             const isActive = currentPageName === item.page;
             return (
@@ -92,17 +211,29 @@ export default function Layout({ children, currentPageName }) {
                 key={item.page}
                 to={createPageUrl(item.page)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-4.5 h-4.5 shrink-0" />
                 {item.name}
               </Link>
             );
           })}
         </nav>
+        <div className="p-4 border-t border-border">
+          <Link to={createPageUrl("Premium")}>
+            <div className="bg-gradient-to-r from-accent/20 to-primary/20 rounded-xl p-3 flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Crown className="w-4 h-4 text-yellow-500" />
+              <div>
+                <p className="text-xs font-semibold">Passer Premium</p>
+                <p className="text-xs text-muted-foreground">Débloque tout</p>
+              </div>
+            </div>
+          </Link>
+          <button onClick={() => base44.auth.logout()} className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5">
+            Déconnexion
+          </button>
+        </div>
       </aside>
 
       {/* Mobile header */}
@@ -113,11 +244,11 @@ export default function Layout({ children, currentPageName }) {
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-72 p-0">
             <div className="h-14 px-6 flex items-center border-b border-border">
-              <span className="font-heading font-bold text-xl">THOT</span>
+              <ThotLogo />
             </div>
-            <nav className="p-4 space-y-1">
+            <nav className="p-4 space-y-0.5">
               {NAV_ITEMS.map(item => {
                 const isActive = currentPageName === item.page;
                 return (
@@ -126,21 +257,32 @@ export default function Layout({ children, currentPageName }) {
                     to={createPageUrl(item.page)}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="w-4 h-4 shrink-0" />
                     {item.name}
                   </Link>
                 );
               })}
             </nav>
+            <div className="p-4 border-t border-border">
+              <Link to={createPageUrl("Premium")} onClick={() => setMobileOpen(false)}>
+                <div className="bg-gradient-to-r from-accent/20 to-primary/20 rounded-xl p-3 flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  <div>
+                    <p className="text-xs font-semibold">Passer Premium</p>
+                    <p className="text-xs text-muted-foreground">Débloque tout</p>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </SheetContent>
         </Sheet>
-        <span className="font-heading font-bold text-lg">THOT</span>
-        <div className="w-10" />
+        <ThotLogo />
+        <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
+          <Plus className="w-5 h-5" />
+        </Button>
       </header>
 
       {/* Main content */}
@@ -150,19 +292,18 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </main>
 
-      {/* Floating action button */}
+      {/* Floating action button (desktop) */}
       {isAuth && (
         <button
           onClick={() => setShowQuickAdd(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center"
+          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center"
         >
           <Plus className="w-6 h-6" />
         </button>
       )}
 
-      {showQuickAdd && (
-        <QuickAddModal onClose={() => setShowQuickAdd(false)} />
-      )}
+      {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
+      <ChatBot />
     </div>
   );
 }
