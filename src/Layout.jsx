@@ -29,27 +29,18 @@ const NAV_ITEMS = [
 { name: "Paramètres", page: "Settings", icon: Settings }];
 
 
-function ThotLogo({ dark = false }) {
+function ThotLogo({ dark = false, size = "md" }) {
+  const imgH = size === "lg" ? "h-10" : "h-8";
   return (
     <div className="flex items-center gap-2">
-      {/* Icon mark */}
-      
-
-
-
-
-
-
-
-      {/* Wordmark */}
-      <span className={`font-heading font-black text-xl tracking-tight ${dark ? "text-white" : ""}`}>
-        <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>TH</span>
-        <span style={{ color: "hsl(var(--accent))", fontStyle: "italic", letterSpacing: "-0.04em" }}>O</span>
-        <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>T</span>
-        <span className="text-xs font-normal tracking-wide ml-1.5 opacity-60 align-middle hidden sm:inline">Le Strava du savoir</span>
-      </span>
-    </div>);
-
+      <img
+        src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/528408be4_generated_image.png"
+        alt="THOT"
+        className={`${imgH} w-auto object-contain`}
+        style={{ mixBlendMode: "multiply", filter: dark ? "brightness(0) invert(1)" : "none" }}
+      />
+    </div>
+  );
 }
 
 export default function Layout({ children, currentPageName }) {
