@@ -37,7 +37,7 @@ function ThotLogo({ dark = false, size = "md" }) {
         src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
         alt="THOT"
         className={`${imgH} w-auto object-contain`}
-        style={dark ? { filter: "brightness(0) invert(1) drop-shadow(0 0 6px rgba(100,180,255,0.8))" } : {}}
+        style={dark ? { filter: "drop-shadow(0 0 8px rgba(100,180,255,0.9)) drop-shadow(0 0 2px rgba(255,255,255,0.6)) brightness(1.1)" } : {}}
       />
     </div>
   );
