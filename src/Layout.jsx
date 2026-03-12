@@ -29,13 +29,26 @@ const NAV_ITEMS = [
   { name: "Paramètres", page: "Settings", icon: Settings },
 ];
 
-function ThotLogo() {
+function ThotLogo({ dark = false }) {
   return (
-    <span className="font-heading font-bold text-xl tracking-tight">
-      <span style={{ color: "hsl(var(--primary))" }}>TH</span>
-      <span style={{ color: "hsl(var(--accent))", fontStyle: "italic", letterSpacing: "-0.05em" }}>O</span>
-      <span style={{ color: "hsl(var(--primary))" }}>T</span>
-    </span>
+    <div className="flex items-center gap-2">
+      {/* Icon mark */}
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-md ${dark ? "bg-white/10 border border-white/20" : "bg-gradient-to-br from-primary to-accent"}`}>
+        <img
+          src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/610b99afd_generated_image.png"
+          alt="THOT"
+          className="w-6 h-6 object-contain"
+          onError={e => { e.target.style.display = "none"; e.target.parentNode.innerHTML = '<span class="text-white font-black text-sm">T</span>'; }}
+        />
+      </div>
+      {/* Wordmark */}
+      <span className={`font-heading font-black text-xl tracking-tight ${dark ? "text-white" : ""}`}>
+        <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>TH</span>
+        <span style={{ color: "hsl(var(--accent))", fontStyle: "italic", letterSpacing: "-0.04em" }}>O</span>
+        <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>T</span>
+        <span className="text-xs font-normal tracking-wide ml-1.5 opacity-60 align-middle hidden sm:inline">Le Strava du savoir</span>
+      </span>
+    </div>
   );
 }
 
