@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
-  Twitter, Instagram
+  Twitter, Instagram, Swords, Brain, Flame, Users, Map
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
