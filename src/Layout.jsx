@@ -32,12 +32,11 @@ const NAV_ITEMS = [
 function ThotLogo({ dark = false, size = "md" }) {
   const imgH = size === "lg" ? "h-10" : "h-8";
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center ${dark ? "bg-white px-2 py-1 rounded-lg" : ""}`}>
       <img
-        src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/528408be4_generated_image.png"
+        src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
         alt="THOT"
         className={`${imgH} w-auto object-contain`}
-        style={{ mixBlendMode: "multiply", filter: dark ? "brightness(0) invert(1)" : "none" }}
       />
     </div>
   );
