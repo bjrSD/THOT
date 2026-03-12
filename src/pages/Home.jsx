@@ -100,9 +100,10 @@ export default function Home() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-6"
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-6 border border-accent/20"
               >
-                <Zap className="w-4 h-4" /> Le Strava du savoir
+                <AnimatedOrb />
+                <span>Le Strava du savoir — v2.0</span>
               </motion.div>
 
               <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6">
@@ -208,6 +209,141 @@ export default function Home() {
                   🔥 +25 KP !
                 </motion.div>
               </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SOCIAL FEATURES GRID ===== */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Zap className="w-4 h-4" /> Nouvelles fonctionnalités v2.0
+            </div>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Apprenez, compétez, progressez</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">THOT est devenu une vraie plateforme sociale de la connaissance.</p>
+          </motion.div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {SOCIAL_FEATURES.map((feat, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <Link to={createPageUrl(feat.page)}>
+                  <div className="group bg-card border border-border rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full hover:border-accent/30">
+                    <div className={`w-14 h-14 rounded-2xl ${feat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <feat.icon className={`w-7 h-7 ${feat.color}`} />
+                    </div>
+                    <h3 className="font-heading font-bold text-lg mb-1">{feat.label}</h3>
+                    <p className="text-sm text-muted-foreground">{feat.desc}</p>
+                    <div className={`mt-4 flex items-center gap-1 text-sm font-medium ${feat.color}`}>
+                      Découvrir <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== DUEL PREVIEW ===== */}
+      <section className="py-20 md:py-28 bg-secondary/30">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+              <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-500 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                <Swords className="w-4 h-4" /> Duels de savoir
+              </div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+                Défie tes amis.<br /><span className="text-accent">Le plus actif gagne.</span>
+              </h2>
+              <p className="text-muted-foreground mb-6 leading-relaxed">Lance un duel sur 7 jours. Chaque livre lu, chaque podcast terminé rapporte des KP. Résultat le dimanche soir — gagnant décroche un badge et des bonus KP.</p>
+              <Link to={createPageUrl("Duels")}>
+                <Button className="gap-2"><Swords className="w-4 h-4" /> Lancer un duel</Button>
+              </Link>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <div className="bg-card rounded-2xl border border-border p-6 shadow-xl">
+                <div className="flex items-center gap-2 mb-5">
+                  <Swords className="w-5 h-5 text-red-500" />
+                  <span className="font-semibold">Duel en cours — 3 jours restants</span>
+                </div>
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="flex-1 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-xl mx-auto mb-2">K</div>
+                    <p className="font-semibold text-sm">Karim</p>
+                    <p className="text-2xl font-black text-accent">340</p>
+                    <p className="text-xs text-muted-foreground">KP 🏆</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-2xl">⚔️</span>
+                    <span className="text-xs font-bold text-muted-foreground">VS</span>
+                  </div>
+                  <div className="flex-1 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-secondary to-muted flex items-center justify-center font-black text-xl mx-auto mb-2">M</div>
+                    <p className="font-semibold text-sm">Marie</p>
+                    <p className="text-2xl font-black">280</p>
+                    <p className="text-xs text-muted-foreground">KP</p>
+                  </div>
+                </div>
+                <div className="h-3 rounded-full bg-secondary overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: "55%" }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground mt-1.5">
+                  <span>🏆 Karim mène (+60 KP)</span>
+                  <span>3j restants</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== LEADERBOARD PREVIEW ===== */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="order-2 md:order-1">
+              <div className="bg-card rounded-2xl border border-border p-6 shadow-xl space-y-3">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  <span className="font-semibold">Top cerveaux — cette semaine</span>
+                </div>
+                {[
+                  { rank: "🥇", name: "Marie D.", kp: 5420, streak: 42, badge: "Polymathe 🧠" },
+                  { rank: "🥈", name: "Karim B.", kp: 4980, streak: 31, badge: "Érudit 🎓" },
+                  { rank: "🥉", name: "Sophie L.", kp: 4210, streak: 28, badge: "Érudit 🎓" },
+                  { rank: "#4", name: "Lucas M.", kp: 3890, streak: 15, badge: "Penseur 💭" },
+                ].map((u, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -15 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
+                    <span className="text-lg w-8 text-center">{u.rank}</span>
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold">{u.name[0]}</div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{u.name}</p>
+                      <p className="text-xs text-muted-foreground">{u.badge} · 🔥 {u.streak}j</p>
+                    </div>
+                    <span className="font-black text-accent text-sm">{u.kp.toLocaleString()} KP</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="order-1 md:order-2">
+              <div className="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-600 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                <Trophy className="w-4 h-4" /> Classement mondial
+              </div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+                Qui est le plus<br /><span className="text-accent">grand penseur ?</span>
+              </h2>
+              <p className="text-muted-foreground mb-6 leading-relaxed">Le classement est calculé selon vos KP, la diversité de vos lectures, la régularité et la difficulté des contenus. Chaque semaine, un nouveau champion.</p>
+              <Link to={createPageUrl("Leaderboard")}>
+                <Button variant="outline" className="gap-2"><Trophy className="w-4 h-4" /> Voir le classement</Button>
+              </Link>
             </motion.div>
           </div>
         </div>
