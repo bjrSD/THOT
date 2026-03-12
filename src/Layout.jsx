@@ -79,7 +79,7 @@ export default function Layout({ children, currentPageName }) {
         <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1628]/90 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <Link to={createPageUrl("Home")}>
-              <ThotLogo dark />
+              <ThotLogo dark size="lg" />
             </Link>
             <div className="hidden md:flex items-center gap-6">
               {[
@@ -203,11 +203,8 @@ export default function Layout({ children, currentPageName }) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border flex-col z-40">
         <div className="h-16 px-6 flex items-center border-b border-border">
-          <Link to={createPageUrl("Home")} className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">T</span>
-            </div>
-            <ThotLogo />
+          <Link to={createPageUrl("Home")} className="flex items-center">
+            <ThotLogo size="lg" />
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
