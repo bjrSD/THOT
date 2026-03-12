@@ -6,6 +6,12 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import Duels from './pages/Duels';
+import Leaderboard from './pages/Leaderboard';
+import BrainMap from './pages/BrainMap';
+import PublicProfile from './pages/PublicProfile';
+import Heatmap from './pages/Heatmap';
+import Clubs from './pages/Clubs';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
