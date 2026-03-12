@@ -280,7 +280,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </SheetContent>
         </Sheet>
-        <ThotLogo />
+        <ThotLogo size="lg" />
         <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
           <Plus className="w-5 h-5" />
         </Button>
