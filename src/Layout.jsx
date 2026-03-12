@@ -85,13 +85,10 @@ export default function Layout({ children, currentPageName }) {
   if (isLanding) {
     return (
       <>
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1628]/90 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <Link to={createPageUrl("Home")} className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">T</span>
-              </div>
-              <ThotLogo />
+            <Link to={createPageUrl("Home")}>
+              <ThotLogo dark />
             </Link>
             <div className="hidden md:flex items-center gap-6">
               {[
