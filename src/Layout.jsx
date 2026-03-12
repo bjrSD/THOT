@@ -5,42 +5,42 @@ import { base44 } from "@/api/base44Client";
 import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
-  Twitter, Instagram, Swords, Brain, Flame, Users, Map
-} from "lucide-react";
+  Twitter, Instagram, Swords, Brain, Flame, Users, Map } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import QuickAddModal from "@/components/shared/QuickAddModal";
 import ChatBot from "@/components/shared/ChatBot";
 
 const NAV_ITEMS = [
-  { name: "Accueil", page: "Home", icon: Home },
-  { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
-  { name: "Bibliothèque", page: "Library", icon: Library },
-  { name: "Défis", page: "Challenges", icon: Trophy },
-  { name: "Duels", page: "Duels", icon: Swords },
-  { name: "Classement", page: "Leaderboard", icon: Crown },
-  { name: "Carte Cerveau", page: "BrainMap", icon: Brain },
-  { name: "Heatmap", page: "Heatmap", icon: Flame },
-  { name: "Clubs", page: "Clubs", icon: Users },
-  { name: "Découvrir", page: "Discover", icon: Compass },
-  { name: "Feed", page: "Feed", icon: MessageCircle },
-  { name: "Mon Profil", page: "PublicProfile", icon: User },
-  { name: "Intégrations", page: "Integrations", icon: Zap },
-  { name: "Paramètres", page: "Settings", icon: Settings },
-];
+{ name: "Accueil", page: "Home", icon: Home },
+{ name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
+{ name: "Bibliothèque", page: "Library", icon: Library },
+{ name: "Défis", page: "Challenges", icon: Trophy },
+{ name: "Duels", page: "Duels", icon: Swords },
+{ name: "Classement", page: "Leaderboard", icon: Crown },
+{ name: "Carte Cerveau", page: "BrainMap", icon: Brain },
+{ name: "Heatmap", page: "Heatmap", icon: Flame },
+{ name: "Clubs", page: "Clubs", icon: Users },
+{ name: "Découvrir", page: "Discover", icon: Compass },
+{ name: "Feed", page: "Feed", icon: MessageCircle },
+{ name: "Mon Profil", page: "PublicProfile", icon: User },
+{ name: "Intégrations", page: "Integrations", icon: Zap },
+{ name: "Paramètres", page: "Settings", icon: Settings }];
+
 
 function ThotLogo({ dark = false }) {
   return (
     <div className="flex items-center gap-2">
       {/* Icon mark */}
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-md ${dark ? "bg-white/10 border border-white/20" : "bg-gradient-to-br from-primary to-accent"}`}>
-        <img
-          src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/610b99afd_generated_image.png"
-          alt="THOT"
-          className="w-6 h-6 object-contain"
-          onError={e => { e.target.style.display = "none"; e.target.parentNode.innerHTML = '<span class="text-white font-black text-sm">T</span>'; }}
-        />
-      </div>
+      
+
+
+
+
+
+
+
       {/* Wordmark */}
       <span className={`font-heading font-black text-xl tracking-tight ${dark ? "text-white" : ""}`}>
         <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>TH</span>
@@ -48,8 +48,8 @@ function ThotLogo({ dark = false }) {
         <span className={dark ? "text-white" : ""} style={{ color: dark ? undefined : "hsl(var(--primary))" }}>T</span>
         <span className="text-xs font-normal tracking-wide ml-1.5 opacity-60 align-middle hidden sm:inline">Le Strava du savoir</span>
       </span>
-    </div>
-  );
+    </div>);
+
 }
 
 export default function Layout({ children, currentPageName }) {
@@ -63,9 +63,9 @@ export default function Layout({ children, currentPageName }) {
     // Apply saved theme
     const saved = localStorage.getItem("thot-theme") || "auto";
     const root = document.documentElement;
-    if (saved === "dark") root.classList.add("dark");
-    else if (saved === "light") root.classList.remove("dark");
-    else {
+    if (saved === "dark") root.classList.add("dark");else
+    if (saved === "light") root.classList.remove("dark");else
+    {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       if (prefersDark) root.classList.add("dark");
     }
@@ -74,13 +74,13 @@ export default function Layout({ children, currentPageName }) {
   const isLanding = currentPageName === "Home";
 
   const FOOTER_LEGAL_LINKS = [
-    { name: "À propos", page: "About" },
-    { name: "FAQ", page: "FAQ" },
-    { name: "Support", page: "Support" },
-    { name: "Confidentialité", page: "Privacy" },
-    { name: "CGU", page: "Terms" },
-    { name: "Premium", page: "Premium" },
-  ];
+  { name: "À propos", page: "About" },
+  { name: "FAQ", page: "FAQ" },
+  { name: "Support", page: "Support" },
+  { name: "Confidentialité", page: "Privacy" },
+  { name: "CGU", page: "Terms" },
+  { name: "Premium", page: "Premium" }];
+
 
   if (isLanding) {
     return (
@@ -92,19 +92,19 @@ export default function Layout({ children, currentPageName }) {
             </Link>
             <div className="hidden md:flex items-center gap-6">
               {[
-                { name: "Découvrir", page: "Discover" },
-                { name: "Intégrations", page: "Integrations" },
-                { name: "Premium", page: "Premium" },
-                { name: "À propos", page: "About" },
-              ].map(item => (
-                <Link key={item.page} to={createPageUrl(item.page)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              { name: "Découvrir", page: "Discover" },
+              { name: "Intégrations", page: "Integrations" },
+              { name: "Premium", page: "Premium" },
+              { name: "À propos", page: "About" }].
+              map((item) =>
+              <Link key={item.page} to={createPageUrl(item.page)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   {item.name}
                 </Link>
-              ))}
+              )}
             </div>
             <div className="flex items-center gap-2">
-              {isAuth ? (
-                <>
+              {isAuth ?
+              <>
                   <Link to={createPageUrl("Dashboard")}>
                     <Button size="sm" variant="outline">Dashboard</Button>
                   </Link>
@@ -113,9 +113,9 @@ export default function Layout({ children, currentPageName }) {
                       <Crown className="w-4 h-4 mr-1.5" /> Premium
                     </Button>
                   </Link>
-                </>
-              ) : (
-                <>
+                </> :
+
+              <>
                   <Button variant="ghost" size="sm" onClick={() => base44.auth.redirectToLogin()}>
                     <LogIn className="w-4 h-4 mr-1.5" />
                     Se connecter
@@ -124,7 +124,7 @@ export default function Layout({ children, currentPageName }) {
                     S'inscrire
                   </Button>
                 </>
-              )}
+              }
             </div>
           </div>
         </header>
@@ -157,25 +157,25 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h4 className="font-semibold text-sm mb-3">Produit</h4>
                 <ul className="space-y-2">
-                  {[{n:"Fonctionnalités",p:"Dashboard"},{n:"Intégrations",p:"Integrations"},{n:"Premium",p:"Premium"},{n:"Défis",p:"Challenges"}].map(l => (
-                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
-                  ))}
+                  {[{ n: "Fonctionnalités", p: "Dashboard" }, { n: "Intégrations", p: "Integrations" }, { n: "Premium", p: "Premium" }, { n: "Défis", p: "Challenges" }].map((l) =>
+                  <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  )}
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold text-sm mb-3">Entreprise</h4>
                 <ul className="space-y-2">
-                  {[{n:"À propos",p:"About"},{n:"FAQ",p:"FAQ"},{n:"Support",p:"Support"},{n:"Blog",p:"About"}].map(l => (
-                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
-                  ))}
+                  {[{ n: "À propos", p: "About" }, { n: "FAQ", p: "FAQ" }, { n: "Support", p: "Support" }, { n: "Blog", p: "About" }].map((l) =>
+                  <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  )}
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold text-sm mb-3">Légal</h4>
                 <ul className="space-y-2">
-                  {[{n:"Confidentialité",p:"Privacy"},{n:"CGU",p:"Terms"}].map(l => (
-                    <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
-                  ))}
+                  {[{ n: "Confidentialité", p: "Privacy" }, { n: "CGU", p: "Terms" }].map((l) =>
+                  <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -203,8 +203,8 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </footer>
         <ChatBot />
-      </>
-    );
+      </>);
+
   }
 
   return (
@@ -220,20 +220,20 @@ export default function Layout({ children, currentPageName }) {
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(item => {
+          {NAV_ITEMS.map((item) => {
             const isActive = currentPageName === item.page;
             return (
               <Link
                 key={item.page}
                 to={createPageUrl(item.page)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-              >
+                isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`
+                }>
+
                 <item.icon className="w-4.5 h-4.5 shrink-0" />
                 {item.name}
-              </Link>
-            );
+              </Link>);
+
           })}
         </nav>
         <div className="p-4 border-t border-border">
@@ -265,7 +265,7 @@ export default function Layout({ children, currentPageName }) {
               <ThotLogo />
             </div>
             <nav className="p-4 space-y-0.5">
-              {NAV_ITEMS.map(item => {
+              {NAV_ITEMS.map((item) => {
                 const isActive = currentPageName === item.page;
                 return (
                   <Link
@@ -273,13 +273,13 @@ export default function Layout({ children, currentPageName }) {
                     to={createPageUrl(item.page)}
                     onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                  >
+                    isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`
+                    }>
+
                     <item.icon className="w-4 h-4 shrink-0" />
                     {item.name}
-                  </Link>
-                );
+                  </Link>);
+
               })}
             </nav>
             <div className="p-4 border-t border-border">
@@ -309,17 +309,17 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Floating action button (desktop) */}
-      {isAuth && (
-        <button
-          onClick={() => setShowQuickAdd(true)}
-          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center"
-        >
+      {isAuth &&
+      <button
+        onClick={() => setShowQuickAdd(true)}
+        className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center">
+
           <Plus className="w-6 h-6" />
         </button>
-      )}
+      }
 
       {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
       <ChatBot />
-    </div>
-  );
+    </div>);
+
 }
