@@ -8,6 +8,42 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } };
 
+function AnimatedOrb() {
+  return (
+    <div className="relative w-16 h-16 shrink-0">
+      {/* Outer rotating ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+        className="absolute inset-0 rounded-full border-2 border-dashed border-accent/40"
+      />
+      {/* Inner rotating ring opposite */}
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
+        className="absolute inset-2 rounded-full border border-primary/30"
+      />
+      {/* Pulsing core */}
+      <motion.div
+        animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
+        transition={{ repeat: Infinity, duration: 2.5 }}
+        className="absolute inset-3 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
+      >
+        <span className="text-white font-black text-lg leading-none">T</span>
+      </motion.div>
+      {/* Orbiting dot */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+        className="absolute inset-0"
+        style={{ transformOrigin: "center" }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 w-2 h-2 bg-accent rounded-full shadow-lg" />
+      </motion.div>
+    </div>
+  );
+}
+
 function ThotHero() {
   return (
     <span className="font-heading font-extrabold tracking-tight" style={{ fontSize: "inherit", lineHeight: "inherit" }}>
@@ -17,6 +53,15 @@ function ThotHero() {
     </span>
   );
 }
+
+const SOCIAL_FEATURES = [
+  { icon: Swords, label: "Duels de savoir", desc: "Défie tes amis sur 7 jours", color: "text-red-500", bg: "bg-red-500/10", page: "Duels" },
+  { icon: Crown, label: "Classement mondial", desc: "Top penseurs de la semaine", color: "text-yellow-500", bg: "bg-yellow-500/10", page: "Leaderboard" },
+  { icon: Brain, label: "Carte du cerveau", desc: "Visualise ton savoir", color: "text-purple-500", bg: "bg-purple-500/10", page: "BrainMap" },
+  { icon: Flame, label: "Heatmap annuelle", desc: "Chaque jour compte", color: "text-orange-500", bg: "bg-orange-500/10", page: "Heatmap" },
+  { icon: Users, label: "Clubs de savoir", desc: "Apprends en communauté", color: "text-blue-500", bg: "bg-blue-500/10", page: "Clubs" },
+  { icon: MessageCircle, label: "Feed social", desc: "Activités de tes amis", color: "text-green-500", bg: "bg-green-500/10", page: "Feed" },
+];
 
 const INTEGRATIONS = [
   { name: "Kindle", color: "#FF9900", emoji: "📱" },
