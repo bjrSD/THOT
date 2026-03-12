@@ -63,6 +63,12 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/Duels" element={<LayoutWrapper currentPageName="Duels"><Duels /></LayoutWrapper>} />
+      <Route path="/Leaderboard" element={<LayoutWrapper currentPageName="Leaderboard"><Leaderboard /></LayoutWrapper>} />
+      <Route path="/BrainMap" element={<LayoutWrapper currentPageName="BrainMap"><BrainMap /></LayoutWrapper>} />
+      <Route path="/PublicProfile" element={<LayoutWrapper currentPageName="PublicProfile"><PublicProfile /></LayoutWrapper>} />
+      <Route path="/Heatmap" element={<LayoutWrapper currentPageName="Heatmap"><Heatmap /></LayoutWrapper>} />
+      <Route path="/Clubs" element={<LayoutWrapper currentPageName="Clubs"><Clubs /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
