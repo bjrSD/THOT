@@ -127,10 +127,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
               <div className="col-span-2 md:col-span-1">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                    <span className="text-primary-foreground font-bold text-xs">T</span>
-                  </div>
-                  <ThotLogo />
+                  <ThotLogo size="lg" />
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">Le Strava du savoir. Suivez, progressez, brillez.</p>
                 <div className="flex gap-3">
@@ -250,7 +247,7 @@ export default function Layout({ children, currentPageName }) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0">
             <div className="h-14 px-6 flex items-center border-b border-border">
-              <ThotLogo />
+              <ThotLogo size="lg" />
             </div>
             <nav className="p-4 space-y-0.5">
               {NAV_ITEMS.map((item) => {
