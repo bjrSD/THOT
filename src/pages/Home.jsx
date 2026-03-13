@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { motion } from "framer-motion";
-import { BookOpen, Headphones, Play, FileText, BarChart3, Trophy, Flame, Users, ArrowRight, Star, Zap, Target, Crown, Wifi, MessageCircle, Swords, Brain, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, Headphones, Play, FileText, BarChart3, Trophy, Flame, Users, ArrowRight, Star, Zap, Crown, Wifi, MessageCircle, Swords, Brain, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { base44 } from "@/api/base44Client";
@@ -17,13 +17,14 @@ const BOOKS = [
   { title: "Petit Pays", author: "Gaël Faye", cover: "https://images-na.ssl-images-amazon.com/images/I/61gFbg6yXjL.jpg" },
   { title: "Atomic Habits", author: "James Clear", cover: "https://images-na.ssl-images-amazon.com/images/I/91bYsX41DVL.jpg" },
   { title: "Sapiens", author: "Y.N. Harari", cover: "https://images-na.ssl-images-amazon.com/images/I/713jIoMO3UL.jpg" },
+  { title: "Thinking Fast", author: "D. Kahneman", cover: "https://images-na.ssl-images-amazon.com/images/I/71wvKXWfcML.jpg" },
 ];
 
 const FILMS = [
-  { title: "Human / Home", director: "Y. Arthus-Bertrand", emoji: "🌍", color: "#1a6b3c" },
-  { title: "Apocalypse WWII", director: "Série documentaire", emoji: "🎖️", color: "#7a2020" },
-  { title: "Un Prophète", director: "Jacques Audiard", emoji: "🎬", color: "#1a2a6c" },
-  { title: "Le Grand Bleu", director: "Luc Besson", emoji: "🌊", color: "#0d4e8a" },
+  { title: "Human / Home", director: "Yann Arthus-Bertrand", cover: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=300&q=80", color: "#1a6b3c" },
+  { title: "Apocalypse WWII", director: "Série documentaire", cover: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=300&q=80", color: "#7a2020" },
+  { title: "Un Prophète", director: "Jacques Audiard", cover: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?w=300&q=80", color: "#1a2a6c" },
+  { title: "Le Grand Bleu", director: "Luc Besson", cover: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=300&q=80", color: "#0d4e8a" },
 ];
 
 const SOCIAL_FEATURES = [
@@ -36,14 +37,14 @@ const SOCIAL_FEATURES = [
 ];
 
 const INTEGRATIONS = [
-  { name: "Kindle", color: "#FF9900", emoji: "📱" },
-  { name: "Spotify", color: "#1DB954", emoji: "🎵" },
-  { name: "YouTube", color: "#FF0000", emoji: "▶️" },
-  { name: "Netflix", color: "#E50914", emoji: "🎬" },
-  { name: "Les Échos", color: "#005BAA", emoji: "📰" },
-  { name: "Le Monde", color: "#555", emoji: "🗞️" },
-  { name: "Pocket", color: "#EF4056", emoji: "📌" },
-  { name: "Podcasts", color: "#A855F7", emoji: "🎙️" },
+  { name: "Kindle", color: "#FF9900", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/320px-Amazon_logo.svg.png", emoji: "📱" },
+  { name: "Spotify", color: "#1DB954", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/168px-Spotify_logo_without_text.svg.png", emoji: "🎵" },
+  { name: "Netflix", color: "#E50914", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/320px-Netflix_2015_logo.svg.png", emoji: "🎬" },
+  { name: "Les Échos", color: "#005BAA", logo: null, emoji: "📰" },
+  { name: "Le Monde", color: "#333", logo: null, emoji: "🗞️" },
+  { name: "YouTube", color: "#FF0000", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/159px-YouTube_full-color_icon_%282017%29.svg.png", emoji: "▶️" },
+  { name: "Podcasts", color: "#A855F7", logo: null, emoji: "🎙️" },
+  { name: "Pocket", color: "#EF4056", logo: null, emoji: "📌" },
 ];
 
 const LEADERBOARD_MOCK = {
@@ -73,70 +74,97 @@ const RANK_STYLES = [
   { badge: "🥉", color: "text-orange-400", border: "border-orange-500/40", bg: "bg-orange-500/10" },
 ];
 
-function BookCarousel() {
-  const [index, setIndex] = useState(0);
-  const visible = 4;
-  const max = BOOKS.length - visible;
-
+// Auth modal shown when clicking Se connecter / S'inscrire
+function AuthModal({ onClose }) {
   return (
-    <div className="relative">
-      <div className="overflow-hidden">
-        <motion.div
-          className="flex gap-4"
-          animate={{ x: -index * (120 + 16) }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {BOOKS.map((b, i) => (
-            <motion.div
-              key={i}
-              className="shrink-0 w-28 cursor-pointer"
-              whileHover={{ scale: 1.06, y: -6 }}
-              transition={{ type: "spring", stiffness: 400 }}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ background: "rgba(10,22,40,0.85)", backdropFilter: "blur(8px)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative rounded-3xl overflow-hidden shadow-2xl w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=700&q=80"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628]/85 via-[#0d1f3c]/75 to-[#0a1628]/70" />
+        <div className="relative p-8">
+          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+            <X className="w-4 h-4 text-white" />
+          </button>
+          <div className="text-center mb-6">
+            <p className="text-white/60 text-sm mb-1">Rejoignez la communauté</p>
+            <h2 className="text-white font-heading text-2xl font-bold">Créer un compte gratuit</h2>
+          </div>
+          <div className="space-y-3 mb-5">
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="w-full flex items-center gap-3 bg-white text-gray-800 rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-gray-100 transition-all shadow-md"
             >
-              <div className="relative rounded-xl overflow-hidden shadow-xl" style={{ perspective: "600px" }}>
-                <img
-                  src={b.cover}
-                  alt={b.title}
-                  className="w-28 h-40 object-cover"
-                  onError={(e) => { e.target.src = `https://via.placeholder.com/112x160/1a2a4a/ffffff?text=${encodeURIComponent(b.title.slice(0,8))}`; }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              </div>
-              <p className="text-xs text-white/70 mt-1.5 truncate font-medium">{b.title}</p>
-              <p className="text-xs text-white/40 truncate">{b.author}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-      <div className="flex gap-2 mt-4">
-        <button onClick={() => setIndex(Math.max(0, index - 1))} disabled={index === 0}
-          className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center disabled:opacity-30 transition-all">
-          <ChevronLeft className="w-4 h-4 text-white" />
-        </button>
-        <button onClick={() => setIndex(Math.min(max, index + 1))} disabled={index >= max}
-          className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center disabled:opacity-30 transition-all">
-          <ChevronRight className="w-4 h-4 text-white" />
-        </button>
-      </div>
-    </div>
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+              <span className="flex-1 text-center">Continuer avec Apple</span>
+            </button>
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="w-full flex items-center gap-3 bg-white text-gray-800 rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-gray-100 transition-all shadow-md"
+            >
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <span className="flex-1 text-center">Continuer avec Google</span>
+            </button>
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="w-full flex items-center gap-3 bg-accent text-white rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-accent/90 transition-all shadow-md"
+            >
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <span className="flex-1 text-center">Continuer avec Email</span>
+            </button>
+          </div>
+          <p className="text-center text-white/40 text-xs">
+            Déjà un compte ?{" "}
+            <button onClick={() => base44.auth.redirectToLogin()} className="text-accent underline">Se connecter</button>
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
 export default function Home() {
-  const [lbTab, setLbTab] = React.useState("week");
+  const [lbTab, setLbTab] = useState("week");
+  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <div className="bg-background overflow-x-hidden">
+      <AnimatePresence>
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      </AnimatePresence>
 
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden min-h-screen flex items-center"
         style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0f2547 100%)" }}>
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&q=80"
-            alt=""
-            className="w-full h-full object-cover opacity-20"
-          />
+          <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&q=80" alt=""
+            className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628] via-[#0a1628]/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent" />
         </div>
@@ -149,14 +177,12 @@ export default function Home() {
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/20 text-accent text-sm font-medium mb-5 border border-accent/30">
                 <Zap className="w-4 h-4" /> Le Strava du savoir — v2.0
               </motion.div>
-
               <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-5 text-white">
                 Devenez plus<br /><span className="text-accent">intelligent</span><br />chaque jour
               </h1>
               <p className="text-lg md:text-xl text-white/60 max-w-lg leading-relaxed mb-6">
                 Suivez vos livres, podcasts et vidéos. Progressez, dépassez vos amis, gagnez des Knowledge Points.
               </p>
-
               <div className="flex gap-5 mb-6">
                 {[{icon: BookOpen, label:"Livres"},{icon: Headphones, label:"Podcasts"},{icon: FileText, label:"Articles"},{icon: Play, label:"Vidéos"}].map(({icon: Icon, label}) => (
                   <div key={label} className="flex flex-col items-center gap-1">
@@ -167,10 +193,9 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <Button size="lg" className="h-12 px-8 text-base group bg-accent hover:bg-accent/90 text-white"
-                  onClick={() => base44.auth.redirectToLogin()}>
+                  onClick={() => setShowAuth(true)}>
                   Commencer gratuitement
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -180,7 +205,6 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
-
               <div className="flex items-center gap-6 text-sm text-white/50">
                 <div className="flex items-center gap-1.5">
                   <div className="flex -space-x-2">
@@ -199,71 +223,92 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Right — Auth block Strava-style */}
+            {/* Right — Dashboard mockup (original style) */}
             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.8 }}>
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=700&q=80"
-                  alt="Lecture passionnée"
-                  className="w-full h-full object-cover absolute inset-0"
-                  style={{ minHeight: "480px" }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628]/80 via-[#0d1f3c]/70 to-[#0a1628]/60 backdrop-blur-[1px]" />
-                <div className="relative p-8 min-h-[480px] flex flex-col justify-center">
-                  <div className="text-center mb-6">
-                    <p className="text-white/60 text-sm mb-1">Rejoignez la communauté</p>
-                    <h2 className="text-white font-heading text-2xl font-bold">Créer un compte gratuit</h2>
+              <div className="relative">
+                <div className="bg-[#0d1f3c]/90 backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="font-bold text-white text-sm">Tableau de bord — Cette semaine</p>
+                    </div>
+                    <span className="text-xs bg-orange-500/20 text-orange-400 px-2.5 py-1 rounded-full font-medium">🔥 12j Streak</span>
                   </div>
 
-                  {/* Social login buttons */}
-                  <div className="space-y-3 mb-5">
-                    <button
-                      onClick={() => base44.auth.redirectToLogin()}
-                      className="w-full flex items-center gap-3 bg-white text-gray-800 rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-gray-100 transition-all shadow-md"
-                    >
-                      {/* Apple logo */}
-                      <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                      </svg>
-                      <span className="flex-1 text-center">Continuer avec Apple</span>
-                    </button>
-
-                    <button
-                      onClick={() => base44.auth.redirectToLogin()}
-                      className="w-full flex items-center gap-3 bg-white text-gray-800 rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-gray-100 transition-all shadow-md"
-                    >
-                      {/* Google logo */}
-                      <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                      </svg>
-                      <span className="flex-1 text-center">Continuer avec Google</span>
-                    </button>
-
-                    <button
-                      onClick={() => base44.auth.redirectToLogin()}
-                      className="w-full flex items-center gap-3 bg-accent text-white rounded-xl px-5 py-3.5 font-semibold text-sm hover:bg-accent/90 transition-all shadow-md"
-                    >
-                      <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                      <span className="flex-1 text-center">Continuer avec Email</span>
-                    </button>
+                  {/* Heatmap mini */}
+                  <div className="mb-4">
+                    <p className="text-xs text-white/40 mb-2">Streak</p>
+                    <div className="grid grid-cols-7 gap-1">
+                      {Array.from({length: 28}).map((_, i) => {
+                        const intensity = [0,1,2,3][Math.floor(Math.abs(Math.sin(i * 7.3)) * 4)];
+                        const colors = ["bg-white/5","bg-accent/20","bg-accent/50","bg-accent"];
+                        return <div key={i} className={`h-4 rounded-sm ${colors[intensity]}`} />;
+                      })}
+                    </div>
+                    <div className="flex justify-between text-xs text-white/30 mt-1">
+                      {["Jan","Fév","Mar","Avr","Mai","Jun","Jul"].map(m=><span key={m}>{m}</span>)}
+                    </div>
                   </div>
 
-                  <p className="text-center text-white/40 text-xs">
-                    Déjà un compte ?{" "}
-                    <button onClick={() => base44.auth.redirectToLogin()} className="text-accent underline">Se connecter</button>
-                  </p>
+                  {/* KP chart */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-white/40">KP</p>
+                      <p className="text-xs text-accent font-bold">▲ KP</p>
+                    </div>
+                    <div className="flex items-end gap-1 h-12">
+                      {[30,50,25,70,45,80,60].map((h,i) => (
+                        <motion.div key={i} initial={{height:0}} animate={{height:`${h}%`}}
+                          transition={{delay:0.6+i*0.07,duration:0.4}}
+                          className="flex-1 bg-accent/70 rounded-t-sm" style={{height:`${h}%`}} />
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-xs text-white/30 mt-1">
+                      {["L","M","M","J","V","S","D"].map((d,i)=><span key={i}>{d}</span>)}
+                    </div>
+                  </div>
 
-                  <p className="text-center text-white/25 text-xs mt-3">
-                    En vous inscrivant, vous acceptez nos{" "}
-                    <Link to={createPageUrl("Terms")} className="underline hover:text-white/40">CGU</Link>
-                  </p>
+                  {/* Library — Books */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-white/40 font-medium">📚 Bibliothèque</p>
+                      <Link to={createPageUrl("Library")} className="text-xs text-accent">Voir tout →</Link>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {BOOKS.slice(0, 6).map((b, i) => (
+                        <div key={i} className="shrink-0 w-12">
+                          <img src={b.cover} alt={b.title}
+                            className="w-12 h-16 object-cover rounded-lg shadow-md"
+                            onError={e => { e.target.style.background='#1a2a4a'; e.target.style.display='block'; }} />
+                          <p className="text-xs text-white/50 mt-1 truncate">{b.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Films */}
+                  <div>
+                    <p className="text-xs text-white/40 font-medium mb-2">🎬 Films & Docs</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {FILMS.map((f, i) => (
+                        <div key={i} className="shrink-0 w-16">
+                          <div className="w-16 h-10 rounded-lg overflow-hidden shadow-md">
+                            <img src={f.cover} alt={f.title} className="w-full h-full object-cover" />
+                          </div>
+                          <p className="text-xs text-white/50 mt-1 truncate">{f.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                <motion.div animate={{ y: [-4,4,-4] }} transition={{ repeat: Infinity, duration: 3 }}
+                  className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 rounded-xl px-3 py-1.5 shadow-lg text-xs font-bold">
+                  🏆 Badge gagné !
+                </motion.div>
+                <motion.div animate={{ y: [4,-4,4] }} transition={{ repeat: Infinity, duration: 3.5, delay: 0.5 }}
+                  className="absolute -bottom-3 -left-3 bg-orange-500 text-white rounded-xl px-3 py-1.5 shadow-lg text-xs font-bold">
+                  🔥 +25 KP !
+                </motion.div>
               </div>
             </motion.div>
           </div>
@@ -301,51 +346,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== CATALOGUE — Books + Films ===== */}
-      <section className="py-14 md:py-20 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
-        {/* background ambiance */}
-        <div className="absolute inset-0 opacity-10">
-          <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1400&q=60" alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-8">
-            <div className="inline-flex items-center gap-2 bg-accent/20 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-3">
-              <BookOpen className="w-4 h-4" /> Catalogue THOT
-            </div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-2">Les incontournables</h2>
-            <p className="text-white/50">Livres primés, documentaires et films cultes</p>
-          </motion.div>
-
-          {/* Books Carousel */}
-          <div className="mb-10">
-            <p className="text-white/60 text-sm font-semibold uppercase tracking-wider mb-4">📚 Livres</p>
-            <BookCarousel />
-          </div>
-
-          {/* Films grid */}
-          <div>
-            <p className="text-white/60 text-sm font-semibold uppercase tracking-wider mb-4">🎬 Films & Documentaires</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {FILMS.map((f, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.04, y: -4 }}>
-                  <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl cursor-pointer"
-                    style={{ background: `linear-gradient(135deg, ${f.color}cc, ${f.color}44)` }}>
-                    <div className="p-6 text-center">
-                      <span className="text-5xl block mb-3">{f.emoji}</span>
-                      <p className="font-bold text-white text-sm leading-tight">{f.title}</p>
-                      <p className="text-white/50 text-xs mt-1">{f.director}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== LEADERBOARD PREVIEW ===== */}
+      {/* ===== LEADERBOARD ===== */}
       <section className="py-14 md:py-20"
         style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
         <div className="max-w-7xl mx-auto px-4">
@@ -360,33 +361,15 @@ export default function Home() {
               <p className="text-white/60 mb-5 leading-relaxed">
                 Le classement change chaque semaine. Chaque livre, podcast ou article terminé rapporte des KP. Montez dans le classement !
               </p>
-
-              {/* Community quote */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-5">
                 <p className="text-white/80 text-sm italic leading-relaxed">
                   "Motivation garantie par la communauté. Suivez vos progrès et encouragez-vous les uns les autres. Rejoignez gratuitement plus de 100 millions d'esprits actifs sur THOT."
                 </p>
               </div>
-
-              {/* Real people photos */}
-              <div className="flex gap-3 mb-5">
-                {[
-                  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&h=120&fit=crop&crop=face",
-                  "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&h=120&fit=crop&crop=face",
-                  "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=120&h=120&fit=crop&crop=face",
-                ].map((src, i) => (
-                  <img key={i} src={src} className="w-16 h-16 rounded-xl object-cover border-2 border-accent/30" />
-                ))}
-                <div className="w-16 h-16 rounded-xl bg-accent/20 border-2 border-accent/30 flex items-center justify-center">
-                  <span className="text-accent text-xs font-bold">+99M</span>
-                </div>
-              </div>
-
               <Link to={createPageUrl("Leaderboard")}>
                 <Button className="gap-2 bg-accent hover:bg-accent/90 text-white"><Trophy className="w-4 h-4" /> Voir le classement complet</Button>
               </Link>
             </motion.div>
-
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
               <div className="bg-[#0d1f3c] rounded-2xl border border-white/10 p-5 shadow-2xl">
                 <h3 className="font-bold text-white mb-4 text-center">Classement des cerveaux</h3>
@@ -507,7 +490,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { icon: BookOpen, title: "1. Ajouter", desc: "Livres, podcasts, articles ou vidéos en quelques secondes.", color: "bg-primary/10 text-primary", num: "01",
-                img: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80" },
+                img: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/1c1b836e9_generated_image.png" },
               { icon: BarChart3, title: "2. Suivre", desc: "Graphiques, heatmaps et statistiques avancées pour visualiser ta progression.", color: "bg-accent/10 text-accent", num: "02",
                 img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80" },
               { icon: Trophy, title: "3. Progresser", desc: "Badges, streaks et classements parmi vos amis.", color: "bg-green-500/10 text-green-500", num: "03",
@@ -549,8 +532,13 @@ export default function Home() {
               <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.08 }} whileHover={{ scale: 1.1, y: -4 }}
                 className="flex flex-col items-center gap-2">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-md border border-border bg-card"
-                  style={{ backgroundColor: app.color + "15" }}>{app.emoji}</div>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border border-border bg-card overflow-hidden"
+                  style={{ backgroundColor: app.color + "15" }}>
+                  {app.logo ? (
+                    <img src={app.logo} alt={app.name} className="w-8 h-8 object-contain" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                  ) : null}
+                  <span className={`text-2xl ${app.logo ? 'hidden' : 'block'}`}>{app.emoji}</span>
+                </div>
                 <span className="text-xs text-muted-foreground text-center">{app.name}</span>
               </motion.div>
             ))}
@@ -619,7 +607,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="h-12 px-8 text-base bg-accent hover:bg-accent/90 text-white group"
-                onClick={() => base44.auth.redirectToLogin()}>
+                onClick={() => setShowAuth(true)}>
                 Commencer gratuitement
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
