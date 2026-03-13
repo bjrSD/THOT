@@ -65,6 +65,27 @@ const RANK_STYLES = [
   { badge: "🥉", color: "text-orange-400", border: "border-orange-500/40", bg: "bg-orange-500/10" },
 ];
 
+// Stats mock
+const VOCAB_STATS = [
+  { label: "Total de mots assimilés", value: "2 700", trend: +12, icon: BookOpen, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { label: "Taille du vocabulaire", value: "1 695", trend: +8, icon: Brain, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { label: "Nouveaux mots", value: "97", trend: +23, icon: Zap, color: "text-green-400", bg: "bg-green-500/10" },
+];
+
+// Capital Savoir 30 jours
+const CAPITAL_DATA = Array.from({ length: 30 }, (_, i) => ({
+  day: i + 1,
+  kp: Math.round(1200 + i * 42 + Math.sin(i * 0.7) * 120 + Math.random() * 80),
+}));
+
+// Répartition consommation
+const CONSOMMATION_DATA = [
+  { name: "Romans Français", value: 40, color: "#a855f7" },
+  { name: "Documentaires", value: 30, color: "#3b82f6" },
+  { name: "Dév. Personnel", value: 20, color: "#10b981" },
+  { name: "Cinéma", value: 10, color: "#f59e0b" },
+];
+
 export default function Home() {
   const [lbTab, setLbTab] = React.useState("week");
 
