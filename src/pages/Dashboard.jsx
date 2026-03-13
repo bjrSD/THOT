@@ -11,7 +11,6 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import StreakAlert from "@/components/dashboard/StreakAlert";
 import DailyChallenge from "@/components/dashboard/DailyChallenge";
 import Suggestions from "@/components/dashboard/Suggestions";
-import KnowledgeStats from "@/components/dashboard/KnowledgeStats";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -44,7 +43,7 @@ export default function Dashboard() {
     <div className="space-y-5">
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">
-          Bonjour, {user.full_name?.split(" ")[0] || "James"} 👋
+          Bonjour, {user.full_name?.split(" ")[0] || "apprenant"} 👋
         </h1>
         <p className="text-muted-foreground mt-0.5">Votre progression d'apprentissage</p>
       </div>
@@ -71,9 +70,6 @@ export default function Dashboard() {
         <RadarDomains user={user} />
         <ActivityFeed activities={activities} />
       </div>
-
-      {/* Knowledge analytics */}
-      <KnowledgeStats />
 
       <div className="grid lg:grid-cols-2 gap-5">
         <Suggestions contents={contents} />
