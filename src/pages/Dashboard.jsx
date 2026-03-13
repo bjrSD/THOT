@@ -44,7 +44,7 @@ export default function Dashboard() {
     <div className="space-y-5">
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">
-          Bonjour, {user.full_name?.split(" ")[0] || "apprenant"} 👋
+          Bonjour, {user.full_name?.split(" ")[0] || "James"} 👋
         </h1>
         <p className="text-muted-foreground mt-0.5">Votre progression d'apprentissage</p>
       </div>
