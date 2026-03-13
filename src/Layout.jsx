@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 { name: "Paramètres", page: "Settings", icon: Settings }];
 
 
-function ThotLogo({ dark = false, size = "md" }) {
+function ThotLogo({ size = "md" }) {
   const imgH = size === "lg" ? "h-10" : "h-8";
   return (
     <div className="flex items-center">
@@ -37,7 +37,7 @@ function ThotLogo({ dark = false, size = "md" }) {
         src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
         alt="THOT"
         className={`${imgH} w-auto object-contain`}
-        style={dark ? { filter: "brightness(0) invert(1) drop-shadow(0 0 6px rgba(100,180,255,0.8))" } : {}}
+        style={{ filter: "brightness(0) invert(1) drop-shadow(0 0 6px rgba(100,180,255,0.8))" }}
       />
     </div>
   );
@@ -54,9 +54,9 @@ export default function Layout({ children, currentPageName }) {
     // Apply saved theme
     const saved = localStorage.getItem("thot-theme") || "auto";
     const root = document.documentElement;
-    if (saved === "dark") root.classList.add("dark");else
-    if (saved === "light") root.classList.remove("dark");else
-    {
+    if (saved === "dark") root.classList.add("dark");
+    else if (saved === "light") root.classList.remove("dark");
+    else {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       if (prefersDark) root.classList.add("dark");
     }
@@ -79,7 +79,7 @@ export default function Layout({ children, currentPageName }) {
         <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1628]/90 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <Link to={createPageUrl("Home")}>
-              <ThotLogo dark size="lg" />
+              <ThotLogo size="lg" />
             </Link>
             <div className="hidden md:flex items-center gap-6">
               {[
@@ -88,7 +88,7 @@ export default function Layout({ children, currentPageName }) {
               { name: "Premium", page: "Premium" },
               { name: "À propos", page: "About" }].
               map((item) =>
-              <Link key={item.page} to={createPageUrl(item.page)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link key={item.page} to={createPageUrl(item.page)} className="text-sm text-white/60 hover:text-white transition-colors">
                   {item.name}
                 </Link>
               )}
@@ -105,7 +105,6 @@ export default function Layout({ children, currentPageName }) {
                     </Button>
                   </Link>
                 </> :
-
               <>
                   <Button variant="ghost" size="sm" onClick={() => base44.auth.redirectToLogin()} className="text-white/80 hover:text-white hover:bg-white/10">
                     <LogIn className="w-4 h-4 mr-1.5" />
@@ -192,7 +191,6 @@ export default function Layout({ children, currentPageName }) {
         </footer>
         <ChatBot />
       </>);
-
   }
 
   return (
@@ -214,11 +212,9 @@ export default function Layout({ children, currentPageName }) {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`
                 }>
-
-                <item.icon className="w-4.5 h-4.5 shrink-0" />
+                <item.icon className="w-4 h-4 shrink-0" />
                 {item.name}
               </Link>);
-
           })}
         </nav>
         <div className="p-4 border-t border-border">
@@ -260,11 +256,9 @@ export default function Layout({ children, currentPageName }) {
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                     isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`
                     }>
-
                     <item.icon className="w-4 h-4 shrink-0" />
                     {item.name}
                   </Link>);
-
               })}
             </nav>
             <div className="p-4 border-t border-border">
@@ -298,7 +292,6 @@ export default function Layout({ children, currentPageName }) {
       <button
         onClick={() => setShowQuickAdd(true)}
         className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center">
-
           <Plus className="w-6 h-6" />
         </button>
       }
@@ -306,5 +299,4 @@ export default function Layout({ children, currentPageName }) {
       {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
       <ChatBot />
     </div>);
-
 }
