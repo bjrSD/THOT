@@ -72,6 +72,9 @@ export default function Dashboard() {
         <ActivityFeed activities={activities} />
       </div>
 
+      {/* Knowledge analytics */}
+      <KnowledgeStats />
+
       <div className="grid lg:grid-cols-2 gap-5">
         <Suggestions contents={contents} />
       </div>
