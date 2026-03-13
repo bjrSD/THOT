@@ -416,9 +416,9 @@ export default function Home() {
               { icon: BookOpen, title: "1. Ajouter", desc: "Livres, podcasts, articles ou vidéos en quelques secondes.", color: "bg-primary/10 text-primary", num: "01",
                 img: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/1c1b836e9_generated_image.png" },
               { icon: BarChart3, title: "2. Suivre", desc: "Graphiques, heatmaps et statistiques avancées.", color: "bg-accent/10 text-accent", num: "02",
-                img: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/d5ed49a03_generated_image.png" },
+               img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80" },
               { icon: Trophy, title: "3. Progresser", desc: "Badges, streaks et classements parmi vos amis.", color: "bg-green-500/10 text-green-500", num: "03",
-                img: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/2653a3e70_generated_image.png" },
+               img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&q=80" },
             ].map((step, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ delay: i * 0.15 }}>
                 <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full overflow-hidden">
