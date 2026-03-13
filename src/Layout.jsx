@@ -97,21 +97,21 @@ export default function Layout({ children, currentPageName }) {
               {isAuth ?
               <>
                   <Link to={createPageUrl("Dashboard")}>
-                    <Button size="sm" variant="outline">Dashboard</Button>
+                    <Button size="sm" variant="outline" className="border-white/30 text-white hover:bg-white/10">Dashboard</Button>
                   </Link>
                   <Link to={createPageUrl("Premium")}>
-                    <Button size="sm" className="bg-accent hover:bg-accent/90">
+                    <Button size="sm" className="bg-accent hover:bg-accent/90 text-white">
                       <Crown className="w-4 h-4 mr-1.5" /> Premium
                     </Button>
                   </Link>
                 </> :
 
               <>
-                  <Button variant="ghost" size="sm" onClick={() => base44.auth.redirectToLogin()}>
+                  <Button variant="ghost" size="sm" onClick={() => base44.auth.redirectToLogin()} className="text-white/80 hover:text-white hover:bg-white/10">
                     <LogIn className="w-4 h-4 mr-1.5" />
                     Se connecter
                   </Button>
-                  <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>
+                  <Button size="sm" onClick={() => base44.auth.redirectToLogin()} className="bg-accent hover:bg-accent/90 text-white">
                     S'inscrire
                   </Button>
                 </>
