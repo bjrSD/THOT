@@ -112,15 +112,14 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button size="lg" className="h-12 px-8 text-base group bg-accent hover:bg-accent/90 text-white"
-                  onClick={() => window.location.href = createPageUrl("Dashboard")}>
-                  Commencer gratuitement
+                  onClick={() => base44.auth.redirectToLogin()}>
+                  S'inscrire gratuitement
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Link to={createPageUrl("Premium")}>
-                  <Button variant="outline" size="lg" className="h-12 px-8 text-base gap-2 w-full border-white/20 text-white hover:bg-white/10">
-                    <Crown className="w-4 h-4 text-yellow-400" /> S'abonner
-                  </Button>
-                </Link>
+                <Button variant="outline" size="lg" className="h-12 px-8 text-base gap-2 border-white/30 text-white hover:bg-white/10"
+                  onClick={() => base44.auth.redirectToLogin()}>
+                  <LogIn className="w-4 h-4 text-white" /> Se connecter
+                </Button>
               </div>
 
               <div className="mt-8 flex items-center gap-6 text-sm text-white/50">
