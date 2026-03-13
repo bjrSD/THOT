@@ -508,6 +508,121 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== STATS VOCABULARY ===== */}
+      <section className="py-20 md:py-28 bg-secondary/20">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-purple-500/10 text-purple-400 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+              <Brain className="w-4 h-4" /> Capital Lexical
+            </div>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Votre richesse en mots</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Chaque lecture enrichit votre vocabulaire actif et passif.</p>
+          </motion.div>
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {VOCAB_STATS.map((stat, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <Card className="border-none shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 duration-300">
+                  <CardContent className="p-6">
+                    <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center mb-4`}>
+                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+                    <div className="flex items-end gap-3">
+                      <p className="text-4xl font-black">{stat.value}</p>
+                      <div className={`flex items-center gap-1 text-sm font-semibold mb-1 ${stat.trend > 0 ? "text-green-500" : "text-red-500"}`}>
+                        {stat.trend > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        +{stat.trend}%
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">vs. mois précédent</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Area Chart Capital Savoir */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+            <Card className="border-none shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-heading font-bold text-lg">Évolution du Capital Savoir</h3>
+                    <p className="text-sm text-muted-foreground">30 derniers jours</p>
+                  </div>
+                  <span className="text-2xl font-black text-fuchsia-500">{CAPITAL_DATA[29].kp.toLocaleString()} KP</span>
+                </div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={CAPITAL_DATA} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="kpGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#d946ef" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#d946ef" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} label={{ value: "Jour", position: "insideBottom", offset: -2, fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v) => [`${v} KP`, "Capital Savoir"]} labelFormatter={(l) => `Jour ${l}`} />
+                    <Area type="monotone" dataKey="kp" stroke="#d946ef" strokeWidth={2.5} fill="url(#kpGradient)" dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== PROFIL APPRENANT ===== */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+              <div className="inline-flex items-center gap-2 bg-fuchsia-500/10 text-fuchsia-500 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                <BarChart3 className="w-4 h-4" /> Profil de l'apprenant
+              </div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Votre ADN de la connaissance</h2>
+              <p className="text-muted-foreground mb-6 leading-relaxed">Découvrez la répartition de vos habitudes de consommation culturelle : lectures, documentaires, développement personnel...</p>
+              <div className="space-y-3">
+                {CONSOMMATION_DATA.map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                    <div className="flex-1">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="font-medium">{item.name}</span>
+                        <span className="text-muted-foreground">{item.value}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                        <motion.div initial={{ width: 0 }} whileInView={{ width: `${item.value}%` }} viewport={{ once: true }} transition={{ duration: 1, delay: i * 0.15 }}
+                          className="h-full rounded-full" style={{ backgroundColor: item.color }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+              <Card className="border-none shadow-xl">
+                <CardContent className="p-6">
+                  <h3 className="font-heading font-bold text-lg mb-4 text-center">Répartition de votre consommation</h3>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie data={CONSOMMATION_DATA} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
+                        {CONSOMMATION_DATA.map((entry, index) => (
+                          <Cell key={index} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v) => [`${v}%`, ""]} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                      <Legend iconType="circle" iconSize={10} formatter={(value) => <span style={{ fontSize: 12 }}>{value}</span>} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== PREMIUM CTA ===== */}
       <section className="py-20 md:py-28 relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
