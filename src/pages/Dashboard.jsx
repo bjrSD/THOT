@@ -11,6 +11,7 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import StreakAlert from "@/components/dashboard/StreakAlert";
 import DailyChallenge from "@/components/dashboard/DailyChallenge";
 import Suggestions from "@/components/dashboard/Suggestions";
+import KnowledgeStats from "@/components/dashboard/KnowledgeStats";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
