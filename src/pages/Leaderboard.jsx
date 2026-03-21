@@ -110,22 +110,30 @@ export default function Leaderboard() {
         <h3 className="font-semibold flex items-center gap-2 mb-3">
           <span className="text-xl">🏙️</span> Cerveaux de votre ville
         </h3>
-        <p className="text-sm text-muted-foreground mb-4">Ajoutez votre ville dans votre profil pour rejoindre le classement local.</p>
+        <p className="text-sm text-muted-foreground mb-4">Cliquez sur une ville pour voir le classement local.</p>
         <div className="space-y-2">
           {[
             { city: "Paris", count: "1,240 apprenants", top: "Marie D." },
             { city: "Lyon", count: "430 apprenants", top: "Karim B." },
             { city: "Marseille", count: "310 apprenants", top: "Sophie L." },
           ].map((c, i) => (
-            <div key={c.city} className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-muted-foreground">#{i+1}</span>
-                <span className="font-medium text-sm">🏙️ {c.city}</span>
+            <Link key={c.city} to={`/CityLeaderboard?city=${c.city}`}>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer group">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-muted-foreground">#{i+1}</span>
+                  <span className="font-medium text-sm">🏙️ {c.city}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{c.count}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
+                </div>
               </div>
-              <span className="text-xs text-muted-foreground">{c.count}</span>
-            </div>
+            </Link>
           ))}
         </div>
+        <Link to="/CityLeaderboard">
+          <Button variant="outline" className="w-full mt-3 gap-2" size="sm">Voir toutes les villes →</Button>
+        </Link>
       </div>
     </div>
   );

@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Loader2, Crown, TrendingUp, BookOpen } from "lucide-react";
+import { Users, Plus, Loader2, Crown, TrendingUp, BookOpen, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 const DEFAULT_CLUBS = [
   { id: "entrepreneurs", name: "Entrepreneurs", emoji: "🚀", category: "business", description: "Livres, podcasts et vidéos pour entrepreneurs & startuppers", members: 1240, top: "Karim B." },
