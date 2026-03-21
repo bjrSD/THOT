@@ -73,6 +73,10 @@ const AuthenticatedApp = () => {
       <Route path="/PublicProfile" element={<LayoutWrapper currentPageName="PublicProfile"><PublicProfile /></LayoutWrapper>} />
       <Route path="/Heatmap" element={<LayoutWrapper currentPageName="Heatmap"><Heatmap /></LayoutWrapper>} />
       <Route path="/Clubs" element={<LayoutWrapper currentPageName="Clubs"><Clubs /></LayoutWrapper>} />
+      <Route path="/CityLeaderboard" element={<LayoutWrapper currentPageName="CityLeaderboard"><CityLeaderboard /></LayoutWrapper>} />
+      <Route path="/ClubDetail" element={<LayoutWrapper currentPageName="ClubDetail"><ClubDetail /></LayoutWrapper>} />
+      <Route path="/Challenges" element={<LayoutWrapper currentPageName="Challenges"><Challenges /></LayoutWrapper>} />
+      <Route path="/Feed" element={<LayoutWrapper currentPageName="Feed"><Feed /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
