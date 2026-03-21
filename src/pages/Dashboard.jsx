@@ -11,6 +11,7 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import StreakAlert from "@/components/dashboard/StreakAlert";
 import DailyChallenge from "@/components/dashboard/DailyChallenge";
 import Suggestions from "@/components/dashboard/Suggestions";
+import VocabStatsRow from "@/components/dashboard/VocabStatsRow";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -70,6 +71,9 @@ export default function Dashboard() {
         <RadarDomains user={user} />
         <ActivityFeed activities={activities} />
       </div>
+
+      {/* Vocab stats + Capital Savoir chart */}
+      <VocabStatsRow contents={contents} />
 
       <div className="grid lg:grid-cols-2 gap-5">
         <Suggestions contents={contents} />
