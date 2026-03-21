@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Headphones, Play, FileText, Loader2 } from "lucide-react";
 import { CATEGORY_LABELS } from "./KPUtils";
+import GoogleBooksSearch from "./GoogleBooksSearch";
 
 const TYPES = [
   { value: "book", label: "Livre", icon: BookOpen },
@@ -17,13 +18,16 @@ const TYPES = [
   { value: "article", label: "Article", icon: FileText },
 ];
 
+const EMPTY_FORM = {
+  title: "", author: "", type: "", category: "autre",
+  summary: "", total_pages: "", total_duration: "",
+  status: "to_consume", buy_link: "", cover_url: "",
+};
+
 export default function QuickAddModal({ onClose }) {
   const [step, setStep] = useState("type");
-  const [form, setForm] = useState({
-    title: "", author: "", type: "", category: "autre",
-    summary: "", total_pages: "", total_duration: "",
-    status: "to_consume", buy_link: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [bookSelected, setBookSelected] = useState(false);
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -33,6 +37,20 @@ export default function QuickAddModal({ onClose }) {
       onClose();
     },
   });
+
+  const handleSelectBook = (book) => {
+    setForm(prev => ({
+      ...prev,
+      title: book.title,
+      author: book.author,
+      summary: book.summary?.slice(0, 800) || "",
+      total_pages: book.total_pages || "",
+      category: book.category || "autre",
+      buy_link: book.buy_link || "",
+      cover_url: book.cover_url || "",
+    }));
+    setBookSelected(true);
+  };
 
   const handleSubmit = () => {
     const data = { ...form };
@@ -45,7 +63,7 @@ export default function QuickAddModal({ onClose }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Ajouter un contenu</DialogTitle>
         </DialogHeader>
@@ -55,7 +73,7 @@ export default function QuickAddModal({ onClose }) {
             {TYPES.map((t) => (
               <button
                 key={t.value}
-                onClick={() => { setForm({ ...form, type: t.value }); setStep("details"); }}
+                onClick={() => { setForm({ ...EMPTY_FORM, type: t.value }); setBookSelected(false); setStep("details"); }}
                 className="flex flex-col items-center gap-3 p-6 rounded-xl border border-border hover:border-accent hover:bg-accent/5 transition-all"
               >
                 <t.icon className="w-8 h-8 text-accent" />
@@ -67,6 +85,29 @@ export default function QuickAddModal({ onClose }) {
 
         {step === "details" && (
           <div className="space-y-4">
+            {/* Google Books search for books */}
+            {form.type === "book" && (
+              <div className="space-y-2">
+                <Label>Rechercher sur Google Books</Label>
+                <GoogleBooksSearch onSelect={handleSelectBook} />
+                {bookSelected && form.cover_url && (
+                  <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl">
+                    <img src={form.cover_url} alt={form.title} className="w-12 h-16 object-cover rounded" />
+                    <div>
+                      <p className="font-medium text-sm">{form.title}</p>
+                      <p className="text-xs text-muted-foreground">{form.author}</p>
+                      {form.total_pages && <p className="text-xs text-accent">{form.total_pages} pages</p>}
+                    </div>
+                  </div>
+                )}
+                <div className="relative flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex-1 border-t border-border" />
+                  <span>ou remplissez manuellement</span>
+                  <div className="flex-1 border-t border-border" />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Titre *</Label>
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre du contenu" />
@@ -89,19 +130,25 @@ export default function QuickAddModal({ onClose }) {
             {form.type === "book" && (
               <div className="space-y-2">
                 <Label>Nombre de pages</Label>
-                <Input type="number" value={form.total_pages} onChange={(e) => setForm({ ...form, total_pages: e.target.value })} />
+                <Input type="number" value={form.total_pages} onChange={(e) => setForm({ ...form, total_pages: e.target.value })} placeholder="ex: 352" />
               </div>
             )}
             {(form.type === "podcast" || form.type === "video") && (
               <div className="space-y-2">
                 <Label>Durée (minutes)</Label>
-                <Input type="number" value={form.total_duration} onChange={(e) => setForm({ ...form, total_duration: e.target.value })} />
+                <Input type="number" value={form.total_duration} onChange={(e) => setForm({ ...form, total_duration: e.target.value })} placeholder="ex: 45" />
               </div>
             )}
             <div className="space-y-2">
               <Label>Résumé</Label>
-              <Textarea value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} rows={2} />
+              <Textarea value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} rows={3} placeholder="Résumé ou description..." />
             </div>
+            {form.type === "book" && (
+              <div className="space-y-2">
+                <Label>Lien d'achat (optionnel)</Label>
+                <Input value={form.buy_link} onChange={(e) => setForm({ ...form, buy_link: e.target.value })} placeholder="https://..." />
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => setStep("type")} className="flex-1">Retour</Button>
               <Button onClick={handleSubmit} disabled={!form.title || createMutation.isPending} className="flex-1">
