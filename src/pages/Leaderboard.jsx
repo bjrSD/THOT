@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Trophy, Crown, Flame, Star, TrendingUp, Loader2, Medal } from "lucide-react";
+import { Trophy, Crown, Flame, Star, TrendingUp, Loader2, Medal, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const MOCK_USERS = [
   { full_name: "Marie Dupont", email: "marie@ex.com", total_kp: 5420, current_streak: 42, level: "Polymathe 🧠", books: 28 },

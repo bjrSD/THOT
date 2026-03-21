@@ -102,14 +102,21 @@ export default function Clubs() {
                 </div>
               </div>
 
-              <Button
-                onClick={() => handleJoin(club.id)}
-                variant={joined[club.id] ? "outline" : "default"}
-                className="w-full"
-                size="sm"
-              >
-                {joined[club.id] ? "Quitter le club" : "Rejoindre"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleJoin(club.id)}
+                  variant={joined[club.id] ? "outline" : "default"}
+                  className="flex-1"
+                  size="sm"
+                >
+                  {joined[club.id] ? "Quitter" : "Rejoindre"}
+                </Button>
+                <Link to={`/ClubDetail?id=${club.id}`}>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
