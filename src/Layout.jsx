@@ -24,7 +24,7 @@ const NAV_ITEMS = [
 { name: "Clubs", page: "Clubs", icon: Users },
 { name: "Découvrir", page: "Discover", icon: Compass },
 { name: "Feed", page: "Feed", icon: MessageCircle },
-{ name: "Mon Profil", page: "PublicProfile", icon: User },
+{ name: "Mon Profil", page: "Profile", icon: User },
 { name: "Intégrations", page: "Integrations", icon: Zap },
 { name: "Paramètres", page: "Settings", icon: Settings }];
 
