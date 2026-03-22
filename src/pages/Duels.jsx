@@ -37,8 +37,15 @@ const MOCK_PROFILES = [
   { name: "Jules Bernard", email: "jules@ex.com", level: "Lecteur 📖", kp: 3200, streak: 9, photo: null },
 ];
 
-function DuelCard({ duel, currentEmail, duelType }) {
+function DuelCard({ duel, currentEmail }) {
   const [expanded, setExpanded] = useState(false);
+  const [showUpdateKP, setShowUpdateKP] = useState(false);
+  const [kpInput, setKpInput] = useState("");
+  const [taunt, setTaunt] = useState("");
+  const [showChat, setShowChat] = useState(false);
+  const [taunts, setTaunts] = useState([]);
+  const qc = useQueryClient();
+
   const isChallenger = duel.challenger_email === currentEmail;
   const myKP = isChallenger ? duel.challenger_kp : duel.opponent_kp;
   const theirKP = isChallenger ? duel.opponent_kp : duel.challenger_kp;
@@ -48,6 +55,11 @@ function DuelCard({ duel, currentEmail, duelType }) {
   const daysLeft = duel.end_date ? Math.max(0, differenceInDays(new Date(duel.end_date), new Date())) : 0;
   const isWinning = myKP >= theirKP;
   const typeInfo = DUEL_TYPES.find(t => t.id === duel.duel_type) || DUEL_TYPES[2];
+
+  const updateKP = useMutation({
+    mutationFn: (newKP) => base44.entities.Duel.update(duel.id, isChallenger ? { challenger_kp: newKP } : { opponent_kp: newKP }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["duels"] }); setShowUpdateKP(false); setKpInput(""); },
+  });
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
