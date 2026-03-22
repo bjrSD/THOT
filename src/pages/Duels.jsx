@@ -109,6 +109,57 @@ function DuelCard({ duel, currentEmail }) {
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {daysLeft}j restants</span>
         </div>
 
+        {/* Actions row */}
+        {duel.status === "active" && (
+          <div className="flex gap-2 mb-3">
+            <Button size="sm" variant="outline" className="flex-1 gap-1 text-xs" onClick={() => setShowUpdateKP(!showUpdateKP)}>
+              <TrendingUp className="w-3.5 h-3.5" /> Mettre à jour mes KP
+            </Button>
+            <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={() => setShowChat(!showChat)}>
+              <MessageCircle className="w-3.5 h-3.5" /> Taquiner
+            </Button>
+          </div>
+        )}
+
+        {/* KP Update panel */}
+        <AnimatePresence>
+          {showUpdateKP && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+              className="mb-3 p-3 bg-accent/5 rounded-xl border border-accent/20 space-y-2">
+              <p className="text-xs font-medium text-accent">Mes KP actuels dans ce duel :</p>
+              <div className="flex gap-2">
+                <Input type="number" placeholder={`Actuel: ${myKP}`} value={kpInput} onChange={e => setKpInput(e.target.value)} className="text-sm" />
+                <Button size="sm" onClick={() => updateKP.mutate(Number(kpInput))} disabled={!kpInput || updateKP.isPending}>
+                  {updateKP.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "OK"}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Taunt chat */}
+        <AnimatePresence>
+          {showChat && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+              className="mb-3 p-3 bg-secondary/40 rounded-xl space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">💬 Envoyer un message à {opponent?.split("@")[0]}</p>
+              {taunts.map((t, i) => (
+                <div key={i} className="text-xs bg-card rounded-lg px-3 py-1.5 border border-border">
+                  <span className="font-medium text-accent">Vous :</span> {t}
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <Input placeholder="Bonne chance... 😏" value={taunt} onChange={e => setTaunt(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && taunt.trim()) { setTaunts(prev => [...prev, taunt]); setTaunt(""); } }}
+                  className="text-xs" />
+                <Button size="sm" variant="ghost" onClick={() => { if (taunt.trim()) { setTaunts(prev => [...prev, taunt]); setTaunt(""); } }}>
+                  <Send className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Expand for details */}
         <button onClick={() => setExpanded(!expanded)} className="w-full text-xs text-accent hover:underline flex items-center justify-center gap-1">
           {expanded ? "Masquer les détails" : "Voir les détails"}
