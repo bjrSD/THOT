@@ -153,7 +153,7 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h4 className="font-semibold text-sm mb-3">Entreprise</h4>
                 <ul className="space-y-2">
-                  {[{ n: "À propos", p: "About" }, { n: "FAQ", p: "FAQ" }, { n: "Support", p: "Support" }, { n: "Blog", p: "About" }].map((l) =>
+                  {[{ n: "À propos", p: "About" }, { n: "FAQ", p: "FAQ" }, { n: "Support", p: "Support" }, { n: "Blog", p: "About_blog" }].map((l, idx) =>
                   <li key={l.p}><Link to={createPageUrl(l.p)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">{l.n}</Link></li>
                   )}
                 </ul>
