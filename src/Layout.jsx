@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
-  Twitter, Instagram, Swords, Brain, Flame, Users, Map } from
+  Twitter, Instagram, Swords, Brain, Flame, Users, Map, ArrowRight } from
 "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -99,8 +99,8 @@ export default function Layout({ children, currentPageName }) {
                   <Button size="sm" variant="outline" className="bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 h-8 gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
                     <LogIn className="w-4 h-4" /> Se connecter
                   </Button>
-                  <Button size="sm" className="bg-accent hover:bg-accent/90 text-white" onClick={() => base44.auth.redirectToLogin()}>
-                    S'inscrire gratuitement
+                  <Button size="sm" className="bg-accent hover:bg-accent/90 text-white gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
+                    S'inscrire gratuitement <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </> :
 
