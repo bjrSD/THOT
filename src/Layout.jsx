@@ -96,9 +96,9 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-2">
               {isAuth ?
               <>
-                  <Link to={createPageUrl("Dashboard")}>
-                    <Button size="sm" variant="outline" className="bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 h-8">Dashboard</Button>
-                  </Link>
+                  <Button size="sm" variant="outline" className="bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 h-8 gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
+                    <LogIn className="w-4 h-4" /> Se connecter
+                  </Button>
                   <Link to={createPageUrl("Premium")}>
                     <Button size="sm" className="bg-accent hover:bg-accent/90 text-white">
                       <Crown className="w-4 h-4 mr-1.5" /> Premium
