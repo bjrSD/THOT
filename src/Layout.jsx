@@ -107,7 +107,7 @@ export default function Layout({ children, currentPageName }) {
                 </> :
 
               <>
-                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10 border border-white/20" onClick={() => base44.auth.redirectToLogin()}>
+                  <Button size="sm" className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200" onClick={() => base44.auth.redirectToLogin()}>
                     <LogIn className="w-4 h-4 mr-1.5" />
                     Se connecter
                   </Button>

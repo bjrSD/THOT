@@ -246,7 +246,7 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Zap className="w-4 h-4" /> Nouvelles fonctionnalités v2.0
             </div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Apprenez, compétez, progressez</h2>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Apprenez, complétez, progressez</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">THOT est devenu une vraie plateforme sociale de la connaissance.</p>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

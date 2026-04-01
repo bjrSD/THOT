@@ -17,6 +17,7 @@ import ClubDetail from './pages/ClubDetail.jsx';
 import Challenges from './pages/Challenges.jsx';
 import Feed from './pages/Feed.jsx';
 import Profile from './pages/Profile.jsx';
+import Checkout from './pages/Checkout.jsx';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/Challenges" element={<LayoutWrapper currentPageName="Challenges"><Challenges /></LayoutWrapper>} />
       <Route path="/Feed" element={<LayoutWrapper currentPageName="Feed"><Feed /></LayoutWrapper>} />
       <Route path="/Profile" element={<LayoutWrapper currentPageName="Profile"><Profile /></LayoutWrapper>} />
+      <Route path="/Checkout" element={<Checkout />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

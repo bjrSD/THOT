@@ -12,6 +12,8 @@ import StreakAlert from "@/components/dashboard/StreakAlert";
 import DailyChallenge from "@/components/dashboard/DailyChallenge";
 import Suggestions from "@/components/dashboard/Suggestions";
 import VocabStatsRow from "@/components/dashboard/VocabStatsRow";
+import ContentStatsTab from "@/components/dashboard/ContentStatsTab";
+import VocabAI from "@/components/dashboard/VocabAI";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -72,10 +74,15 @@ export default function Dashboard() {
         <ActivityFeed activities={activities} />
       </div>
 
+      {/* Detailed stats by content type */}
+      <ContentStatsTab contents={contents} />
+
       {/* Vocab stats + Capital Savoir chart */}
       <VocabStatsRow contents={contents} />
 
+      {/* Vocab AI + Suggestions */}
       <div className="grid lg:grid-cols-2 gap-5">
+        <VocabAI contents={contents} />
         <Suggestions contents={contents} />
       </div>
     </div>
