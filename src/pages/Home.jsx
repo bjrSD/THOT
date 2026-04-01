@@ -140,7 +140,7 @@ export default function Home() {
                   S'inscrire gratuitement
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base gap-2 border-white/30 text-white hover:bg-white/10"
+                <Button variant="outline" size="lg" className="h-12 px-8 text-base gap-2 border-white/20 text-slate-800 bg-slate-200 hover:bg-slate-300"
                   onClick={() => base44.auth.redirectToLogin()}>
                   <LogIn className="w-4 h-4 text-white" /> Se connecter
                 </Button>
