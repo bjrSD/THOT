@@ -97,7 +97,7 @@ export default function Layout({ children, currentPageName }) {
               {isAuth ?
               <>
                   <Link to={createPageUrl("Dashboard")}>
-                    <Button size="sm" variant="outline" className="bg-[hsl(var(--foreground))] text-white px-3 text-xs font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-8 border-white/30 hover:bg-white/10">Dashboard</Button>
+                    <Button size="sm" variant="outline" className="bg-[#45474a] text-white px-3 text-xs font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-8 border-white/30 hover:bg-white/10">Dashboard</Button>
                   </Link>
                   <Link to={createPageUrl("Premium")}>
                     <Button size="sm" className="bg-accent hover:bg-accent/90 text-white">
