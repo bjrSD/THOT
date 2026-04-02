@@ -2,11 +2,16 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Headphones, Play, FileText, Trophy, Flame, Heart, MessageCircle, Loader2, Plus, Send, X, Image, Quote, Star, TrendingUp, Zap } from "lucide-react";
+import {
+  BookOpen, Headphones, Play, FileText, Heart, MessageCircle,
+  Loader2, Plus, Send, X, Zap, Bookmark, BookmarkCheck, Share2, Lock, Users, Globe
+} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import UserProfileModal from "@/components/feed/UserProfileModal";
+import ContentActionBar from "@/components/feed/ContentActionBar";
 
 const TYPE_ICON = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 const ACTION_LABEL = {
@@ -27,57 +32,213 @@ const POST_TYPES = [
   { id: "milestone", emoji: "🎯", label: "Milestone" },
 ];
 
-function PostCard({ post, currentUser }) {
+const VISIBILITY_OPTIONS = [
+  { id: "public", icon: Globe, label: "Public" },
+  { id: "friends", icon: Users, label: "Amis" },
+  { id: "private", icon: Lock, label: "Privé" },
+];
+
+function UserAvatar({ email, avatarUrl, size = "md", onClick }) {
+  const initial = (email || "?")[0]?.toUpperCase();
+  const sizeClass = size === "sm" ? "w-6 h-6 text-xs" : "w-10 h-10 text-sm";
+  return (
+    <button
+      onClick={onClick}
+      className={`${sizeClass} rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0 font-bold text-primary hover:opacity-80 transition-opacity focus:outline-none`}
+      title={`Voir le profil de ${email?.split("@")[0]}`}
+    >
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={initial} className={`${sizeClass} rounded-full object-cover`} />
+      ) : initial}
+    </button>
+  );
+}
+
+function PostCard({ post, currentUser, onUserClick }) {
   const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const qc = useQueryClient();
 
   const addComment = () => {
     if (!comment.trim()) return;
-    setComments(prev => [...prev, { id: Date.now(), text: comment, author: currentUser?.email || "Vous", created_date: new Date().toISOString() }]);
+    setComments(prev => [...prev, {
+      id: Date.now(), text: comment,
+      author: currentUser?.email || "Vous",
+      created_date: new Date().toISOString()
+    }]);
     setComment("");
   };
 
   const typeInfo = POST_TYPES.find(t => t.id === post.type) || POST_TYPES[0];
+  const username = post.created_by?.split("@")[0];
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`${post.content} — partagé depuis THOT`);
+  };
 
   return (
     <div className="bg-card rounded-2xl border border-border p-5 hover:shadow-md transition-shadow">
+      {/* Author */}
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0 font-bold text-sm text-primary">
-          {(post.created_by || "?")[0]?.toUpperCase()}
-        </div>
+        <UserAvatar email={post.created_by} onClick={() => onUserClick({ email: post.created_by })} />
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{post.created_by?.split("@")[0]}</span>
+            <button
+              onClick={() => onUserClick({ email: post.created_by })}
+              className="font-medium text-sm hover:text-accent transition-colors"
+            >
+              {username}
+            </button>
             <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{typeInfo.emoji} {typeInfo.label}</span>
-            {post.content_ref_title && (
-              <span className="text-xs text-accent">📖 {post.content_ref_title}</span>
-            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {post.created_date && format(new Date(post.created_date), "d MMM à HH:mm", { locale: fr })}
           </p>
         </div>
+        {/* Visibility badge */}
+        {post.visibility === "friends" && <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-1" title="Amis uniquement" />}
+        {post.visibility === "private" && <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-1" title="Privé" />}
       </div>
 
-      <p className="text-sm leading-relaxed mb-4 whitespace-pre-wrap">{post.content}</p>
+      <p className="text-sm leading-relaxed mb-3 whitespace-pre-wrap">{post.content}</p>
 
       {post.image_url && (
-        <img src={post.image_url} alt="" className="rounded-xl mb-4 w-full max-h-60 object-cover" />
+        <img src={post.image_url} alt="" className="rounded-xl mb-3 w-full max-h-60 object-cover" />
       )}
 
-      <div className="flex items-center gap-4 pt-3 border-t border-border">
+      {/* Contenu mentionné */}
+      {post.content_ref_title && (
+        <ContentActionBar
+          contentTitle={post.content_ref_title}
+          contentType={post.content_ref_type}
+          contentRefId={post.content_ref_id}
+        />
+      )}
+
+      {/* Actions bar */}
+      <div className="flex items-center gap-3 pt-3 border-t border-border mt-3">
+        {/* Like */}
         <button onClick={() => setLiked(!liked)}
           className={`flex items-center gap-1.5 text-xs transition-colors ${liked ? "text-red-500" : "text-muted-foreground hover:text-red-500"}`}>
           <Heart className={`w-4 h-4 ${liked ? "fill-red-500" : ""}`} />
           {(post.likes_count || 0) + (liked ? 1 : 0)}
         </button>
+
+        {/* Commentaires */}
         <button onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors">
+          className={`flex items-center gap-1.5 text-xs transition-colors ${showComments ? "text-accent" : "text-muted-foreground hover:text-accent"}`}>
           <MessageCircle className="w-4 h-4" />
-          {comments.length + (post.comments_count || 0)} commentaire{comments.length > 1 ? "s" : ""}
+          {comments.length + (post.comments_count || 0)}
+        </button>
+
+        {/* Sauvegarder */}
+        <button onClick={() => setSaved(!saved)}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${saved ? "text-accent" : "text-muted-foreground hover:text-accent"}`}
+          title="Sauvegarder">
+          {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+        </button>
+
+        {/* Partager */}
+        <button onClick={handleCopy}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors ml-auto"
+          title="Copier le lien">
+          <Share2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Section commentaires */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="mt-3 pt-3 border-t border-border space-y-2">
+            {comments.map(c => (
+              <div key={c.id} className="flex items-start gap-2">
+                <UserAvatar email={c.author} size="sm" onClick={() => onUserClick({ email: c.author })} />
+                <div className="bg-secondary/50 rounded-xl px-3 py-1.5 flex-1">
+                  <button onClick={() => onUserClick({ email: c.author })} className="text-xs font-medium text-accent hover:underline">
+                    {c.author.split("@")[0]}
+                  </button>
+                  <p className="text-xs">{c.text}</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <input placeholder="Commenter..." value={comment} onChange={(e) => setComment(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addComment()}
+                className="flex-1 text-xs bg-secondary rounded-xl px-3 py-2 border border-border focus:outline-none focus:border-accent" />
+              <Button size="sm" variant="ghost" onClick={addComment} disabled={!comment.trim()}>
+                <Send className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ActivityCard({ activity, onUserClick }) {
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
+  const Icon = TYPE_ICON[activity.content_type] || BookOpen;
+
+  const addComment = () => {
+    if (!comment.trim()) return;
+    setComments(prev => [...prev, { id: Date.now(), text: comment, author: "Vous", created_date: new Date().toISOString() }]);
+    setComment("");
+  };
+
+  return (
+    <div className="bg-card rounded-2xl border border-border p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-3">
+        <UserAvatar email={activity.created_by} onClick={() => onUserClick({ email: activity.created_by })} />
+        <div className="flex-1">
+          <p className="text-sm">
+            <button
+              onClick={() => onUserClick({ email: activity.created_by })}
+              className="font-medium hover:text-accent transition-colors"
+            >
+              {activity.created_by?.split("@")[0]}
+            </button>{" "}
+            <span className="text-muted-foreground">{ACTION_LABEL[activity.action] || activity.action}</span>
+            {activity.content_title && <span className="font-medium"> {activity.content_title}</span>}
+          </p>
+          {activity.details && <p className="text-xs text-muted-foreground mt-0.5">{activity.details}</p>}
+          <p className="text-xs text-muted-foreground mt-1">
+            {activity.created_date && format(new Date(activity.created_date), "d MMM à HH:mm", { locale: fr })}
+          </p>
+        </div>
+        {activity.kp_earned > 0 && (
+          <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full font-medium shrink-0 flex items-center gap-1">
+            <Zap className="w-3 h-3" /> +{activity.kp_earned} KP
+          </span>
+        )}
+      </div>
+
+      {/* Contenu mentionné + actions */}
+      {activity.content_title && (
+        <ContentActionBar
+          contentTitle={activity.content_title}
+          contentType={activity.content_type}
+        />
+      )}
+
+      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
+        <button onClick={() => setLiked(!liked)}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${liked ? "text-red-500" : "text-muted-foreground hover:text-red-500"}`}>
+          <Heart className={`w-4 h-4 ${liked ? "fill-red-500" : ""}`} /> {liked ? 1 : 0}
+        </button>
+        <button onClick={() => setShowComments(!showComments)}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${showComments ? "text-accent" : "text-muted-foreground hover:text-accent"}`}>
+          <MessageCircle className="w-4 h-4" /> {comments.length}
+        </button>
+        <button onClick={() => setSaved(!saved)}
+          className={`flex items-center gap-1.5 text-xs transition-colors ${saved ? "text-accent" : "text-muted-foreground hover:text-accent"}`}>
+          {saved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
         </button>
       </div>
 
@@ -87,9 +248,7 @@ function PostCard({ post, currentUser }) {
             className="mt-3 pt-3 border-t border-border space-y-2">
             {comments.map(c => (
               <div key={c.id} className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-xs font-bold shrink-0">
-                  {c.author[0].toUpperCase()}
-                </div>
+                <UserAvatar email={c.author} size="sm" onClick={() => onUserClick({ email: c.author })} />
                 <div className="bg-secondary/50 rounded-xl px-3 py-1.5 flex-1">
                   <p className="text-xs font-medium text-accent">{c.author.split("@")[0]}</p>
                   <p className="text-xs">{c.text}</p>
@@ -111,57 +270,15 @@ function PostCard({ post, currentUser }) {
   );
 }
 
-function ActivityCard({ activity }) {
-  const [liked, setLiked] = useState(false);
-  const Icon = TYPE_ICON[activity.content_type] || BookOpen;
-  return (
-    <div className="bg-card rounded-2xl border border-border p-5 hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0 font-bold text-sm text-primary">
-          {(activity.created_by || "?")[0]?.toUpperCase()}
-        </div>
-        <div className="flex-1">
-          <p className="text-sm">
-            <span className="font-medium">{activity.created_by?.split("@")[0]}</span>{" "}
-            <span className="text-muted-foreground">{ACTION_LABEL[activity.action] || activity.action}</span>
-            {activity.content_title && <span className="font-medium"> {activity.content_title}</span>}
-          </p>
-          {activity.details && <p className="text-xs text-muted-foreground mt-0.5">{activity.details}</p>}
-          <p className="text-xs text-muted-foreground mt-1">
-            {activity.created_date && format(new Date(activity.created_date), "d MMM à HH:mm", { locale: fr })}
-          </p>
-        </div>
-        {activity.kp_earned > 0 && (
-          <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full font-medium shrink-0 flex items-center gap-1">
-            <Zap className="w-3 h-3" /> +{activity.kp_earned} KP
-          </span>
-        )}
-      </div>
-      {activity.content_type && (
-        <div className="mt-2 ml-13 flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-1.5 w-fit">
-          <Icon className="w-3.5 h-3.5" /> {activity.content_type}
-        </div>
-      )}
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-        <button onClick={() => setLiked(!liked)}
-          className={`flex items-center gap-1.5 text-xs transition-colors ${liked ? "text-red-500" : "text-muted-foreground hover:text-red-500"}`}>
-          <Heart className={`w-4 h-4 ${liked ? "fill-red-500" : ""}`} /> J'aime
-        </button>
-        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors">
-          <MessageCircle className="w-4 h-4" /> Commenter
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function Feed() {
   const qc = useQueryClient();
   const [user, setUser] = useState(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postType, setPostType] = useState("update");
+  const [postVisibility, setPostVisibility] = useState("public");
   const [activeTab, setActiveTab] = useState("all");
+  const [profileModal, setProfileModal] = useState(null); // { email, ... }
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
@@ -179,19 +296,20 @@ export default function Feed() {
     mutationFn: () => base44.entities.Post.create({
       content: postContent,
       type: postType,
-      is_public: true,
+      is_public: postVisibility === "public",
+      visibility: postVisibility,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["posts"] });
       setPostContent("");
       setPostType("update");
+      setPostVisibility("public");
       setShowCompose(false);
     },
   });
 
   const isLoading = loadingActivities || loadingPosts;
 
-  // Merge and sort by date
   const feedItems = [
     ...posts.map(p => ({ ...p, _kind: "post" })),
     ...activities.map(a => ({ ...a, _kind: "activity" })),
@@ -240,6 +358,19 @@ export default function Feed() {
                 className="min-h-[80px] text-sm resize-none"
               />
             </div>
+            {/* Visibility */}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-muted-foreground">Visibilité :</span>
+              {VISIBILITY_OPTIONS.map(v => {
+                const Icon = v.icon;
+                return (
+                  <button key={v.id} onClick={() => setPostVisibility(v.id)}
+                    className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${postVisibility === v.id ? "bg-accent text-accent-foreground" : "bg-secondary hover:bg-secondary/80"}`}>
+                    <Icon className="w-3 h-3" /> {v.label}
+                  </button>
+                );
+              })}
+            </div>
             <div className="flex justify-end mt-3 gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowCompose(false)}>Annuler</Button>
               <Button size="sm" onClick={() => createPost.mutate()} disabled={!postContent.trim() || createPost.isPending} className="gap-2">
@@ -280,13 +411,15 @@ export default function Feed() {
 
           {activeTab === "all" && feedItems.map((item, i) => (
             <motion.div key={`${item._kind}-${item.id}`} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              {item._kind === "post" ? <PostCard post={item} currentUser={user} /> : <ActivityCard activity={item} />}
+              {item._kind === "post"
+                ? <PostCard post={item} currentUser={user} onUserClick={setProfileModal} />
+                : <ActivityCard activity={item} onUserClick={setProfileModal} />}
             </motion.div>
           ))}
 
           {activeTab === "posts" && posts.map((post, i) => (
             <motion.div key={post.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              <PostCard post={post} currentUser={user} />
+              <PostCard post={post} currentUser={user} onUserClick={setProfileModal} />
             </motion.div>
           ))}
           {activeTab === "posts" && posts.length === 0 && (
@@ -295,7 +428,7 @@ export default function Feed() {
 
           {activeTab === "activity" && activities.map((activity, i) => (
             <motion.div key={activity.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              <ActivityCard activity={activity} />
+              <ActivityCard activity={activity} onUserClick={setProfileModal} />
             </motion.div>
           ))}
           {activeTab === "activity" && activities.length === 0 && (
@@ -304,7 +437,7 @@ export default function Feed() {
 
           {activeTab === "mine" && myPosts.map((post, i) => (
             <motion.div key={post.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-              <PostCard post={post} currentUser={user} />
+              <PostCard post={post} currentUser={user} onUserClick={setProfileModal} />
             </motion.div>
           ))}
           {activeTab === "mine" && myPosts.length === 0 && (
@@ -315,6 +448,15 @@ export default function Feed() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Profile modal */}
+      {profileModal && (
+        <UserProfileModal
+          user={profileModal}
+          currentUserEmail={user?.email}
+          onClose={() => setProfileModal(null)}
+        />
       )}
     </div>
   );
