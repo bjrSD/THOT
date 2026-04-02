@@ -16,7 +16,7 @@ const BOOKS = [
 { title: "Sapiens", author: "Y.N. Harari", cover: "https://books.google.com/books/content?id=1EiJAwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 68 },
 { title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://books.google.com/books/content?id=ZuKTvERuPG8C&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 34 },
 { title: "La Femme de ménage", author: "Freida McFadden", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/b50d90655_image.png", progress: 100 },
-{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/c493bd705_image.png", progress: 0 },
+{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/c493bd705_image.png", progress: 0, scale: 1.35 },
 { title: "Les Misérables", author: "Victor Hugo", cover: "https://books.google.com/books/content?id=P1YXAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 100 },
 { title: "Chanson Douce", author: "Leïla Slimani", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/1ac8fa3cc_image.png", progress: 0 },
 { title: "The Lean Startup", author: "Eric Ries", cover: "https://books.google.com/books/content?id=r9x-OXdzpPcC&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 52 },
@@ -231,6 +231,7 @@ export default function Home() {
                                   src={b.cover}
                                   alt={b.title}
                                   className="w-full h-full object-cover"
+                                  style={{ objectFit: "cover", objectPosition: b.objectPosition || "center", transform: b.scale ? `scale(${b.scale})` : undefined }}
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
                               </div>
