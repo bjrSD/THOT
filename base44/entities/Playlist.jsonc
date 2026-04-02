@@ -1,0 +1,42 @@
+{
+  "name": "Playlist",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom de la playlist"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description optionnelle"
+    },
+    "content_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des contenus dans l'ordre"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "friends",
+        "public"
+      ],
+      "default": "private",
+      "description": "Visibilit\u00e9 de la playlist"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Emoji repr\u00e9sentatif"
+    },
+    "cover_url": {
+      "type": "string",
+      "description": "Image de couverture"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
