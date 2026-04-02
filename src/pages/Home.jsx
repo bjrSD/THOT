@@ -111,47 +111,47 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 w-full py-12 md:py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 w-full py-10 md:py-16">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left */}
             <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7 }}>
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/20 text-accent text-sm font-medium mb-6 border border-accent/30">
-                <Zap className="w-4 h-4" /> Le Strava du savoir — v2.0
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/20 text-accent text-xs font-medium mb-4 border border-accent/30">
+                <Zap className="w-3.5 h-3.5" /> Le Strava du savoir — v2.0
               </motion.div>
 
-              <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6 text-white">
+              <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-4 text-white">
                 Devenez plus<br /><span className="text-accent">intelligent</span><br />chaque jour
               </h1>
-              <p className="text-lg md:text-xl text-white/60 max-w-lg leading-relaxed mb-8">
+              <p className="text-base md:text-xl text-white/60 max-w-lg leading-relaxed mb-6">
                 Suivez vos livres, podcasts et vidéos. Progressez, dépassez vos amis, gagnez des Knowledge Points.
               </p>
 
               {/* Content type icons */}
-              <div className="flex gap-6 mb-8">
+              <div className="flex gap-4 mb-6">
                 {[{ icon: BookOpen, label: "Livres" }, { icon: Headphones, label: "Podcasts" }, { icon: FileText, label: "Articles" }, { icon: Play, label: "Vidéos" }].map(({ icon: Icon, label }) =>
                 <div key={label} className="flex flex-col items-center gap-1">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-                      <Icon className="w-5 h-5 text-white/80" />
+                    <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                      <Icon className="w-4 h-4 text-white/80" />
                     </div>
-                    <span className="text-xs text-white/50">{label}</span>
+                    <span className="text-[10px] text-white/50">{label}</span>
                   </div>
                 )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="h-12 px-8 text-base group bg-accent hover:bg-accent/90 text-white"
+                <Button size="lg" className="h-11 px-6 text-sm group bg-accent hover:bg-accent/90 text-white w-full sm:w-auto"
                 onClick={() => base44.auth.redirectToLogin()}>
                   S'inscrire gratuitement
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button variant="outline" size="lg" className="bg-gray-500 text-gray-50 px-8 text-base font-medium rounded-md inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-12 gap-2 border-white/20 hover:bg-slate-300"
+                <Button variant="outline" size="lg" className="bg-gray-500 text-gray-50 px-6 text-sm font-medium rounded-md inline-flex items-center justify-center whitespace-nowrap transition-colors h-11 gap-2 border-white/20 hover:bg-slate-300 w-full sm:w-auto"
                 onClick={() => base44.auth.redirectToLogin()}>
                   <LogIn className="w-4 h-4 text-white" /> Se connecter
                 </Button>
               </div>
 
-              <div className="mt-8 flex items-center gap-6 text-sm text-white/50">
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-white/50">
                 <div className="flex items-center gap-1.5">
                   <div className="flex -space-x-2">
                     {["https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop",
@@ -163,14 +163,14 @@ export default function Home() {
                   <span>+50K apprenants</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
+                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}
                   <span className="ml-1">4.8/5</span>
                 </div>
               </div>
             </motion.div>
 
-            {/* Right — Dashboard mockup */}
-            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.8 }}>
+            {/* Right — Dashboard mockup (hidden on small mobile, visible from sm) */}
+            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.8 }} className="hidden sm:block">
               <div className="relative">
                 <div className="bg-[#0d1f3c]/90 backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
@@ -263,10 +263,10 @@ export default function Home() {
       <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold">Comment ça marche</h2>
-            <p className="mt-4 text-muted-foreground text-lg">Trois étapes simples</p>
+            <h2 className="font-heading text-2xl md:text-4xl font-bold">Comment ça marche</h2>
+            <p className="mt-2 text-muted-foreground text-base">Trois étapes simples</p>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-5">
             {[
             { icon: BookOpen, title: "1. Ajouter", desc: "Livres, podcasts, articles ou vidéos en quelques secondes.", color: "bg-primary/10 text-primary", num: "01",
               img: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/1c1b836e9_generated_image.png" },
@@ -303,8 +303,8 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Zap className="w-4 h-4" /> Nouvelles fonctionnalités v2.0
             </div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Apprenez, complétez, progressez</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">THOT est devenu une vraie plateforme sociale de la connaissance.</p>
+            <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3">Apprenez, complétez, progressez</h2>
+            <p className="text-muted-foreground text-base max-w-xl mx-auto">THOT est devenu une vraie plateforme sociale de la connaissance.</p>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {SOCIAL_FEATURES.map((feat, i) =>
@@ -331,7 +331,7 @@ export default function Home() {
       <section className="py-10 md:py-14"
       style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="grid md:grid-cols-2 gap-8 items-start">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
                 <Trophy className="w-4 h-4" /> Classement des cerveaux
@@ -405,10 +405,10 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-purple-500/10 text-purple-400 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Brain className="w-4 h-4" /> Capital Lexical
             </div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Votre richesse en mots</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Chaque lecture enrichit votre vocabulaire actif et passif.</p>
+            <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3">Votre richesse en mots</h2>
+            <p className="text-muted-foreground text-base max-w-xl mx-auto">Chaque lecture enrichit votre vocabulaire actif et passif.</p>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {VOCAB_STATS.map((stat, i) =>
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
                 <Card className="border-none shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 duration-300">
@@ -464,12 +464,12 @@ export default function Home() {
       {/* ===== PROFIL APPRENANT ===== */}
       <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <div className="inline-flex items-center gap-2 bg-fuchsia-500/10 text-fuchsia-500 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
                 <BarChart3 className="w-4 h-4" /> Profil de l'apprenant
               </div>
-              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Votre ADN de la connaissance</h2>
+              <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3">Votre ADN de la connaissance</h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">Découvrez la répartition de vos habitudes de consommation culturelle : lectures, documentaires, développement personnel...</p>
               <div className="space-y-3">
                 {CONSOMMATION_DATA.map((item, i) =>
@@ -515,7 +515,7 @@ export default function Home() {
       <section className="py-10 md:py-14"
       style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <div className="inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
                 <Swords className="w-4 h-4" /> Duels de savoir
@@ -575,10 +575,10 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Wifi className="w-4 h-4" /> Suivi automatique
             </div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">Connectez vos applications</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Jumelez vos apps préférées pour un suivi automatique.</p>
+            <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3">Connectez vos applications</h2>
+            <p className="text-muted-foreground text-base max-w-xl mx-auto">Jumelez vos apps préférées pour un suivi automatique.</p>
           </motion.div>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-4 max-w-3xl mx-auto mb-8">
+          <div className="grid grid-cols-4 gap-3 max-w-sm mx-auto md:max-w-3xl md:grid-cols-8 mb-8">
             {INTEGRATIONS.map((app, i) =>
             <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }} transition={{ delay: i * 0.08 }} whileHover={{ scale: 1.1, y: -4 }}
@@ -601,9 +601,9 @@ export default function Home() {
       <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold">Ce qu'en disent nos apprenants</h2>
+            <h2 className="font-heading text-2xl md:text-4xl font-bold">Ce qu'en disent nos apprenants</h2>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-3 gap-5">
             {[
             { name: "Marie D.", role: "Consultante", text: "THOT a transformé ma façon de lire. Le système de streak me motive chaque jour. Je suis passée de 5 à 18 livres par an !", kp: "3,200 KP", level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face" },
             { name: "Karim B.", role: "Entrepreneur", text: "Enfin une app aussi addictive que les réseaux sociaux ! Les défis avec mes amis me poussent à aller plus loin.", kp: "5,100 KP", level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" },
@@ -645,10 +645,10 @@ export default function Home() {
         <div className="relative max-w-5xl mx-auto px-4 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
             <Crown className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-            <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-white">
+            <h2 className="font-heading text-2xl md:text-5xl font-bold mb-4 text-white">
               Passer Premium — <span className="text-yellow-400">Apprenez sans limites</span>
             </h2>
-            <p className="text-lg text-white/60 mb-8 max-w-xl mx-auto">
+            <p className="text-base text-white/60 mb-6 max-w-xl mx-auto">
               Bibliothèque illimitée, dashboard avancé, intégrations Kindle/Spotify/Netflix, 1k recommandations IA, clubs de lecture, badge Premium.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
