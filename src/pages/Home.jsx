@@ -98,7 +98,7 @@ export default function Home() {
     <div className="bg-background overflow-x-hidden">
 
       {/* ===== HERO — dark immersive ===== */}
-      <section className="relative overflow-hidden min-h-screen flex items-center"
+      <section className="relative overflow-hidden flex items-center"
       style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0f2547 100%)" }}>
         {/* Background photo */}
         <div className="absolute inset-0">
@@ -111,7 +111,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-transparent to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 w-full py-24">
+        <div className="relative max-w-7xl mx-auto px-4 w-full py-12 md:py-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left */}
             <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7 }}>
