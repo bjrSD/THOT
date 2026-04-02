@@ -646,7 +646,7 @@ export default function Home() {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Link to={createPageUrl("Premium")}>
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base border-white/20 text-white hover:bg-white/10 w-full gap-2">
+                <Button variant="outline" size="lg" className="bg-[hsl(var(--ring))] text-white px-8 text-base font-medium opacity-100 rounded-md inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-12 border-white/20 hover:bg-white/10 w-full gap-2">
                   <Crown className="w-4 h-4 text-yellow-400" /> Voir Premium · dès 2,99€/mois
                 </Button>
               </Link>
