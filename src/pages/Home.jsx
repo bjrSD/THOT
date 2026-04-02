@@ -220,24 +220,30 @@ export default function Home() {
                       <Link to={createPageUrl("Library")} className="text-xs text-accent">Voir tout →</Link>
                     </div>
                     <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-                      {BOOKS.map((b, i) =>
-                      <div key={i} className="shrink-0 w-[52px] group">
-                          <div className="relative">
-                            <img
-                              src={b.cover}
-                              alt={b.title}
-                              className="w-[52px] h-[74px] object-cover rounded-lg shadow-lg ring-1 ring-white/10 group-hover:scale-105 transition-transform duration-200"
-                              onError={(e) => e.target.style.display = 'none'}
-                            />
-                              {b.progress > 0 && b.progress < 100 && (
-                              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden">
-                                <div className="h-full bg-accent rounded-b-lg" style={{ width: `${b.progress}%` }} />
+                      {BOOKS.map((b, i) => {
+                        const colors = ["#4f46e5","#0891b2","#7c3aed","#059669","#dc2626","#d97706","#db2777","#2563eb"];
+                        return (
+                          <div key={i} className="shrink-0 w-[52px] group">
+                            <div className="relative">
+                              <div className="w-[52px] h-[74px] rounded-lg shadow-lg ring-1 ring-white/10 overflow-hidden group-hover:scale-105 transition-transform duration-200"
+                                style={{ backgroundColor: colors[i % colors.length] }}>
+                                <img
+                                  src={b.cover}
+                                  alt={b.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
                               </div>
-                            )}
+                              {b.progress > 0 && b.progress < 100 && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden">
+                                  <div className="h-full bg-accent rounded-b-lg" style={{ width: `${b.progress}%` }} />
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-white/40 mt-1.5 truncate leading-tight">{b.title}</p>
                           </div>
-                          <p className="text-[10px] text-white/40 mt-1.5 truncate leading-tight">{b.title}</p>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
