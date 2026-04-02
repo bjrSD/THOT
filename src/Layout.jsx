@@ -283,26 +283,6 @@ export default function Layout({ children, currentPageName }) {
           </Link>
         </div>
 
-        {/* Language selector desktop */}
-        <div className="px-3 py-2 mb-3 flex gap-1">
-          <button
-            onClick={() => changeLanguage('en')}
-            className={`flex-1 py-1.5 text-xs rounded font-medium transition-all ${
-              language === 'en' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            ENG
-          </button>
-          <button
-            onClick={() => changeLanguage('fr')}
-            className={`flex-1 py-1.5 text-xs rounded font-medium transition-all ${
-              language === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            FRA
-          </button>
-        </div>
-
         <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
