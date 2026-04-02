@@ -57,14 +57,35 @@ const NAV_ITEMS_FLAT = NAV_GROUPS.flatMap(g => g.items);
 
 function ThotLogo({ dark = false, size = "md" }) {
   const imgH = size === "lg" ? "h-10" : "h-8";
+  // "dark" prop forces the glowing white version (used on dark hero backgrounds)
+  // Otherwise: in dark mode → glowing, in light mode → colored natural logo
   return (
     <div className="flex items-center">
-      <img
-        src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
-        alt="THOT"
-        className={`${imgH} w-auto object-contain`}
-        style={dark ? { filter: "brightness(0) invert(1) drop-shadow(0 0 6px rgba(100,180,255,0.8))" } : {}}
-      />
+      {dark ? (
+        // Forced glow version (hero landing header always dark)
+        <img
+          src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
+          alt="THOT"
+          className={`${imgH} w-auto object-contain`}
+          style={{ filter: "brightness(0) invert(1) drop-shadow(0 0 8px rgba(100,180,255,0.9))" }}
+        />
+      ) : (
+        <>
+          {/* Light mode: natural colored logo */}
+          <img
+            src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
+            alt="THOT"
+            className={`${imgH} w-auto object-contain dark:hidden`}
+          />
+          {/* Dark mode: glowing white logo */}
+          <img
+            src="https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/ab640a937_logo_THOT-removebg-preview.png"
+            alt="THOT"
+            className={`${imgH} w-auto object-contain hidden dark:block`}
+            style={{ filter: "brightness(0) invert(1) drop-shadow(0 0 8px rgba(100,180,255,0.9))" }}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -101,10 +122,10 @@ export default function Layout({ children, currentPageName }) {
   if (isLanding) {
     return (
       <>
-        <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1628]/90 backdrop-blur-lg border-b border-white/10">
+        <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b bg-white/95 border-border dark:bg-[#0a1628]/90 dark:border-white/10 transition-colors">
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <Link to={createPageUrl("Home")}>
-              <ThotLogo dark size="lg" />
+              <ThotLogo size="lg" />
             </Link>
             <div className="hidden md:flex items-center gap-6">
               {[
@@ -114,7 +135,7 @@ export default function Layout({ children, currentPageName }) {
                 { name: "À propos", page: "About" },
               ].map((item) => (
                 <Link key={item.page} to={createPageUrl(item.page)}
-                  className="text-sm text-white/70 hover:text-white transition-colors">
+                  className="text-sm text-foreground/70 hover:text-foreground dark:text-white/70 dark:hover:text-white transition-colors">
                   {item.name}
                 </Link>
               ))}
@@ -123,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
               {isAuth ? (
                 <>
                   <Link to={createPageUrl("Dashboard")}>
-                    <Button size="sm" variant="outline" className="border-white/20 text-white bg-white/10 hover:bg-white/20 gap-1.5 h-8 text-xs">
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs dark:border-white/20 dark:text-white dark:bg-white/10 dark:hover:bg-white/20">
                       <LayoutDashboard className="w-3.5 h-3.5" /> Mon dashboard
                     </Button>
                   </Link>
@@ -134,9 +155,9 @@ export default function Layout({ children, currentPageName }) {
                 </>
               ) : (
                 <>
-                  <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                  <Button size="sm" variant="outline" className="gap-1.5 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/20"
                     onClick={() => base44.auth.redirectToLogin()}>
-                    <LogIn className="w-4 h-4 mr-1.5" /> Se connecter
+                    <LogIn className="w-4 h-4" /> Se connecter
                   </Button>
                   <Button size="sm" className="bg-accent hover:bg-accent/90 text-white"
                     onClick={() => base44.auth.redirectToLogin()}>

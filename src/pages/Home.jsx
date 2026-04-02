@@ -40,20 +40,20 @@ const INTEGRATIONS = [
 
 const LEADERBOARD_MOCK = {
   week: [
-  { name: "Marie Dupont", kp: 5420, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face" },
+  { name: "Marie Dupont", kp: 5420, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face" },
   { name: "Karim Benzali", kp: 4980, streak: 31, level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" },
   { name: "Sophie Laurent", kp: 4210, streak: 28, level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" },
   { name: "Lucas Martin", kp: 3890, streak: 15, level: "Penseur 💭", photo: null }],
 
   month: [
   { name: "Karim Benzali", kp: 18400, streak: 31, level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" },
-  { name: "Marie Dupont", kp: 17200, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face" },
+  { name: "Marie Dupont", kp: 17200, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face" },
   { name: "Lucas Martin", kp: 14100, streak: 15, level: "Penseur 💭", photo: null },
   { name: "Sophie Laurent", kp: 13800, streak: 28, level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" }],
 
   all: [
   { name: "Sophie Laurent", kp: 54200, streak: 28, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" },
-  { name: "Marie Dupont", kp: 49800, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face" },
+  { name: "Marie Dupont", kp: 49800, streak: 42, level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face" },
   { name: "Karim Benzali", kp: 42100, streak: 31, level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" },
   { name: "Lucas Martin", kp: 38900, streak: 15, level: "Penseur 💭", photo: null }]
 
@@ -150,7 +150,7 @@ export default function Home() {
                 <div className="flex items-center gap-1.5">
                   <div className="flex -space-x-2">
                     {["https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop",
-                    "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop",
+                    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=40&h=40&fit=crop",
                     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop"].map((src, i) =>
                     <img key={i} src={src} className="w-7 h-7 rounded-full border-2 border-[#0a1628] object-cover" />
                     )}
@@ -383,7 +383,7 @@ export default function Home() {
                     <span className="text-xs font-bold text-muted-foreground">VS</span>
                   </div>
                   <div className="flex-1 text-center">
-                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face"
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face"
                     className="w-14 h-14 rounded-2xl object-cover mx-auto mb-2 ring-2 ring-border" />
                     <p className="font-semibold text-sm">Marie</p>
                     <p className="text-2xl font-black">280</p>
@@ -478,7 +478,7 @@ export default function Home() {
           </motion.div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-            { name: "Marie D.", role: "Consultante", text: "THOT a transformé ma façon de lire. Le système de streak me motive chaque jour. Je suis passée de 5 à 18 livres par an !", kp: "3,200 KP", level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face" },
+            { name: "Marie D.", role: "Consultante", text: "THOT a transformé ma façon de lire. Le système de streak me motive chaque jour. Je suis passée de 5 à 18 livres par an !", kp: "3,200 KP", level: "Érudit 🎓", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face" },
             { name: "Karim B.", role: "Entrepreneur", text: "Enfin une app aussi addictive que les réseaux sociaux ! Les défis avec mes amis me poussent à aller plus loin.", kp: "5,100 KP", level: "Polymathe 🧠", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" },
             { name: "Sophie L.", role: "Médecin", text: "Le dashboard est magnifique. Je peux voir tout ce que j'ai appris en un coup d'œil. L'intégration Spotify est parfaite.", kp: "2,800 KP", level: "Penseur 💭", photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" }].
             map((t, i) =>
