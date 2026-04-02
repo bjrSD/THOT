@@ -131,6 +131,43 @@ export default function Dashboard() {
       {/* Vocab stats + Capital Savoir chart */}
       <VocabStatsRow contents={contents} />
 
+      {/* Profil Intellectuel */}
+      <RadarDomains user={user} />
+
+      {/* En cours de lecture */}
+      <div className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-sm">En cours de lecture</h3>
+          <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
+        </div>
+        {contents.filter(c => c.status === "in_progress").length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {contents.filter(c => c.status === "in_progress").slice(0, 4).map(c => {
+              const prog = c.total_pages
+                ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
+                : c.total_duration
+                ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
+                : 0;
+              return (
+                <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`} className="flex flex-col gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  {c.cover_url
+                    ? <img src={c.cover_url} alt={c.title} className="w-full h-16 object-cover rounded shrink-0" />
+                    : <div className="w-full h-16 rounded bg-accent/10 flex items-center justify-center shrink-0">📖</div>
+                  }
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium truncate">{c.title}</p>
+                    <Progress value={prog} className="h-1 mt-1" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{prog}%</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Vocab AI + Suggestions */}
       <div className="grid lg:grid-cols-2 gap-4">
         <VocabAI contents={contents} />
