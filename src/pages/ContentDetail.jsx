@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2, Star, Save, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2, Star, Save, Users, MessageSquare, Globe, TrendingUp, Award } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
@@ -33,15 +33,19 @@ async function fetchGoogleBooksData(title, author) {
 
 async function fetchSimilarBooks(title, author, category) {
   const q = encodeURIComponent(`subject:${category || title}`);
-  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=4&orderBy=relevance`);
+  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=6&orderBy=relevance`);
   const data = await res.json();
-  return (data.items || []).filter(item => item.volumeInfo?.title !== title).slice(0, 4).map(item => ({
+  return (data.items || []).filter(item => item.volumeInfo?.title !== title).slice(0, 5).map(item => ({
     id: item.id,
     title: item.volumeInfo.title,
     author: item.volumeInfo.authors?.[0] || "",
     cover: item.volumeInfo.imageLinks?.thumbnail || null,
     rating: item.volumeInfo.averageRating || null,
     pages: item.volumeInfo.pageCount || null,
+    description: item.volumeInfo.description || "",
+    publisher: item.volumeInfo.publisher || "",
+    publishedDate: item.volumeInfo.publishedDate || "",
+    categories: item.volumeInfo.categories || [],
   }));
 }
 
@@ -313,34 +317,95 @@ export default function ContentDetail() {
         </div>
       </div>
 
-      {/* Similar books */}
+      {/* Similar books — Suggestions enrichies */}
       {similarBooks.length > 0 && (
-        <div className="bg-card rounded-2xl border border-border p-6">
-          <h3 className="font-heading font-semibold mb-4">📚 Suggestions similaires</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-accent" />
+            <h3 className="font-heading font-semibold">Suggestions similaires</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
             {similarBooks.map((book, i) => (
-              <div key={i} className="group cursor-pointer">
-                <div className="w-full aspect-[2/3] rounded-xl overflow-hidden bg-secondary mb-2 border border-border">
+              <div key={i} className="group">
+                <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-secondary mb-2 border border-border">
                   {book.cover ? (
                     <img src={book.cover} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="w-8 h-8 text-muted-foreground" />
+                      <BookOpen className="w-6 h-6 text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <p className="text-xs font-semibold leading-tight line-clamp-2">{book.title}</p>
                 <p className="text-xs text-muted-foreground truncate mt-0.5">{book.author}</p>
                 {book.rating && (
-                  <div className="flex items-center gap-1 mt-0.5">
+                  <div className="flex items-center gap-1 mt-1">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">{book.rating.toFixed(1)}</span>
+                    <span className="text-xs font-semibold">{book.rating.toFixed(1)}</span>
                   </div>
                 )}
-                {book.pages && <p className="text-xs text-muted-foreground">{book.pages} pages</p>}
+                {book.pages && <p className="text-xs text-muted-foreground">{book.pages}p</p>}
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Google Books Reviews & Details */}
+      {content.type === "book" && googleData && (
+        <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-accent" />
+            <h3 className="font-heading font-semibold">À propos de ce livre</h3>
+          </div>
+
+          {/* Full description */}
+          {googleData.description && (
+            <div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{googleData.description}</p>
+            </div>
+          )}
+
+          {/* Metadata grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {googleData.publisher && (
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Éditeur</p>
+                <p className="text-sm font-medium truncate">{googleData.publisher}</p>
+              </div>
+            )}
+            {googleData.publishedDate && (
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Publié</p>
+                <p className="text-sm font-medium">{googleData.publishedDate.slice(0, 4)}</p>
+              </div>
+            )}
+            {googleData.pageCount && (
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Pages</p>
+                <p className="text-sm font-medium">{googleData.pageCount}</p>
+              </div>
+            )}
+            {googleData.googleRating && (
+              <div className="bg-secondary/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground mb-1">Note Google</p>
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-medium">{googleData.googleRating.toFixed(1)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Link to Google Books */}
+          <a
+            href={`https://www.google.com/search?q=${encodeURIComponent(content.title + " " + content.author)} site:books.google.com`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-accent hover:underline font-medium"
+          >
+            <Globe className="w-4 h-4" /> Voir tous les avis Google Books
+          </a>
         </div>
       )}
     </div>

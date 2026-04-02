@@ -66,66 +66,65 @@ export function ContentRow({ content, onClick, onStatusChange }) {
   );
 }
 
-/** Carte mode grille (existante enrichie) */
+/** Carte mode grille — lisible et ergonomique */
 export default function ContentCard({ content, onClick }) {
-  const [flipped, setFlipped] = useState(false);
   const Icon = TYPE_ICON_MAP[content.type] || BookOpen;
-
   const progress = content.type === "book"
     ? (content.total_pages ? Math.round(((content.current_page || 0) / content.total_pages) * 100) : 0)
     : (content.total_duration ? Math.round(((content.current_duration || 0) / content.total_duration) * 100) : 0);
 
   return (
-    <div className="perspective cursor-pointer group" onMouseEnter={() => setFlipped(true)} onMouseLeave={() => setFlipped(false)}>
-      <div className={`relative preserve-3d transition-transform duration-500 ${flipped ? "rotate-y-180" : ""}`}>
-        {/* Front */}
-        <div className="backface-hidden bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow" onClick={onClick}>
-          {content.cover_url ? (
-            <img src={content.cover_url} alt={content.title} className="w-full h-28 object-cover rounded-lg mb-3" />
-          ) : (
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-12 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-                <Icon className="w-5 h-5 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{content.title}</p>
-                {content.author && <p className="text-xs text-muted-foreground truncate">{content.author}</p>}
-              </div>
-            </div>
-          )}
-          {content.cover_url && (
-            <div>
-              <p className="font-medium text-sm truncate">{content.title}</p>
-              {content.author && <p className="text-xs text-muted-foreground truncate">{content.author}</p>}
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 mt-2">
-            <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{TYPE_LABELS[content.type]}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
-              {STATUS_LABELS_EXT[content.status] || ""}
-            </span>
+    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group">
+      {/* Image miniature */}
+      <div className="relative w-full h-32 bg-secondary overflow-hidden flex items-center justify-center">
+        {content.cover_url ? (
+          <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary/20 to-accent/20">
+            <Icon className="w-8 h-8 text-accent" />
           </div>
-          {progress > 0 && (
-            <div className="mt-2">
-              <Progress value={progress} className="h-1.5" />
-              <p className="text-xs text-muted-foreground mt-1 text-right">{progress}%</p>
-            </div>
-          )}
-          {/* Playlist menu on hover */}
-          <div className="mt-2 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-            <AddToPlaylistMenu contentId={content.id} />
+        )}
+        {/* Overlay progress badge */}
+        {progress > 0 && (
+          <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur px-2 py-1 rounded-full">
+            <p className="text-xs font-bold text-white">{progress}%</p>
           </div>
+        )}
+      </div>
+
+      {/* Contenu */}
+      <div className="p-3 space-y-2">
+        {/* Titre et auteur */}
+        <div>
+          <h4 className="font-semibold text-sm line-clamp-2 leading-tight">{content.title}</h4>
+          {content.author && <p className="text-xs text-muted-foreground line-clamp-1">{content.author}</p>}
         </div>
 
-        {/* Back */}
-        <div className="backface-hidden rotate-y-180 absolute inset-0 bg-card rounded-xl border border-accent/30 p-4 shadow-md cursor-pointer" onClick={onClick}>
-          <p className="text-xs font-semibold text-accent mb-2">{CATEGORY_LABELS[content.category] || "Autre"}</p>
-          <p className="text-xs text-muted-foreground line-clamp-4">{content.summary || "Aucun résumé disponible"}</p>
-          {content.personal_note && (
-            <p className="text-xs mt-2 italic text-foreground/70 line-clamp-2">📝 {content.personal_note}</p>
-          )}
-          <p className="text-xs text-accent font-medium mt-3">Voir les détails →</p>
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1">
+          <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{TYPE_LABELS[content.type]}</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
+            {STATUS_LABELS_EXT[content.status] || ""}
+          </span>
         </div>
+
+        {/* Résumé court */}
+        {content.summary && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{content.summary}</p>
+        )}
+
+        {/* CTA */}
+        <button
+          onClick={onClick}
+          className="w-full mt-2 text-xs font-medium text-accent hover:text-accent hover:underline transition-colors text-center py-1.5 rounded-lg hover:bg-accent/5"
+        >
+          Voir les détails →
+        </button>
+      </div>
+
+      {/* Playlist menu */}
+      <div className="px-3 pb-2 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <AddToPlaylistMenu contentId={content.id} />
       </div>
     </div>
   );
