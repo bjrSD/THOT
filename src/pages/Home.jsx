@@ -15,10 +15,10 @@ const BOOKS = [
 { title: "Atomic Habits", author: "James Clear", cover: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", progress: 100 },
 { title: "Sapiens", author: "Y.N. Harari", cover: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg", progress: 68 },
 { title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg", progress: 34 },
-{ title: "Deep Work", author: "Cal Newport", cover: "https://covers.openlibrary.org/b/isbn/9781455586691-L.jpg", progress: 100 },
-{ title: "Psychology of Money", author: "Morgan Housel", cover: "https://covers.openlibrary.org/b/isbn/9780857197689-L.jpg", progress: 0 },
-{ title: "Zero to One", author: "Peter Thiel", cover: "https://covers.openlibrary.org/b/isbn/9780804139021-L.jpg", progress: 100 },
-{ title: "Outliers", author: "Malcolm Gladwell", cover: "https://covers.openlibrary.org/b/isbn/9780316017930-L.jpg", progress: 0 },
+{ title: "Le Monde d'hier", author: "Stefan Zweig", cover: "https://covers.openlibrary.org/b/isbn/9782253004745-L.jpg", progress: 100 },
+{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://covers.openlibrary.org/b/isbn/9782290004449-L.jpg", progress: 0 },
+{ title: "Les Misérables", author: "Victor Hugo", cover: "https://covers.openlibrary.org/b/isbn/9782070409228-L.jpg", progress: 100 },
+{ title: "Le Petit Prince", author: "Antoine de Saint-Exupéry", cover: "https://covers.openlibrary.org/b/isbn/9782070612758-L.jpg", progress: 0 },
 { title: "The Lean Startup", author: "Eric Ries", cover: "https://covers.openlibrary.org/b/isbn/9780307887894-L.jpg", progress: 52 },
 ];
 
