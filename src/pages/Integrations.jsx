@@ -9,41 +9,41 @@ const INTEGRATIONS = [
   {
     category: "📚 Lecture",
     apps: [
-      { name: "Kindle", desc: "Synchronisez automatiquement vos livres et pages lues depuis votre liseuse Amazon.", color: "#FF9900", emoji: "📱", premium: true, status: "available" },
-      { name: "Bookmate", desc: "Importez vos bibliothèques et progressions.", color: "#FF5252", emoji: "📖", premium: true, status: "coming" },
-      { name: "Readwise", desc: "Synchronisez vos highlights et notes de lecture.", color: "#6C5CE7", emoji: "✏️", premium: true, status: "coming" },
+      { name: "Kindle", desc: "Synchronisez automatiquement vos livres et pages lues depuis votre liseuse Amazon.", color: "#FF9900", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg", premium: true, status: "available" },
+      { name: "Bookmate", desc: "Importez vos bibliothèques et progressions.", color: "#FF5252", logo: "https://upload.wikimedia.org/wikipedia/commons/8/82/Bookmate_logo.png", premium: true, status: "coming" },
+      { name: "Readwise", desc: "Synchronisez vos highlights et notes de lecture.", color: "#6C5CE7", logo: "https://readwise.io/favicon.ico", premium: true, status: "coming" },
     ]
   },
   {
     category: "🎵 Audio & Podcast",
     apps: [
-      { name: "Spotify", desc: "Suivez automatiquement les podcasts écoutés et leur durée.", color: "#1DB954", emoji: "🎧", premium: true, status: "available" },
-      { name: "Apple Podcasts", desc: "Importez vos abonnements et historique d'écoute.", color: "#A855F7", emoji: "🎙️", premium: true, status: "available" },
-      { name: "Pocket Casts", desc: "Synchronisez vos podcasts favoris et progrès.", color: "#F43F5E", emoji: "🎤", premium: true, status: "coming" },
+      { name: "Spotify", desc: "Suivez automatiquement les podcasts écoutés et leur durée.", color: "#1DB954", logo: "https://upload.wikimedia.org/wikipedia/commons/7/74/Spotify_App_Logo.svg", premium: true, status: "available" },
+      { name: "Apple Podcasts", desc: "Importez vos abonnements et historique d'écoute.", color: "#A855F7", logo: "https://upload.wikimedia.org/wikipedia/commons/3/35/Apple_Podcasts_Icon.svg", premium: true, status: "available" },
+      { name: "Pocket Casts", desc: "Synchronisez vos podcasts favoris et progrès.", color: "#F43F5E", logo: "https://www.pocketcasts.com/favicon.ico", premium: true, status: "coming" },
     ]
   },
   {
     category: "📺 Vidéo",
     apps: [
-      { name: "YouTube", desc: "Enregistrez automatiquement les vidéos éducatives que vous regardez.", color: "#FF0000", emoji: "▶️", premium: true, status: "available" },
-      { name: "Netflix", desc: "Suivez les documentaires et contenus éducatifs visionnés.", color: "#E50914", emoji: "🎬", premium: true, status: "coming" },
-      { name: "MasterClass", desc: "Synchronisez vos cours et progressions.", color: "#2D2D2D", emoji: "🎓", premium: true, status: "coming" },
+      { name: "YouTube", desc: "Enregistrez automatiquement les vidéos éducatives que vous regardez.", color: "#FF0000", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg", premium: true, status: "available" },
+      { name: "Netflix", desc: "Suivez les documentaires et contenus éducatifs visionnés.", color: "#E50914", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Netflix_logo.svg", premium: true, status: "coming" },
+      { name: "MasterClass", desc: "Synchronisez vos cours et progressions.", color: "#2D2D2D", logo: "https://www.masterclass.com/favicon.ico", premium: true, status: "coming" },
     ]
   },
   {
     category: "📰 Presse & Articles",
     apps: [
-      { name: "Les Échos", desc: "Articles lus et temps de lecture synchronisés automatiquement.", color: "#005BAA", emoji: "📰", premium: true, status: "available" },
-      { name: "Le Monde", desc: "Suivez vos lectures quotidiennes et créez des notes.", color: "#1A1A1A", emoji: "🗞️", premium: true, status: "available" },
-      { name: "Pocket", desc: "Importez et synchronisez vos articles sauvegardés.", color: "#EF4056", emoji: "📌", premium: true, status: "available" },
-      { name: "Instapaper", desc: "Synchronisez votre liste de lecture et annotations.", color: "#333333", emoji: "📋", premium: true, status: "coming" },
+      { name: "Les Échos", desc: "Articles lus et temps de lecture synchronisés automatiquement.", color: "#005BAA", logo: "https://upload.wikimedia.org/wikipedia/fr/6/65/Les_%C3%89chos_logo.svg", premium: true, status: "available" },
+      { name: "Le Monde", desc: "Suivez vos lectures quotidiennes et créez des notes.", color: "#1A1A1A", logo: "https://upload.wikimedia.org/wikipedia/fr/0/08/Logo_Le_Monde.svg", premium: true, status: "available" },
+      { name: "Pocket", desc: "Importez et synchronisez vos articles sauvegardés.", color: "#EF4056", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Pocket_%28application%29_logo.svg", premium: true, status: "available" },
+      { name: "Instapaper", desc: "Synchronisez votre liste de lecture et annotations.", color: "#333333", logo: "https://www.instapaper.com/favicon.ico", premium: true, status: "coming" },
     ]
   },
   {
     category: "🔗 Productivité",
     apps: [
-      { name: "Notion", desc: "Exportez vos notes et résumés directement dans Notion.", color: "#000000", emoji: "📓", premium: true, status: "coming" },
-      { name: "Obsidian", desc: "Créez des notes liées à vos contenus dans Obsidian.", color: "#7C3AED", emoji: "💎", premium: true, status: "coming" },
+      { name: "Notion", desc: "Exportez vos notes et résumés directement dans Notion.", color: "#000000", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg", premium: true, status: "coming" },
+      { name: "Obsidian", desc: "Créez des notes liées à vos contenus dans Obsidian.", color: "#7C3AED", logo: "https://obsidian.md/favicon.ico", premium: true, status: "coming" },
     ]
   },
 ];
@@ -103,9 +103,9 @@ export default function Integrations() {
                 <motion.div key={ai} whileHover={{ scale: 1.01 }}>
                   <div className={`bg-card rounded-xl border p-5 transition-all ${isConnected ? "border-green-500/40 bg-green-500/5" : "border-border hover:border-accent/30 hover:shadow-md"}`}>
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
                         style={{ backgroundColor: app.color + "20" }}>
-                        {app.emoji}
+                        <img src={app.logo} alt={app.name} className="w-full h-full object-contain p-1.5" onError={(e) => { e.target.style.display = 'none'; }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
