@@ -119,11 +119,8 @@ export default function Dashboard() {
         <ContentPieChart contents={contents} />
       </div>
 
-      {/* Bottom section */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        <RadarDomains user={user} />
-        <ActivityFeed activities={activities} />
-      </div>
+      {/* Activity feed */}
+      <ActivityFeed activities={activities} />
 
       {/* Detailed stats by content type */}
       <ContentStatsTab contents={contents} />
