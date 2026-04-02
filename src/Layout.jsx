@@ -144,28 +144,51 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {/* Language selector */}
+              <div className="flex gap-1 bg-white/10 p-1 rounded-lg backdrop-blur-sm border border-white/20">
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded transition-all ${
+                    language === 'en'
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  {t('lang.english', language)}
+                </button>
+                <button
+                  onClick={() => changeLanguage('fr')}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded transition-all ${
+                    language === 'fr'
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  {t('lang.french', language)}
+                </button>
+              </div>
               {isAuth ? (
                 <>
                   <Link to={createPageUrl("Dashboard")}>
                     <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs dark:border-white/20 dark:text-white dark:bg-white/10 dark:hover:bg-white/20">
-                      <LayoutDashboard className="w-3.5 h-3.5" /> Mon dashboard
+                      <LayoutDashboard className="w-3.5 h-3.5" /> {t('layout.myDashboard', language)}
                     </Button>
                   </Link>
                   <Button size="sm" className="bg-accent hover:bg-accent/90 text-white gap-1.5"
                     onClick={() => base44.auth.logout()}>
-                    Déconnexion
+                    {t('layout.logout', language)}
                   </Button>
                 </>
               ) : (
                 <>
                   <Button size="sm" variant="outline" className="gap-1.5 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-white/20"
                     onClick={() => base44.auth.redirectToLogin()}>
-                    <LogIn className="w-4 h-4" /> Se connecter
+                    <LogIn className="w-4 h-4" /> {t('layout.signin', language)}
                   </Button>
                   <Button size="sm" className="bg-accent hover:bg-accent/90 text-white"
                     onClick={() => base44.auth.redirectToLogin()}>
-                    S'inscrire gratuitement
+                    {t('layout.signup', language)}
                   </Button>
                 </>
               )}

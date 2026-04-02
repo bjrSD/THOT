@@ -1,5 +1,10 @@
 export const translations = {
   en: {
+    // Language
+    lang: {
+      english: "ENG",
+      french: "FRA",
+    },
     // Navigation
     nav: {
       dashboard: "Dashboard",
@@ -85,6 +90,11 @@ export const translations = {
     },
   },
   fr: {
+    // Language
+    lang: {
+      english: "ANG",
+      french: "FRA",
+    },
     // Navigation
     nav: {
       dashboard: "Dashboard",
