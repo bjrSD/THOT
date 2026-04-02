@@ -16,7 +16,7 @@ const BOOKS = [
 { title: "Sapiens", author: "Y.N. Harari", cover: "https://books.google.com/books/content?id=1EiJAwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 68 },
 { title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://books.google.com/books/content?id=ZuKTvERuPG8C&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 34 },
 { title: "La Femme de ménage", author: "Freida McFadden", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/b50d90655_image.png", progress: 100 },
-{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/c493bd705_image.png", progress: 0, scale: 1.35 },
+{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/c493bd705_image.png", progress: 0, scale: 1.2 },
 { title: "Les Misérables", author: "Victor Hugo", cover: "https://books.google.com/books/content?id=P1YXAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 100 },
 { title: "Chanson Douce", author: "Leïla Slimani", cover: "https://media.base44.com/images/public/69b18ae2b6a2664c5c01b197/1ac8fa3cc_image.png", progress: 0 },
 { title: "The Lean Startup", author: "Eric Ries", cover: "https://books.google.com/books/content?id=r9x-OXdzpPcC&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 52 },
@@ -235,11 +235,7 @@ export default function Home() {
                                   onError={(e) => { e.target.style.display = 'none'; }}
                                 />
                               </div>
-                              {b.progress > 0 && b.progress < 100 && (
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden">
-                                  <div className="h-full bg-accent rounded-b-lg" style={{ width: `${b.progress}%` }} />
-                                </div>
-                              )}
+
                             </div>
                             <p className="text-[10px] text-white/40 mt-1.5 truncate leading-tight">{b.title}</p>
                           </div>
