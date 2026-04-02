@@ -260,9 +260,9 @@ export default function Home() {
       </section>
 
       {/* ===== SOCIAL FEATURES ===== */}
-      <section className="py-20 md:py-28 bg-secondary/20">
+      <section className="py-10 md:py-14 bg-secondary/20">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Zap className="w-4 h-4" /> Nouvelles fonctionnalités v2.0
             </div>
@@ -291,7 +291,7 @@ export default function Home() {
       </section>
 
       {/* ===== LEADERBOARD PREVIEW with time tabs ===== */}
-      <section className="py-20 md:py-28"
+      <section className="py-10 md:py-14"
       style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-start">
@@ -369,7 +369,7 @@ export default function Home() {
       </section>
 
       {/* ===== DUEL PREVIEW ===== */}
-      <section className="py-20 md:py-28 bg-secondary/20">
+      <section className="py-10 md:py-14 bg-secondary/20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
@@ -425,9 +425,9 @@ export default function Home() {
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
-      <section className="py-20 md:py-28">
+      <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
             <h2 className="font-heading text-3xl md:text-4xl font-bold">Comment ça marche</h2>
             <p className="mt-4 text-muted-foreground text-lg">Trois étapes simples</p>
           </motion.div>
@@ -462,9 +462,9 @@ export default function Home() {
       </section>
 
       {/* ===== INTEGRATIONS ===== */}
-      <section className="py-20 md:py-28 bg-secondary/20">
+      <section className="py-10 md:py-14 bg-secondary/20">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Wifi className="w-4 h-4" /> Suivi automatique
             </div>
@@ -491,9 +491,9 @@ export default function Home() {
       </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section className="py-20 md:py-28">
+      <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
             <h2 className="font-heading text-3xl md:text-4xl font-bold">Ce qu'en disent nos apprenants</h2>
           </motion.div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -529,9 +529,9 @@ export default function Home() {
       </section>
 
       {/* ===== STATS VOCABULARY ===== */}
-      <section className="py-20 md:py-28 bg-secondary/20">
+      <section className="py-10 md:py-14 bg-secondary/20">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-purple-500/10 text-purple-400 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Brain className="w-4 h-4" /> Capital Lexical
             </div>
@@ -594,7 +594,7 @@ export default function Home() {
       </section>
 
       {/* ===== PROFIL APPRENANT ===== */}
-      <section className="py-20 md:py-28">
+      <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
@@ -644,7 +644,7 @@ export default function Home() {
       </section>
 
       {/* ===== PREMIUM CTA ===== */}
-      <section className="py-20 md:py-28 relative overflow-hidden"
+      <section className="py-10 md:py-14 relative overflow-hidden"
       style={{ background: "linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)" }}>
         <div className="absolute inset-0">
           <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1600&q=60" alt=""
