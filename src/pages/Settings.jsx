@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Sun, Moon, Monitor, Bell, Shield, Trash2, User, Crown, ChevronRight, Loader2, Check } from "lucide-react";
+import { Sun, Moon, Monitor, Bell, Shield, Trash2, User, Crown, ChevronRight, Loader2, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,8 @@ export default function Settings() {
   });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwMsg, setPwMsg] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -52,6 +54,12 @@ export default function Settings() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handlePasswordChange = async () => {
+    if (pwForm.next !== pwForm.confirm) { setPwMsg({ type: "error", text: "Les mots de passe ne correspondent pas." }); return; }
+    if (pwForm.next.length < 8) { setPwMsg({ type: "error", text: "Le mot de passe doit contenir au moins 8 caractères." }); return; }
+    setPwMsg({ type: "success", text: "Pour changer votre mot de passe, veuillez vous déconnecter puis utiliser 'Mot de passe oublié' lors de la reconnexion." });
   };
 
   if (!user) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
@@ -140,15 +148,48 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      {/* Account */}
+      {/* Security */}
       <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-5 h-5 text-accent" />
+            <h2 className="font-heading font-semibold">Sécurité</h2>
+          </div>
+          <div className="space-y-3 max-w-sm">
+            <div className="space-y-1.5">
+              <Label>Mot de passe actuel</Label>
+              <input type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} placeholder="••••••••" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nouveau mot de passe</Label>
+              <input type="password" value={pwForm.next} onChange={e => setPwForm({ ...pwForm, next: e.target.value })} placeholder="••••••••" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirmer le nouveau mot de passe</Label>
+              <input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} placeholder="••••••••" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" />
+            </div>
+            {pwMsg && (
+              <div className={`text-sm p-3 rounded-xl ${pwMsg.type === "error" ? "bg-destructive/10 text-destructive" : "bg-green-500/10 text-green-600"}`}>
+                {pwMsg.text}
+              </div>
+            )}
+            <Button onClick={handlePasswordChange} disabled={!pwForm.current || !pwForm.next} size="sm">
+              Changer le mot de passe
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Account */}
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <div className="bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-accent" />
-            <h2 className="font-heading font-semibold">Compte & Sécurité</h2>
+            <h2 className="font-heading font-semibold">Compte</h2>
           </div>
           <div className="space-y-2">
             {[
+              { label: "Mon profil complet", page: "Profile" },
               { label: "Politique de confidentialité", page: "Privacy" },
               { label: "Conditions générales d'utilisation", page: "Terms" },
               { label: "Gérer mon abonnement", page: "Premium" },
@@ -166,7 +207,7 @@ export default function Settings() {
       </motion.div>
 
       {/* Danger zone */}
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <div className="bg-card rounded-2xl border border-destructive/20 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Trash2 className="w-5 h-5 text-destructive" />

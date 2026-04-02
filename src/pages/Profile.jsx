@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Loader2, BookOpen, Headphones, Play, FileText, Trophy, Flame, Star,
-  Edit2, Save, LogOut, MapPin, Calendar, User, Shield, ChevronRight, Check, X, Camera
+  Edit2, Save, LogOut, MapPin, Calendar, User, Shield, ChevronRight, Check, X, Camera, Settings
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { LEVELS, BADGES, getUserLevel, getNextLevel, getLevelProgress } from "@/components/shared/KPUtils";
 
-const TABS = ["Profil", "Statistiques", "Badges", "Sécurité"];
+const TABS = ["Profil", "Statistiques", "Badges"];
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -22,8 +24,6 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editForm, setEditForm] = useState({});
-  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
-  const [pwMsg, setPwMsg] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -55,12 +55,7 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handlePasswordChange = async () => {
-    if (pwForm.next !== pwForm.confirm) { setPwMsg({ type: "error", text: "Les mots de passe ne correspondent pas." }); return; }
-    if (pwForm.next.length < 8) { setPwMsg({ type: "error", text: "Le mot de passe doit contenir au moins 8 caractères." }); return; }
-    // Redirect to login page which handles password change
-    setPwMsg({ type: "success", text: "Pour changer votre mot de passe, veuillez vous déconnecter puis utiliser 'Mot de passe oublié' lors de la reconnexion." });
-  };
+
 
   if (!user) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
@@ -310,46 +305,25 @@ export default function Profile() {
         </motion.div>
       )}
 
-      {/* TAB: Sécurité */}
-      {tab === "Sécurité" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <h2 className="font-heading font-semibold flex items-center gap-2 mb-4">
-              <Shield className="w-4 h-4 text-accent" /> Changer de mot de passe
-            </h2>
-            <div className="space-y-3 max-w-sm">
-              <div className="space-y-1.5">
-                <Label>Mot de passe actuel</Label>
-                <Input type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} placeholder="••••••••" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Nouveau mot de passe</Label>
-                <Input type="password" value={pwForm.next} onChange={e => setPwForm({ ...pwForm, next: e.target.value })} placeholder="••••••••" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Confirmer le nouveau mot de passe</Label>
-                <Input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} placeholder="••••••••" />
-              </div>
-              {pwMsg && (
-                <div className={`text-sm p-3 rounded-xl ${pwMsg.type === "error" ? "bg-destructive/10 text-destructive" : "bg-green-500/10 text-green-600"}`}>
-                  {pwMsg.text}
-                </div>
-              )}
-              <Button onClick={handlePasswordChange} disabled={!pwForm.current || !pwForm.next}>
-                Changer le mot de passe
-              </Button>
+      {/* Quick link to Security Settings */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-2xl border border-border p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Settings className="w-6 h-6 text-accent" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm">Gérer la sécurité</h3>
+              <p className="text-xs text-muted-foreground">Changer votre mot de passe, paramètres de sécurité</p>
             </div>
           </div>
-
-          <div className="bg-card rounded-2xl border border-destructive/20 p-6">
-            <h2 className="font-heading font-semibold text-destructive mb-2">Zone dangereuse</h2>
-            <p className="text-sm text-muted-foreground mb-4">La suppression de votre compte est définitive et irréversible.</p>
-            <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/5">
-              Supprimer mon compte
+          <Link to={createPageUrl("Settings")}>
+            <Button variant="outline" size="sm">
+              <ChevronRight className="w-4 h-4" />
             </Button>
-          </div>
-        </motion.div>
-      )}
+          </Link>
+        </div>
+      </motion.div>
     </div>
   );
 }
