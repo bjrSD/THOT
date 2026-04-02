@@ -220,22 +220,191 @@ export default function Reports() {
   });
 
   const buildEmailBody = (r) => {
-    return `<h2 style="color:#1a4fa0">Rapport THOT — ${r.label}</h2>
-<p>Bonjour ${user.full_name || ""},</p>
-<p>Voici votre rapport d'apprentissage THOT pour la période : <strong>${r.label}</strong></p>
-<ul>
-  <li>📚 Livres lus : <strong>${r.byType.book}</strong></li>
-  <li>🎧 Podcasts : <strong>${r.byType.podcast}</strong></li>
-  <li>🎬 Vidéos : <strong>${r.byType.video}</strong></li>
-  <li>📰 Articles : <strong>${r.byType.article}</strong></li>
-  <li>⚡ KP gagnés : <strong>${r.kpEarned}</strong></li>
-  <li>🔥 Streak : <strong>${r.streak} jours</strong></li>
-  ${r.topCategory ? `<li>🎯 Domaine principal : <strong>${CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]}</strong></li>` : ""}
-</ul>
-${r.completedInPeriod.length > 0 ? `
-<h3>Contenus terminés :</h3>
-<ul>${r.completedInPeriod.map(c => `<li>${c.type === "book" ? "📚" : c.type === "podcast" ? "🎧" : "🎬"} ${c.title}${c.author ? ` — ${c.author}` : ""}${c.rating ? ` (${"★".repeat(c.rating)})` : ""}</li>`).join("")}</ul>` : ""}
-<p style="margin-top:20px;color:#666;font-size:12px">Continuez à apprendre sur <a href="https://thot.app">THOT</a> 🚀</p>`;
+    const periodLabel = r.label.charAt(0).toUpperCase() + r.label.slice(1);
+    const topDomainLabel = r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]) : "—";
+    const domFmtEntry = Object.entries(r.byType).sort((a,b) => b[1]-a[1])[0];
+    const domFmtLabel = domFmtEntry?.[0] === "book" ? "Livres" : domFmtEntry?.[0] === "podcast" ? "Podcasts" : domFmtEntry?.[0] === "video" ? "Vidéos" : "Articles";
+    const contentsHtml = r.completedInPeriod.length > 0
+      ? r.completedInPeriod.map(c => `
+        <tr>
+          <td style="padding:10px 16px;border-bottom:1px solid #f0f4f8;">
+            <span style="font-size:16px">${c.type==="book"?"📚":c.type==="podcast"?"🎧":c.type==="video"?"🎬":"📰"}</span>
+            <span style="margin-left:8px;font-weight:600;color:#111827;">${c.title}</span>
+            ${c.author ? `<span style="color:#6b7280;font-size:13px;"> — ${c.author}</span>` : ""}
+            ${c.rating ? `<span style="color:#f59e0b;margin-left:8px;">${"★".repeat(c.rating)}</span>` : ""}
+          </td>
+        </tr>`).join("")
+      : `<tr><td style="padding:16px;color:#6b7280;text-align:center;font-style:italic;">Aucun contenu terminé sur cette période</td></tr>`;
+
+    return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport THOT</title></head>
+<body style="margin:0;padding:0;background:#f3f6fb;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#111827;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f6fb;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1a4fa0 0%,#2563eb 60%,#1e3a8a 100%);padding:40px 40px 32px;">
+            <table width="100%">
+              <tr>
+                <td>
+                  <div style="font-size:32px;font-weight:900;color:#ffffff;letter-spacing:-1px;margin-bottom:4px;">THOT</div>
+                  <div style="width:32px;height:3px;background:#60a5fa;border-radius:2px;margin-bottom:12px;"></div>
+                  <div style="font-size:13px;color:#93c5fd;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Rapport d'apprentissage</div>
+                </td>
+                <td align="right" valign="top">
+                  <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:12px 18px;display:inline-block;">
+                    <div style="font-size:11px;color:#bfdbfe;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;">Période</div>
+                    <div style="font-size:15px;color:#ffffff;font-weight:700;">${periodLabel}</div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- GREETING -->
+        <tr>
+          <td style="padding:32px 40px 0;">
+            <p style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Bonjour ${user?.full_name?.split(" ")[0] || ""}  👋</p>
+            <p style="font-size:15px;color:#6b7280;margin:0;line-height:1.6;">
+              Voici votre rapport d'apprentissage THOT pour la période <strong style="color:#1a4fa0;">${periodLabel}</strong>.<br>
+              Ce rapport synthétise votre activité, votre progression et l'évolution de votre profil intellectuel.
+            </p>
+          </td>
+        </tr>
+
+        <!-- DIVIDER -->
+        <tr><td style="padding:24px 40px 0;"><div style="height:1px;background:linear-gradient(90deg,#e5e7eb,#3b82f6,#e5e7eb);"></div></td></tr>
+
+        <!-- KPI GRID -->
+        <tr>
+          <td style="padding:28px 40px 0;">
+            <p style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#6b7280;font-weight:600;margin:0 0 16px;">Chiffres clés</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="25%" style="padding:0 6px 0 0;">
+                  <div style="background:#eff6ff;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #1a4fa0;">
+                    <div style="font-size:28px;font-weight:900;color:#1a4fa0;">${r.totalCompleted}</div>
+                    <div style="font-size:11px;color:#6b7280;margin-top:4px;">📚 Contenus</div>
+                  </div>
+                </td>
+                <td width="25%" style="padding:0 6px;">
+                  <div style="background:#eff6ff;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #2196f3;">
+                    <div style="font-size:28px;font-weight:900;color:#2196f3;">${r.kpEarned}</div>
+                    <div style="font-size:11px;color:#6b7280;margin-top:4px;">⚡ KP gagnés</div>
+                  </div>
+                </td>
+                <td width="25%" style="padding:0 6px;">
+                  <div style="background:#fff7ed;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #f59e0b;">
+                    <div style="font-size:28px;font-weight:900;color:#f59e0b;">${r.streak}</div>
+                    <div style="font-size:11px;color:#6b7280;margin-top:4px;">🔥 Streak (jours)</div>
+                  </div>
+                </td>
+                <td width="25%" style="padding:0 0 0 6px;">
+                  <div style="background:#f5f3ff;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #8b5cf6;">
+                    <div style="font-size:14px;font-weight:900;color:#8b5cf6;margin-top:4px;">${topDomainLabel}</div>
+                    <div style="font-size:11px;color:#6b7280;margin-top:4px;">🧠 Domaine #1</div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- FORMAT ROW -->
+        <tr>
+          <td style="padding:20px 40px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:12px;padding:16px;">
+              <tr>
+                <td style="padding:8px 12px;text-align:center;border-right:1px solid #e5e7eb;">
+                  <div style="font-size:20px;">📚</div>
+                  <div style="font-size:20px;font-weight:800;color:#1a4fa0;">${r.byType.book}</div>
+                  <div style="font-size:11px;color:#9ca3af;">Livres</div>
+                </td>
+                <td style="padding:8px 12px;text-align:center;border-right:1px solid #e5e7eb;">
+                  <div style="font-size:20px;">🎧</div>
+                  <div style="font-size:20px;font-weight:800;color:#2196f3;">${r.byType.podcast}</div>
+                  <div style="font-size:11px;color:#9ca3af;">Podcasts</div>
+                </td>
+                <td style="padding:8px 12px;text-align:center;border-right:1px solid #e5e7eb;">
+                  <div style="font-size:20px;">🎬</div>
+                  <div style="font-size:20px;font-weight:800;color:#10b981;">${r.byType.video}</div>
+                  <div style="font-size:11px;color:#9ca3af;">Vidéos</div>
+                </td>
+                <td style="padding:8px 12px;text-align:center;">
+                  <div style="font-size:20px;">📰</div>
+                  <div style="font-size:20px;font-weight:800;color:#f59e0b;">${r.byType.article}</div>
+                  <div style="font-size:11px;color:#9ca3af;">Articles</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- INSIGHT BOX -->
+        <tr>
+          <td style="padding:20px 40px 0;">
+            <div style="background:linear-gradient(135deg,#eff6ff,#f5f3ff);border-left:4px solid #3b82f6;border-radius:0 12px 12px 0;padding:18px 20px;">
+              <p style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#3b82f6;font-weight:700;margin:0 0 8px;">Insight du mois</p>
+              <p style="font-size:14px;color:#1e3a5f;line-height:1.7;margin:0;font-style:italic;">
+                Ce mois-ci, votre progression traduit une structuration plus nette de votre profil. Votre format dominant est <strong>${domFmtLabel}</strong> et votre domaine principal est <strong>${topDomainLabel}</strong>. Continuez sur cette lancée !
+              </p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- CONTENTS TABLE -->
+        ${r.completedInPeriod.length > 0 ? `
+        <tr>
+          <td style="padding:24px 40px 0;">
+            <p style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#6b7280;font-weight:600;margin:0 0 12px;">Contenus terminés (${r.completedInPeriod.length})</p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+              ${contentsHtml}
+            </table>
+          </td>
+        </tr>` : ""}
+
+        <!-- DIVIDER -->
+        <tr><td style="padding:28px 40px 0;"><div style="height:1px;background:#e5e7eb;"></div></td></tr>
+
+        <!-- CTA BUTTON -->
+        <tr>
+          <td style="padding:24px 40px;" align="center">
+            <a href="https://app.thot.app/Reports" style="display:inline-block;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:100px;font-size:15px;font-weight:700;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(37,99,235,0.35);">
+              📊 Voir mon rapport complet
+            </a>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background:#1e3a5f;padding:28px 40px;">
+            <table width="100%">
+              <tr>
+                <td>
+                  <div style="font-size:20px;font-weight:900;color:#ffffff;margin-bottom:4px;">THOT</div>
+                  <div style="font-size:12px;color:#93c5fd;margin-bottom:12px;">Le Strava du savoir — Suivez, progressez, brillez.</div>
+                  <div style="font-size:11px;color:#60a5fa;">Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })} • ${user?.email || ""}</div>
+                </td>
+                <td align="right" valign="bottom">
+                  <div style="font-size:12px;color:#475569;text-align:right;">
+                    <div style="color:#60a5fa;font-weight:600;margin-bottom:4px;">L'équipe THOT</div>
+                    <div style="color:#94a3b8;">contact@thot.app</div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
   };
 
   const handleSendEmail = async (r = report) => {
@@ -1096,13 +1265,11 @@ Rédige en français, ton premium, encourageant, intelligent, non culpabilisant.
           </Button>
         </PremiumGate>
 
-        {/* Send email */}
-        <PremiumGate isPremium={isPremium} feature="Envoi par email">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => handleSendEmail(report)} disabled={emailSending || emailSent}>
-            {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : emailSent ? <Check className="w-4 h-4 text-green-500" /> : <Mail className="w-4 h-4" />}
-            {emailSent ? "Envoyé !" : "Recevoir par email"}
-          </Button>
-        </PremiumGate>
+        {/* Send email — available to all */}
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => handleSendEmail(report)} disabled={emailSending || emailSent}>
+          {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : emailSent ? <Check className="w-4 h-4 text-green-500" /> : <Mail className="w-4 h-4" />}
+          {emailSent ? "Envoyé !" : "Recevoir par email"}
+        </Button>
 
         {emailSent && (
           <p className="text-xs text-green-600 flex items-center gap-1 self-center">
