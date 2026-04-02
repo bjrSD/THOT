@@ -15,27 +15,28 @@ import DailyChallenge from "@/components/dashboard/DailyChallenge";
 import Suggestions from "@/components/dashboard/Suggestions";
 import ArchetypeCard from "@/components/dashboard/ArchetypeCard";
 import VocabAI from "@/components/dashboard/VocabAI";
+import DetailedStats from "@/components/dashboard/DetailedStats";
 import { getUserLevel, getNextLevel, getLevelProgress } from "@/components/shared/KPUtils";
 import { Progress } from "@/components/ui/progress";
 
 // ─── Mini stat card ────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, sub, color, bg, progress, nextLevel, delay = 0 }) {
+function StatCard({ icon: Icon, label, value, sub, color, bg, progress, nextLevel, delay = 0, small = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1.5 hover:shadow-md transition-shadow"
+      className={`bg-card border border-border rounded-lg p-2.5 flex flex-col gap-1 hover:shadow-md transition-shadow ${small ? "" : ""}`}
     >
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-        <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
-          <Icon className={`w-3.5 h-3.5 ${color}`} />
+      <div className="flex items-center justify-between gap-1.5">
+        <p className={`font-medium text-muted-foreground uppercase tracking-wide ${small ? "text-[10px]" : "text-xs"}`}>{label}</p>
+        <div className={`rounded-lg ${bg} flex items-center justify-center shrink-0 ${small ? "w-5 h-5" : "w-6 h-6"}`}>
+          <Icon className={`${small ? "w-2.5 h-2.5" : "w-3 h-3"} ${color}`} />
         </div>
       </div>
-      <p className="text-2xl font-black leading-none">{value}</p>
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-      {progress !== undefined && nextLevel && (
+      <p className={`font-black leading-none ${small ? "text-lg" : "text-2xl"}`}>{value}</p>
+      {sub && <p className={`text-muted-foreground ${small ? "text-[10px]" : "text-xs"}`}>{sub}</p>}
+      {progress !== undefined && nextLevel && !small && (
         <div className="mt-1">
           <Progress value={progress} className="h-1" />
           <p className="text-xs text-muted-foreground mt-1">→ {nextLevel.icon} {nextLevel.name} ({progress}%)</p>
@@ -98,19 +99,22 @@ export default function Dashboard() {
         </AnimatePresence>
       </div>
 
-      {/* ── Row 1 : 4 KPI stats + daily challenge ─────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-5 gap-3">
-        <StatCard icon={Flame}     label="Streak"     value={`${streak}j`}                  sub="jours consécutifs"           color="text-orange-500" bg="bg-orange-500/10" delay={0.0} />
-        <StatCard icon={Star}      label="KP totaux"  value={kp.toLocaleString()}            sub="Knowledge Points"            color="text-accent"     bg="bg-accent/10"     delay={0.05} />
-        <StatCard icon={TrendingUp} label="Niveau"    value={`${level.icon} ${level.name}`} sub={`${progress}% vers suivant`} color="text-green-500"  bg="bg-green-500/10"  delay={0.1} progress={progress} nextLevel={nextLevel} />
-        <StatCard icon={BookOpen}  label="Terminés"   value={totalCompleted}                 sub="contenus complétés"          color="text-primary"    bg="bg-primary/10"    delay={0.15} />
-        <div className="col-span-2 sm:col-span-4 xl:col-span-1 h-full">
+      {/* ── Row 1 : KPI stats compact + daily challenge ─────────────────────────── */}
+      <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+        <StatCard icon={Flame}     label="Streak"     value={`${streak}j`}                  sub="jours"                       color="text-orange-500" bg="bg-orange-500/10" delay={0.0} small={true} />
+        <StatCard icon={Star}      label="KP"         value={kp >= 1000 ? `${(kp/1000).toFixed(1)}k` : kp} sub="totaux"          color="text-accent"     bg="bg-accent/10"     delay={0.05} small={true} />
+        <StatCard icon={TrendingUp} label="Niveau"    value={level.icon}                   sub={level.name.split(" ")[0]}   color="text-green-500"  bg="bg-green-500/10"  delay={0.1} small={true} />
+        <StatCard icon={BookOpen}  label="Terminés"   value={totalCompleted}                 sub="contents"                    color="text-primary"    bg="bg-primary/10"    delay={0.15} small={true} />
+        <div className="col-span-4 md:col-span-1">
           <DailyChallenge />
         </div>
       </div>
 
-      {/* ── Row 2 : Weekly chart (wide) + Pie (narrow) ────────────────────────── */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      {/* ── Row 2 : Detailed stats + Weekly chart + Pie ────────────────────────── */}
+      <div className="grid lg:grid-cols-4 gap-3">
+        <div className="lg:col-span-1 bg-card border border-border rounded-lg p-3">
+          <DetailedStats contents={contents} />
+        </div>
         <div className="lg:col-span-2">
           <WeeklyChart activities={activities} />
         </div>
@@ -130,60 +134,38 @@ export default function Dashboard() {
       {/* ── Row 4 : Archetype (full width) ────────────────────────────────────── */}
       <ArchetypeCard contents={contents} />
 
-      {/* ── Row 5 : In-progress contents quick view + quick links ─────────────── */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* In-progress books/podcasts */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">En cours de lecture</h3>
-            <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
+      {/* ── Row 5 : In-progress contents quick view (secondary) ─────────────────── */}
+      <div className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-sm">En cours de lecture</h3>
+          <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
+        </div>
+        {inProgressCount === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {contents.filter(c => c.status === "in_progress").slice(0, 4).map(c => {
+              const prog = c.total_pages
+                ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
+                : c.total_duration
+                ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
+                : 0;
+              return (
+                <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`} className="flex flex-col gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  {c.cover_url
+                    ? <img src={c.cover_url} alt={c.title} className="w-full h-16 object-cover rounded shrink-0" />
+                    : <div className="w-full h-16 rounded bg-accent/10 flex items-center justify-center shrink-0"><BookOpen className="w-3 h-3 text-accent" /></div>
+                  }
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium truncate">{c.title}</p>
+                    <Progress value={prog} className="h-1 mt-1" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{prog}%</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-          {inProgressCount === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Aucun contenu en cours. Commencez quelque chose !</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {contents.filter(c => c.status === "in_progress").slice(0, 4).map(c => {
-                const prog = c.total_pages
-                  ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
-                  : c.total_duration
-                  ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
-                  : 0;
-                return (
-                  <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`} className="flex gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
-                    {c.cover_url
-                      ? <img src={c.cover_url} alt={c.title} className="w-10 h-14 object-cover rounded-lg shrink-0" />
-                      : <div className="w-10 h-14 rounded-lg bg-accent/10 flex items-center justify-center shrink-0"><BookOpen className="w-4 h-4 text-accent" /></div>
-                    }
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{c.title}</p>
-                      {c.author && <p className="text-xs text-muted-foreground truncate">{c.author}</p>}
-                      <div className="mt-2">
-                        <Progress value={prog} className="h-1.5" />
-                        <p className="text-xs text-muted-foreground mt-0.5">{prog}%</p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Quick navigation tiles */}
-        <div className="grid grid-cols-2 gap-3 content-start">
-          {[
-            { label: "Carte du cerveau", emoji: "🧠", page: "BrainMap", color: "from-purple-500/15 to-accent/10 border-purple-500/20" },
-            { label: "Heatmap", emoji: "🔥", page: "Heatmap", color: "from-orange-500/15 to-red-500/10 border-orange-500/20" },
-            { label: "Rapports", emoji: "📊", page: "Reports", color: "from-green-500/15 to-accent/10 border-green-500/20" },
-            { label: "Découvrir", emoji: "🔭", page: "Discover", color: "from-blue-500/15 to-accent/10 border-blue-500/20" },
-          ].map(item => (
-            <Link key={item.page} to={createPageUrl(item.page)}
-              className={`bg-gradient-to-br ${item.color} border rounded-2xl p-4 flex flex-col gap-2 hover:shadow-md transition-shadow`}>
-              <span className="text-2xl">{item.emoji}</span>
-              <p className="text-sm font-semibold leading-tight">{item.label}</p>
-            </Link>
-          ))}
-        </div>
+        )}
       </div>
 
       {/* ── Row 6 : VocabAI + Suggestions ─────────────────────────────────────── */}
