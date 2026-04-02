@@ -96,7 +96,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-2">
               {isAuth ?
               <>
-                  <Button size="sm" variant="outline" className="bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300 h-8 gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
+                  <Button size="sm" variant="outline" className="bg-gray-500 text-gray-50 px-3 text-xs font-medium rounded-md inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground border-slate-300 hover:bg-slate-300 h-8 gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
                     <LogIn className="w-4 h-4" /> Se connecter
                   </Button>
                   <Button size="sm" className="bg-accent hover:bg-accent/90 text-white gap-1.5" onClick={() => base44.auth.redirectToLogin()}>
