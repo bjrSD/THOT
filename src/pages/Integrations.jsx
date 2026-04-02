@@ -9,23 +9,23 @@ const INTEGRATIONS = [
   {
     category: "📚 Lecture",
     apps: [
-      { name: "Kindle", desc: "Synchronisez automatiquement vos livres et pages lues depuis votre liseuse Amazon.", color: "#FF9900", emoji: "📱", premium: false, status: "available" },
-      { name: "Bookmate", desc: "Importez vos bibliothèques et progressions.", color: "#FF5252", emoji: "📖", premium: false, status: "coming" },
+      { name: "Kindle", desc: "Synchronisez automatiquement vos livres et pages lues depuis votre liseuse Amazon.", color: "#FF9900", emoji: "📱", premium: true, status: "available" },
+      { name: "Bookmate", desc: "Importez vos bibliothèques et progressions.", color: "#FF5252", emoji: "📖", premium: true, status: "coming" },
       { name: "Readwise", desc: "Synchronisez vos highlights et notes de lecture.", color: "#6C5CE7", emoji: "✏️", premium: true, status: "coming" },
     ]
   },
   {
     category: "🎵 Audio & Podcast",
     apps: [
-      { name: "Spotify", desc: "Suivez automatiquement les podcasts écoutés et leur durée.", color: "#1DB954", emoji: "🎧", premium: false, status: "available" },
-      { name: "Apple Podcasts", desc: "Importez vos abonnements et historique d'écoute.", color: "#A855F7", emoji: "🎙️", premium: false, status: "available" },
+      { name: "Spotify", desc: "Suivez automatiquement les podcasts écoutés et leur durée.", color: "#1DB954", emoji: "🎧", premium: true, status: "available" },
+      { name: "Apple Podcasts", desc: "Importez vos abonnements et historique d'écoute.", color: "#A855F7", emoji: "🎙️", premium: true, status: "available" },
       { name: "Pocket Casts", desc: "Synchronisez vos podcasts favoris et progrès.", color: "#F43F5E", emoji: "🎤", premium: true, status: "coming" },
     ]
   },
   {
     category: "📺 Vidéo",
     apps: [
-      { name: "YouTube", desc: "Enregistrez automatiquement les vidéos éducatives que vous regardez.", color: "#FF0000", emoji: "▶️", premium: false, status: "available" },
+      { name: "YouTube", desc: "Enregistrez automatiquement les vidéos éducatives que vous regardez.", color: "#FF0000", emoji: "▶️", premium: true, status: "available" },
       { name: "Netflix", desc: "Suivez les documentaires et contenus éducatifs visionnés.", color: "#E50914", emoji: "🎬", premium: true, status: "coming" },
       { name: "MasterClass", desc: "Synchronisez vos cours et progressions.", color: "#2D2D2D", emoji: "🎓", premium: true, status: "coming" },
     ]
@@ -33,9 +33,9 @@ const INTEGRATIONS = [
   {
     category: "📰 Presse & Articles",
     apps: [
-      { name: "Les Échos", desc: "Articles lus et temps de lecture synchronisés automatiquement.", color: "#005BAA", emoji: "📰", premium: false, status: "available" },
-      { name: "Le Monde", desc: "Suivez vos lectures quotidiennes et créez des notes.", color: "#1A1A1A", emoji: "🗞️", premium: false, status: "available" },
-      { name: "Pocket", desc: "Importez et synchronisez vos articles sauvegardés.", color: "#EF4056", emoji: "📌", premium: false, status: "available" },
+      { name: "Les Échos", desc: "Articles lus et temps de lecture synchronisés automatiquement.", color: "#005BAA", emoji: "📰", premium: true, status: "available" },
+      { name: "Le Monde", desc: "Suivez vos lectures quotidiennes et créez des notes.", color: "#1A1A1A", emoji: "🗞️", premium: true, status: "available" },
+      { name: "Pocket", desc: "Importez et synchronisez vos articles sauvegardés.", color: "#EF4056", emoji: "📌", premium: true, status: "available" },
       { name: "Instapaper", desc: "Synchronisez votre liste de lecture et annotations.", color: "#333333", emoji: "📋", premium: true, status: "coming" },
     ]
   },
