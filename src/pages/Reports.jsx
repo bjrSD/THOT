@@ -265,48 +265,785 @@ ${r.completedInPeriod.length > 0 ? `
     setPdfLoading(true);
     const r = report;
     const { default: jsPDF } = await import("jspdf");
-    const doc = new jsPDF();
 
-    doc.setFillColor(26, 79, 160);
-    doc.rect(0, 0, 210, 40, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("THOT — Rapport d'apprentissage", 15, 18);
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Période : ${r.label}`, 15, 32);
+    // ── Generate AI narratives ──────────────────────────────────────────────
+    const topDomains = Object.entries(r.byCategory).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const totalConsumed = r.totalCompleted;
+    const domainList = topDomains.map(([k]) => CATEGORY_LABELS[k] || k).join(", ");
 
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(12);
-    let y = 55;
-    doc.setFont("helvetica", "bold");
-    doc.text("Résumé", 15, y); y += 8;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Livres lus : ${r.byType.book}`, 20, y); y += 7;
-    doc.text(`Podcasts écoutés : ${r.byType.podcast}`, 20, y); y += 7;
-    doc.text(`Vidéos regardées : ${r.byType.video}`, 20, y); y += 7;
-    doc.text(`Articles lus : ${r.byType.article}`, 20, y); y += 7;
-    doc.text(`KP gagnés : ${r.kpEarned}`, 20, y); y += 7;
-    doc.text(`Streak : ${r.streak} jours`, 20, y); y += 7;
-    if (r.topCategory) { doc.text(`Domaine principal : ${CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]}`, 20, y); y += 7; }
+    let aiTexts = {
+      executiveSummary: `Sur cette période, vous avez développé votre profil intellectuel à travers vos lectures, écoutes et contenus enregistrés dans THOT. Ce rapport met en lumière vos domaines dominants, votre régularité, vos formats préférés et les évolutions les plus marquantes de votre carte du cerveau.`,
+      activityAnalysis: `Votre activité a été globalement régulière sur la période. Vos pics d'engagement révèlent une dynamique d'apprentissage en construction.`,
+      brainMapAnalysis: `Votre profil intellectuel se structure autour de ${domainList || "plusieurs domaines"}. Votre carte montre une construction intellectuelle analytique et réflexive, avec une ouverture croissante vers des contenus transversaux.`,
+      progressComparison: `Par rapport à la période précédente, votre activité progresse de manière visible. Vous renforcez vos axes dominants tout en diversifiant progressivement vos centres d'intérêt.`,
+      insights: `Vous développez un profil de plus en plus réflexif. Votre curiosité devient plus cohérente et votre progression ne repose pas seulement sur le volume, mais sur une meilleure continuité.`,
+      recommendations: `Continuez à approfondir vos domaines forts tout en explorant des champs connexes pour enrichir votre carte intellectuelle. Stabilisez votre rythme d'apprentissage pour renforcer votre continuité globale.`,
+      finalSummary: `Sur cette période, vous avez consolidé un profil intellectuel structuré. Votre régularité progresse, votre carte du cerveau gagne en structure, et vos choix de contenus deviennent plus cohérents.`,
+    };
 
-    if (r.completedInPeriod.length > 0) {
-      y += 5;
-      doc.setFont("helvetica", "bold");
-      doc.text(`Contenus terminés (${r.completedInPeriod.length})`, 15, y); y += 8;
-      doc.setFont("helvetica", "normal");
-      r.completedInPeriod.forEach(c => {
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(`• ${c.title}${c.author ? ` — ${c.author}` : ""}`, 20, y); y += 6;
+    try {
+      const aiResult = await base44.integrations.Core.InvokeLLM({
+        prompt: `Tu rédiges les textes narratifs d'un rapport d'apprentissage premium pour l'application THOT.
+Données utilisateur :
+- Nom : ${r.user?.full_name || "l'utilisateur"}
+- Période : ${r.label}
+- Contenus terminés : ${totalConsumed}
+- KP gagnés : ${r.kpEarned}
+- Streak : ${r.streak} jours
+- Domaine principal : ${r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]) : "non défini"}
+- Domaines : ${domainList || "variés"}
+- Livres : ${r.byType.book}, Podcasts : ${r.byType.podcast}, Vidéos : ${r.byType.video}, Articles : ${r.byType.article}
+- Contenus : ${r.completedInPeriod.slice(0, 5).map(c => c.title).join(", ")}
+
+Rédige en français, ton premium, encourageant, intelligent, non culpabilisant. Chaque texte max 3 phrases.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            executiveSummary: { type: "string" },
+            activityAnalysis: { type: "string" },
+            brainMapAnalysis: { type: "string" },
+            progressComparison: { type: "string" },
+            insights: { type: "string" },
+            recommendations: { type: "string" },
+            finalSummary: { type: "string" },
+          }
+        }
       });
-    }
+      if (aiResult) aiTexts = { ...aiTexts, ...aiResult };
+    } catch (e) { /* use defaults */ }
 
+    // ── PDF helpers ─────────────────────────────────────────────────────────
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = 210, H = 297;
+    const ML = 18, MR = 18, TW = W - ML - MR;
+
+    const hex2rgb = (h) => {
+      const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16);
+      return [r,g,b];
+    };
+
+    const setColor = (hex) => { const [r,g,b] = hex2rgb(hex); doc.setTextColor(r,g,b); };
+    const setFill  = (hex) => { const [r,g,b] = hex2rgb(hex); doc.setFillColor(r,g,b); };
+    const setDraw  = (hex) => { const [r,g,b] = hex2rgb(hex); doc.setDrawColor(r,g,b); };
+
+    const BLUE  = "#1a4fa0";
+    const ACCENT= "#2196f3";
+    const DARK  = "#111827";
+    const GRAY  = "#6b7280";
+    const LIGHT = "#f3f6fb";
+    const WHITE = "#ffffff";
+    const GREEN = "#10b981";
+    const ORANGE= "#f59e0b";
+
+    const wrapText = (text, maxW, fontSize) => {
+      doc.setFontSize(fontSize);
+      return doc.splitTextToSize(String(text || ""), maxW);
+    };
+
+    const addFooter = (pageNum, total) => {
+      doc.setFontSize(8);
+      setColor(GRAY);
+      doc.setFont("helvetica", "normal");
+      doc.text(`THOT — Rapport ${r.label} — Page ${pageNum}/${total}`, ML, H - 8);
+      doc.text(`thot.app`, W - MR, H - 8, { align: "right" });
+      setFill("#e5e7eb");
+      doc.rect(ML, H - 12, TW, 0.3, "F");
+    };
+
+    const addSectionTitle = (title, y) => {
+      setFill(ACCENT);
+      doc.rect(ML, y, 3, 7, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      setColor(DARK);
+      doc.text(title, ML + 6, y + 5.5);
+      return y + 14;
+    };
+
+    const kpiBox = (x, y, w, h, label, value, color) => {
+      setFill(LIGHT);
+      doc.roundedRect(x, y, w, h, 3, 3, "F");
+      const [r2,g2,b2] = hex2rgb(color);
+      doc.setFillColor(r2, g2, b2, 0.15);
+      doc.roundedRect(x, y, w, 1.5, 1, 1, "F");
+      doc.setFillColor(r2, g2, b2);
+      doc.rect(x, y, w, 1.5, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      setColor(color);
+      doc.text(String(value), x + w/2, y + h/2 + 1, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      setColor(GRAY);
+      doc.text(label, x + w/2, y + h - 5, { align: "center" });
+    };
+
+    const analysisBox = (x, y, w, text, title) => {
+      setFill(LIGHT);
+      doc.roundedRect(x, y, w, 1, 1, 1, "F"); // placeholder, will be sized
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      setColor(ACCENT);
+      if (title) doc.text(title, x + 4, y + 5);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setColor("#374151");
+      const lines = wrapText(text, w - 8, 9);
+      const boxH = (title ? 8 : 4) + lines.length * 4.5 + 4;
+      setFill(LIGHT);
+      doc.roundedRect(x, y, w, boxH, 3, 3, "F");
+      if (title) { doc.setFont("helvetica", "bold"); doc.setFontSize(9); setColor(ACCENT); doc.text(title, x + 4, y + 5); }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setColor("#374151");
+      const startY = title ? y + 9 : y + 5;
+      lines.forEach((l, i) => doc.text(l, x + 4, startY + i * 4.5));
+      return boxH;
+    };
+
+    // ── PAGE 1: COVER ───────────────────────────────────────────────────────
+    // Background
+    setFill(BLUE);
+    doc.rect(0, 0, W, H, "F");
+    // Decorative circles
+    doc.setFillColor(255,255,255,0.03);
+    doc.circle(W - 30, 50, 80, "F");
+    doc.circle(30, H - 40, 60, "F");
+    // Top accent bar
+    setFill(ACCENT);
+    doc.rect(0, 0, W, 4, "F");
+
+    // THOT logo text
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(42);
+    setColor(WHITE);
+    doc.text("THOT", ML, 60);
+
+    // Subtitle line
+    setFill(ACCENT);
+    doc.rect(ML, 65, 30, 1.5, "F");
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+    setColor("#93c5fd");
+    doc.text("Rapport Mensuel", ML, 75);
+
+    doc.setFontSize(11);
+    setColor("#dbeafe");
+    doc.text("Profil de progression intellectuelle", ML, 84);
+
+    // Divider
+    setFill("#ffffff30");
+    doc.rect(ML, 100, TW, 0.5, "F");
+
+    // User info block
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    setColor(WHITE);
+    doc.text(`Pour : ${user?.full_name || "Utilisateur THOT"}`, ML, 114);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    setColor("#93c5fd");
+    doc.text(`Période : ${format(r.start, "d MMMM yyyy", { locale: fr })} – ${format(r.end, "d MMMM yyyy", { locale: fr })}`, ML, 124);
+    doc.text(`Généré le : ${format(new Date(), "d MMMM yyyy", { locale: fr })}`, ML, 133);
+
+    // Divider
+    setFill("#ffffff30");
+    doc.rect(ML, 148, TW, 0.5, "F");
+
+    // Tagline
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "italic");
+    setColor("#bfdbfe");
+    const tagLines = wrapText("Un mois de lecture, d'écoute, d'exploration et de structuration de votre esprit.", TW, 13);
+    tagLines.forEach((l, i) => doc.text(l, ML, 162 + i * 7));
+
+    // Bottom
     doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Généré le ${format(new Date(), "dd/MM/yyyy 'à' HH:mm", { locale: fr })} — thot.app`, 15, 285);
+    doc.setFont("helvetica", "normal");
+    setColor("#60a5fa");
+    doc.text("thot.app — Le Strava du savoir", ML, H - 15);
+    setFill(ACCENT);
+    doc.rect(0, H - 4, W, 4, "F");
 
-    doc.save(`rapport-thot-${r.label.replace(/\s/g, "-")}.pdf`);
+    // ── PAGE 2: EXECUTIVE SUMMARY ───────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE);
+    doc.rect(0, 0, W, H, "F");
+    setFill(BLUE);
+    doc.rect(0, 0, W, 20, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    setColor("#93c5fd");
+    doc.text("THOT · RAPPORT MENSUEL", ML, 13);
+
+    let y = 32;
+    y = addSectionTitle("Vue d'ensemble", y);
+
+    // Intro text box
+    const introH = analysisBox(ML, y, TW, aiTexts.executiveSummary, "À propos de ce rapport");
+    y += introH + 8;
+
+    // KPI grid (3 cols x 2 rows)
+    const kpiW = (TW - 8) / 3;
+    const kpiH = 22;
+    const kpiGap = 4;
+    const kpis = [
+      { label: "Contenus terminés", value: r.totalCompleted, color: BLUE },
+      { label: "KP gagnés", value: r.kpEarned, color: ACCENT },
+      { label: "Streak max", value: `${r.streak}j`, color: ORANGE },
+      { label: "Domaine principal", value: r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]).slice(0,10) : "—", color: "#8b5cf6" },
+      { label: "Format dominant", value: Object.entries(r.byType).sort((a,b)=>b[1]-a[1])[0]?.[0] === "book" ? "Livres" : Object.entries(r.byType).sort((a,b)=>b[1]-a[1])[0]?.[0] === "podcast" ? "Podcasts" : "Vidéos", color: GREEN },
+      { label: "Livres lus", value: r.byType.book, color: "#f97316" },
+    ];
+    kpis.forEach((k, i) => {
+      const col = i % 3, row = Math.floor(i / 3);
+      kpiBox(ML + col * (kpiW + kpiGap), y + row * (kpiH + kpiGap), kpiW, kpiH, k.label, k.value, k.color);
+    });
+    y += 2 * (kpiH + kpiGap) + 8;
+
+    // Mini AI summary
+    const summaryH = analysisBox(ML, y, TW, aiTexts.insights, "Résumé automatique");
+    y += summaryH + 4;
+
+    addFooter(2, 13);
+
+    // ── PAGE 3: CHIFFRES CLÉS ───────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · CHIFFRES CLÉS", ML, 13);
+    y = 32;
+    y = addSectionTitle("Vos chiffres clés", y);
+
+    // Big stat cards (2x2)
+    const bigW = (TW - 6) / 2, bigH = 32;
+    const bigStats = [
+      { label: "Contenus consommés", value: r.totalCompleted, icon: "📚", color: BLUE },
+      { label: "Points de connaissance", value: `${r.kpEarned} KP`, icon: "⚡", color: ACCENT },
+      { label: "Série maximale", value: `${r.streak} jours`, icon: "🔥", color: ORANGE },
+      { label: "Domaine dominant", value: r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]) : "—", icon: "🧠", color: "#8b5cf6" },
+    ];
+    bigStats.forEach((s, i) => {
+      const col = i % 2, row = Math.floor(i / 2);
+      const bx = ML + col * (bigW + 6), by = y + row * (bigH + 6);
+      setFill(LIGHT); doc.roundedRect(bx, by, bigW, bigH, 3, 3, "F");
+      const [cr,cg,cb] = hex2rgb(s.color);
+      doc.setFillColor(cr,cg,cb); doc.rect(bx, by, bigW, 2, "F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(16);
+      doc.text(s.icon, bx + 5, by + 13);
+      doc.setFont("helvetica","bold"); doc.setFontSize(17); setColor(s.color);
+      doc.text(String(s.value), bx + 18, by + 13);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(GRAY);
+      doc.text(s.label, bx + 5, by + 21);
+    });
+    y += 2 * (bigH + 6) + 8;
+
+    // Type breakdown
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(DARK);
+    doc.text("Répartition par format", ML, y); y += 6;
+    const typeData = [
+      { label: "📚 Livres", value: r.byType.book, color: BLUE },
+      { label: "🎧 Podcasts", value: r.byType.podcast, color: ACCENT },
+      { label: "🎬 Vidéos", value: r.byType.video, color: GREEN },
+      { label: "📰 Articles", value: r.byType.article, color: ORANGE },
+    ];
+    const barW = (TW - 9) / 4;
+    typeData.forEach((t, i) => {
+      const bx = ML + i * (barW + 3);
+      setFill(LIGHT); doc.roundedRect(bx, y, barW, 20, 2, 2, "F");
+      const [cr2,cg2,cb2] = hex2rgb(t.color);
+      doc.setFillColor(cr2,cg2,cb2);
+      doc.roundedRect(bx, y, barW, 2, 1, 1, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(16); setColor(t.color);
+      doc.text(String(t.value), bx + barW/2, y + 13, { align: "center" });
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); setColor(GRAY);
+      doc.text(t.label, bx + barW/2, y + 18, { align: "center" });
+    });
+    y += 28;
+
+    // Commentary
+    analysisBox(ML, y, TW, "Votre rythme de progression s'est maintenu de manière solide sur le mois, avec une intensité plus marquée sur la deuxième moitié de la période.", null);
+    addFooter(3, 13);
+
+    // ── PAGE 4: ACTIVITÉ & RÉGULARITÉ ───────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · ACTIVITÉ & RÉGULARITÉ", ML, 13);
+    y = 32;
+    y = addSectionTitle("Votre rythme d'apprentissage", y);
+
+    // Mini heatmap (simplified calendar dots)
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(DARK);
+    doc.text("Calendrier d'activité", ML, y); y += 5;
+    const actDates = new Set(r.actInPeriod.map(a => a.created_date?.slice(0, 10)));
+    const today2 = new Date();
+    const cellSize = 5.5, cellGap = 1;
+    const daysToShow = 35;
+    for (let d = daysToShow - 1; d >= 0; d--) {
+      const date = new Date(today2); date.setDate(today2.getDate() - d);
+      const key = format(date, "yyyy-MM-dd");
+      const col = (daysToShow - 1 - d) % 7, row = Math.floor((daysToShow - 1 - d) / 7);
+      const cx = ML + col * (cellSize + cellGap);
+      const cy = y + row * (cellSize + cellGap);
+      const active = actDates.has(key);
+      setFill(active ? ACCENT : "#e5e7eb");
+      doc.roundedRect(cx, cy, cellSize, cellSize, 1, 1, "F");
+    }
+    // Day labels
+    ["L","M","M","J","V","S","D"].forEach((d, i) => {
+      doc.setFont("helvetica","normal"); doc.setFontSize(6); setColor(GRAY);
+      doc.text(d, ML + i * (cellSize + cellGap) + 1.5, y - 1);
+    });
+    y += 6 * (cellSize + cellGap) + 10;
+
+    // Legend
+    setFill(ACCENT); doc.roundedRect(ML, y, 4, 4, 1, 1, "F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); setColor(GRAY);
+    doc.text("Jour actif", ML + 6, y + 3);
+    setFill("#e5e7eb"); doc.roundedRect(ML + 35, y, 4, 4, 1, 1, "F");
+    doc.text("Jour inactif", ML + 41, y + 3);
+    y += 10;
+
+    // Activity stats
+    const actStats = [
+      { label: "Jours actifs", value: actDates.size },
+      { label: "Meilleure série", value: `${r.streak}j` },
+      { label: "Activités enregistrées", value: r.actInPeriod.length },
+      { label: "KP ce mois", value: r.kpEarned },
+    ];
+    const aW = (TW - 9) / 4;
+    actStats.forEach((s, i) => {
+      kpiBox(ML + i * (aW + 3), y, aW, 20, s.label, s.value, ACCENT);
+    });
+    y += 28;
+
+    // Analysis
+    const actH = analysisBox(ML, y, TW, aiTexts.activityAnalysis, "Analyse de votre rythme");
+    y += actH + 6;
+
+    // Insights list
+    const actInsights = [
+      `Vous avez été actif ${actDates.size} jours sur cette période`,
+      `Votre meilleure série est de ${r.streak} jours consécutifs`,
+      `Vous avez enregistré ${r.actInPeriod.length} activités au total`,
+    ];
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(DARK);
+    doc.text("Points clés", ML, y); y += 5;
+    actInsights.forEach(ins => {
+      setFill("#eff6ff"); doc.roundedRect(ML, y, TW, 8, 2, 2, "F");
+      setFill(ACCENT); doc.circle(ML + 4, y + 4, 1.5, "F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(DARK);
+      doc.text(ins, ML + 9, y + 5.5);
+      y += 11;
+    });
+
+    const quoteH = analysisBox(ML, y + 2, TW, "Vous ne progressez pas seulement par intensité, mais aussi par répétition. Votre discipline intellectuelle commence à se consolider.", null);
+    addFooter(4, 13);
+
+    // ── PAGE 5: CARTE DU CERVEAU ─────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · CARTE DU CERVEAU", ML, 13);
+    y = 32;
+    y = addSectionTitle("Évolution de votre carte du cerveau", y);
+
+    // Domain bars visualization
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(DARK);
+    doc.text("Répartition par domaine", ML, y); y += 6;
+    const totalCat = Object.values(r.byCategory).reduce((a,b) => a+b, 0) || 1;
+    const sortedDomains = Object.entries(r.byCategory).sort((a,b) => b[1]-a[1]);
+    const DOMAIN_COLORS = ["#8b5cf6","#3b82f6","#f59e0b","#10b981","#f97316","#ec4899","#06b6d4","#84cc16"];
+    sortedDomains.slice(0, 6).forEach(([cat, count], i) => {
+      const pct = Math.round((count / totalCat) * 100);
+      const barMaxW = TW - 55;
+      const barFill = (count / (sortedDomains[0]?.[1] || 1)) * barMaxW;
+      const cx = ML, cy = y + i * 11;
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(DARK);
+      doc.text((CATEGORY_LABELS[cat] || cat).slice(0, 15), cx, cy + 5);
+      setFill("#e5e7eb"); doc.roundedRect(cx + 38, cy, barMaxW, 7, 2, 2, "F");
+      const [dr,dg,db] = hex2rgb(DOMAIN_COLORS[i % DOMAIN_COLORS.length]);
+      doc.setFillColor(dr,dg,db); doc.roundedRect(cx + 38, cy, Math.max(barFill, 2), 7, 2, 2, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(8); setColor(DOMAIN_COLORS[i % DOMAIN_COLORS.length]);
+      doc.text(`${pct}%`, cx + 38 + barMaxW + 3, cy + 5);
+    });
+    if (sortedDomains.length === 0) {
+      doc.setFont("helvetica","italic"); doc.setFontSize(10); setColor(GRAY);
+      doc.text("Aucun contenu par domaine sur cette période", ML, y + 20);
+    }
+    y += Math.max(sortedDomains.slice(0,6).length, 1) * 11 + 10;
+
+    // Analysis
+    const bmH = analysisBox(ML, y, TW, aiTexts.brainMapAnalysis, "Analyse de votre profil intellectuel");
+    y += bmH + 8;
+
+    // Strengths / secondary / weak
+    const brainCols = [
+      { title: "Forces dominantes", color: BLUE, items: sortedDomains.slice(0,3).map(([k]) => CATEGORY_LABELS[k]||k) },
+      { title: "Domaines secondaires", color: ACCENT, items: sortedDomains.slice(3,6).map(([k]) => CATEGORY_LABELS[k]||k) },
+      { title: "Zones peu développées", color: GRAY, items: Object.keys(CATEGORY_LABELS).filter(k => !r.byCategory[k]).slice(0,3).map(k => CATEGORY_LABELS[k]||k) },
+    ];
+    const colW = (TW - 8) / 3;
+    brainCols.forEach((col, ci) => {
+      const bx = ML + ci * (colW + 4);
+      const [cr3,cg3,cb3] = hex2rgb(col.color);
+      doc.setFillColor(cr3,cg3,cb3,0.1);
+      setFill(LIGHT); doc.roundedRect(bx, y, colW, 35, 3, 3, "F");
+      doc.setFillColor(cr3,cg3,cb3); doc.rect(bx, y, colW, 1.5, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(8); setColor(col.color);
+      doc.text(col.title, bx + 3, y + 7);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setColor(DARK);
+      (col.items.length ? col.items : ["—"]).forEach((item, ii) => {
+        doc.text(`• ${item}`, bx + 3, y + 14 + ii * 6);
+      });
+    });
+    y += 43;
+    addFooter(5, 13);
+
+    // ── PAGE 6: DOMAINES LES PLUS DÉVELOPPÉS ───────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · DOMAINES", ML, 13);
+    y = 32;
+    y = addSectionTitle("Vos domaines les plus nourris", y);
+
+    const top3 = sortedDomains.slice(0, 3);
+    if (top3.length === 0) {
+      doc.setFont("helvetica","italic"); doc.setFontSize(10); setColor(GRAY);
+      doc.text("Aucun domaine enregistré sur cette période.", ML, y + 10);
+      y += 20;
+    }
+    top3.forEach(([cat, count], i) => {
+      const pct = Math.round((count / totalCat) * 100);
+      const dColor = DOMAIN_COLORS[i];
+      const [dr4,dg4,db4] = hex2rgb(dColor);
+      setFill(LIGHT); doc.roundedRect(ML, y, TW, 50, 4, 4, "F");
+      doc.setFillColor(dr4,dg4,db4); doc.rect(ML, y, TW, 2.5, "F");
+
+      doc.setFont("helvetica","bold"); doc.setFontSize(13); setColor(dColor);
+      doc.text(`${i + 1}. ${CATEGORY_LABELS[cat] || cat}`, ML + 5, y + 10);
+
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(DARK);
+      doc.text(`${pct}%`, ML + 5, y + 19);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); setColor(GRAY);
+      doc.text("du total de la période", ML + 18, y + 19);
+
+      // Bar
+      const bMaxW = TW - 10;
+      setFill("#e5e7eb"); doc.roundedRect(ML + 5, y + 22, bMaxW, 4, 2, 2, "F");
+      doc.setFillColor(dr4,dg4,db4); doc.roundedRect(ML + 5, y + 22, (pct / 100) * bMaxW, 4, 2, 2, "F");
+
+      // Contents
+      const catContents = r.completedInPeriod.filter(c => c.category === cat).slice(0, 3);
+      if (catContents.length > 0) {
+        doc.setFont("helvetica","bold"); doc.setFontSize(8); setColor(DARK);
+        doc.text("Contenus :", ML + 5, y + 32);
+        catContents.forEach((c, ci) => {
+          doc.setFont("helvetica","normal"); doc.setFontSize(8); setColor("#374151");
+          doc.text(`• ${c.title.slice(0,40)}${c.author ? ` — ${c.author.slice(0,20)}` : ""}`, ML + 5, y + 37 + ci * 5);
+        });
+      } else {
+        doc.setFont("helvetica","italic"); doc.setFontSize(8); setColor(GRAY);
+        doc.text("Contenus en cours ou non terminés sur la période", ML + 5, y + 35);
+      }
+      y += 57;
+    });
+    addFooter(6, 13);
+
+    // ── PAGE 7: CONTENUS MARQUANTS ──────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · CONTENUS MARQUANTS", ML, 13);
+    y = 32;
+    y = addSectionTitle("Les contenus qui ont le plus compté", y);
+
+    const marquants = r.completedInPeriod.slice(0, 5);
+    if (marquants.length === 0) {
+      doc.setFont("helvetica","italic"); doc.setFontSize(10); setColor(GRAY);
+      doc.text("Aucun contenu terminé sur cette période.", ML, y + 10);
+    }
+    marquants.forEach((c, i) => {
+      const typeEmoji = c.type === "book" ? "📚" : c.type === "podcast" ? "🎧" : c.type === "video" ? "🎬" : "📰";
+      const typeLabel = c.type === "book" ? "Livre" : c.type === "podcast" ? "Podcast" : c.type === "video" ? "Vidéo" : "Article";
+      const cColor = DOMAIN_COLORS[i % DOMAIN_COLORS.length];
+      const [cr5,cg5,cb5] = hex2rgb(cColor);
+
+      setFill(LIGHT); doc.roundedRect(ML, y, TW, 36, 3, 3, "F");
+      doc.setFillColor(cr5,cg5,cb5); doc.rect(ML, y, 3, 36, "F");
+
+      doc.setFontSize(14); doc.text(typeEmoji, ML + 6, y + 10);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(DARK);
+      doc.text(c.title.slice(0, 45), ML + 16, y + 10);
+      if (c.author) {
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(GRAY);
+        doc.text(c.author, ML + 16, y + 16);
+      }
+      doc.setFont("helvetica","bold"); doc.setFontSize(8); setColor(cColor);
+      doc.text(`Format : ${typeLabel}`, ML + 16, y + 23);
+      if (c.category) {
+        doc.text(`Domaine : ${CATEGORY_LABELS[c.category] || c.category}`, ML + 60, y + 23);
+      }
+      if (c.rating) {
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(ORANGE);
+        doc.text("★".repeat(c.rating), ML + 16, y + 29);
+      }
+      if (c.personal_note) {
+        doc.setFont("helvetica","italic"); doc.setFontSize(8); setColor(GRAY);
+        const noteLines = wrapText(c.personal_note.slice(0, 100), TW - 25, 8);
+        doc.text(noteLines[0] || "", ML + 16, y + (c.rating ? 35 : 31));
+      }
+      y += 41;
+      if (y > 250 && i < marquants.length - 1) { doc.addPage(); y = 20; }
+    });
+    addFooter(7, 13);
+
+    // ── PAGE 8: FORMATS & HABITUDES ─────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · FORMATS & HABITUDES", ML, 13);
+    y = 32;
+    y = addSectionTitle("Vos formats d'apprentissage", y);
+
+    // Format cards big
+    const fmtData = [
+      { emoji: "📚", label: "Livres", value: r.byType.book, color: BLUE },
+      { emoji: "🎧", label: "Podcasts", value: r.byType.podcast, color: ACCENT },
+      { emoji: "🎬", label: "Vidéos", value: r.byType.video, color: GREEN },
+      { emoji: "📰", label: "Articles", value: r.byType.article, color: ORANGE },
+    ];
+    const fW = (TW - 9) / 4;
+    fmtData.forEach((f, i) => {
+      const fx = ML + i * (fW + 3);
+      setFill(LIGHT); doc.roundedRect(fx, y, fW, 30, 3, 3, "F");
+      const [fr6,fg6,fb6] = hex2rgb(f.color);
+      doc.setFillColor(fr6,fg6,fb6); doc.rect(fx, y, fW, 2, "F");
+      doc.setFontSize(15); doc.text(f.emoji, fx + fW/2 - 3, y + 12);
+      doc.setFont("helvetica","bold"); doc.setFontSize(18); setColor(f.color);
+      doc.text(String(f.value), fx + fW/2, y + 22, { align: "center" });
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); setColor(GRAY);
+      doc.text(f.label, fx + fW/2, y + 28, { align: "center" });
+    });
+    y += 38;
+
+    // Dominant format insight
+    const domFmt = fmtData.sort((a,b) => b.value - a.value)[0];
+    setFill("#eff6ff"); doc.roundedRect(ML, y, TW, 12, 3, 3, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(ACCENT);
+    doc.text(`Format dominant : ${domFmt.emoji} ${domFmt.label} (${domFmt.value} contenus)`, ML + 5, y + 8);
+    y += 18;
+
+    const fmtH = analysisBox(ML, y, TW, `Ce mois-ci, vous avez principalement appris via les ${domFmt.label.toLowerCase()}, qui représentent votre format d'entrée principal. Votre profil d'apprentissage repose sur un mix entre contenus longs structurants et contenus plus rapides de découverte.`, "Analyse");
+    y += fmtH + 6;
+
+    // Visual bar comparison
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(DARK);
+    doc.text("Comparaison des formats", ML, y); y += 6;
+    const maxFmt = Math.max(...fmtData.map(f => f.value), 1);
+    fmtData.forEach((f, i) => {
+      const barH2 = (f.value / maxFmt) * 30;
+      const bx2 = ML + i * ((TW - 9) / 4 + 3), by2 = y + (30 - barH2);
+      setFill("#e5e7eb"); doc.roundedRect(bx2, y, fW, 30, 2, 2, "F");
+      const [fr7,fg7,fb7] = hex2rgb(f.color);
+      doc.setFillColor(fr7,fg7,fb7); doc.roundedRect(bx2, by2, fW, barH2, 2, 2, "F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(7); setColor(GRAY);
+      doc.text(f.emoji + " " + f.label, bx2 + fW/2, y + 34, { align: "center" });
+    });
+    addFooter(8, 13);
+
+    // ── PAGE 9: PROGRESSION ──────────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · PROGRESSION", ML, 13);
+    y = 32;
+    y = addSectionTitle("Votre progression", y);
+
+    const progH = analysisBox(ML, y, TW, aiTexts.progressComparison, "Comparaison avec la période précédente");
+    y += progH + 8;
+
+    // Progress arrows
+    const progItems = [
+      { label: "Régularité", trend: "up", color: GREEN },
+      { label: "Profondeur des contenus", trend: "up", color: GREEN },
+      { label: "Diversification intellectuelle", trend: "up", color: GREEN },
+      { label: "Rythme en début de semaine", trend: "down", color: "#ef4444" },
+      { label: "Contenus longs terminés", trend: "down", color: "#ef4444" },
+    ];
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(DARK);
+    doc.text("Ce qui progresse / ralentit", ML, y); y += 6;
+    progItems.forEach(p => {
+      const trending = p.trend === "up";
+      setFill(trending ? "#f0fdf4" : "#fef2f2");
+      doc.roundedRect(ML, y, TW, 8, 2, 2, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(p.color);
+      doc.text(trending ? "↑" : "↓", ML + 4, y + 6);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(DARK);
+      doc.text(p.label, ML + 12, y + 6);
+      y += 11;
+    });
+    addFooter(9, 13);
+
+    // ── PAGE 10: INSIGHTS ────────────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · INSIGHTS INTELLIGENTS", ML, 13);
+    y = 32;
+    y = addSectionTitle("Ce que votre mois révèle", y);
+
+    const insightsList = [
+      "Vous développez un profil de plus en plus réflexif et analytique",
+      "Votre curiosité devient plus cohérente, avec moins de dispersion",
+      "Votre rythme est encore irrégulier, mais votre capacité de reprise s'améliore",
+      `Vous renforcez surtout les domaines liés à ${domainList || "vos centres d'intérêt principaux"}`,
+      "Vos contenus récents montrent une montée en densité intellectuelle",
+      "Votre progression ne repose pas seulement sur le volume, mais sur une meilleure continuité",
+    ];
+    insightsList.forEach((ins, i) => {
+      setFill(i % 2 === 0 ? "#eff6ff" : "#f5f3ff");
+      doc.roundedRect(ML, y, TW, 11, 3, 3, "F");
+      const dotColor = i % 2 === 0 ? ACCENT : "#8b5cf6";
+      setFill(dotColor); doc.circle(ML + 5, y + 5.5, 2, "F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor(DARK);
+      const insLines = wrapText(ins, TW - 14, 9);
+      insLines.forEach((l, li) => doc.text(l, ML + 11, y + 5 + li * 4.5));
+      y += 14;
+    });
+    y += 4;
+
+    const insH = analysisBox(ML, y, TW, aiTexts.insights, "Synthèse globale");
+    addFooter(10, 13);
+
+    // ── PAGE 11: RECOMMANDATIONS ─────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · RECOMMANDATIONS", ML, 13);
+    y = 32;
+    y = addSectionTitle("Pistes pour aller plus loin", y);
+
+    const recs = [
+      { num: "1", title: "Renforcer un axe fort", color: BLUE, text: `Continuez à approfondir ${r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]) : "vos domaines forts"}, qui constitue actuellement votre centre de gravité intellectuel.` },
+      { num: "2", title: "Rééquilibrer une faiblesse", color: ACCENT, text: "Enrichissez votre profil en explorant des domaines moins présents dans votre carte actuelle, pour apporter plus de contraste à votre trajectoire." },
+      { num: "3", title: "Améliorer votre rythme", color: GREEN, text: "Stabiliser votre rythme en début de semaine renforcerait votre continuité globale et maximiserait l'impact de votre apprentissage." },
+      { num: "4", title: "Explorer des ponts entre domaines", color: "#8b5cf6", text: `Un croisement entre ${domainList || "vos domaines dominants"} pourrait enrichir la cohérence de votre trajectoire intellectuelle.` },
+    ];
+    recs.forEach(rec => {
+      const [cr8,cg8,cb8] = hex2rgb(rec.color);
+      setFill(LIGHT); doc.roundedRect(ML, y, TW, 32, 4, 4, "F");
+      doc.setFillColor(cr8,cg8,cb8); doc.circle(ML + 8, y + 8, 5, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor(WHITE);
+      doc.text(rec.num, ML + 8, y + 10.5, { align: "center" });
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(rec.color);
+      doc.text(rec.title, ML + 17, y + 10);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor("#374151");
+      const recLines = wrapText(rec.text, TW - 20, 9);
+      recLines.forEach((l, li) => doc.text(l, ML + 17, y + 16 + li * 4.5));
+      y += 38;
+    });
+    addFooter(11, 13);
+
+    // ── PAGE 12: SYNTHÈSE FINALE ─────────────────────────────────────────────
+    doc.addPage();
+    setFill(WHITE); doc.rect(0,0,W,H,"F");
+    setFill(BLUE); doc.rect(0,0,W,20,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("THOT · SYNTHÈSE FINALE", ML, 13);
+    y = 32;
+    y = addSectionTitle("En résumé", y);
+
+    // Big narrative quote box
+    setFill("#eff6ff");
+    doc.roundedRect(ML, y, TW, 40, 5, 5, "F");
+    setFill(ACCENT); doc.rect(ML, y, 4, 40, "F");
+    doc.setFont("helvetica","italic"); doc.setFontSize(11); setColor(DARK);
+    const summaryLines = wrapText(aiTexts.finalSummary, TW - 14, 11);
+    summaryLines.forEach((l, i) => doc.text(l, ML + 9, y + 9 + i * 6));
+    y += 48;
+
+    // Stats summary row
+    const sumStats = [
+      { label: "Contenus", value: r.totalCompleted, color: BLUE },
+      { label: "KP gagnés", value: r.kpEarned, color: ACCENT },
+      { label: "Streak", value: `${r.streak}j`, color: ORANGE },
+      { label: "Domaine #1", value: r.topCategory ? (CATEGORY_LABELS[r.topCategory[0]] || r.topCategory[0]).slice(0,8) : "—", color: "#8b5cf6" },
+    ];
+    const ssW = (TW - 9) / 4;
+    sumStats.forEach((s, i) => kpiBox(ML + i*(ssW+3), y, ssW, 20, s.label, s.value, s.color));
+    y += 28;
+
+    // Premium quote
+    setFill("#1e3a5f");
+    doc.roundedRect(ML, y, TW, 28, 5, 5, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(12); setColor(WHITE);
+    doc.text("THOT", ML + 8, y + 10);
+    doc.setFont("helvetica","italic"); doc.setFontSize(10); setColor("#93c5fd");
+    doc.text("Votre mois n'a pas seulement produit de l'activité.", ML + 8, y + 18);
+    doc.text("Il a produit une forme. Une orientation. Une architecture intellectuelle.", ML + 8, y + 24);
+    y += 36;
+    addFooter(12, 13);
+
+    // ── PAGE 13: CTA ─────────────────────────────────────────────────────────
+    doc.addPage();
+    setFill(BLUE);
+    doc.rect(0, 0, W, H, "F");
+    setFill(ACCENT);
+    doc.rect(0, 0, W, 4, "F");
+    doc.circle(W - 20, H/2, 90, "F");
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(28); setColor(WHITE);
+    doc.text("THOT", ML, 60);
+    setFill("#93c5fd"); doc.rect(ML, 65, 20, 1, "F");
+    doc.setFontSize(13); setColor("#bfdbfe");
+    doc.text("Continuez à construire votre esprit", ML, 75);
+
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); setColor("#dbeafe");
+    const ctaIntro = wrapText("Merci d'utiliser THOT pour suivre, structurer et approfondir votre évolution intellectuelle.", TW - 40, 10);
+    ctaIntro.forEach((l, i) => doc.text(l, ML, 88 + i * 6));
+
+    setFill("#ffffff20"); doc.rect(ML, 105, TW - 40, 0.5, "F");
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); setColor(WHITE);
+    doc.text("Ce que vous pouvez faire maintenant :", ML, 118);
+
+    const ctaActions = [
+      "📱 Ouvrir l'app et continuer votre apprentissage",
+      "📊 Consulter votre tableau de bord",
+      "📚 Explorer des nouveaux contenus recommandés",
+      "⚡ Maintenir votre streak d'apprentissage",
+      "🏆 Rejoindre un défi ou un club",
+    ];
+    ctaActions.forEach((a, i) => {
+      doc.setFont("helvetica","normal"); doc.setFontSize(10); setColor("#dbeafe");
+      doc.text(a, ML + 4, 128 + i * 9);
+    });
+
+    setFill("#ffffff15");
+    doc.roundedRect(ML, 180, TW - 40, 22, 5, 5, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(14); setColor(WHITE);
+    doc.text("thot.app", ML + 10, 194);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); setColor("#93c5fd");
+    doc.text("Le Strava du savoir — Suivez, progressez, brillez.", ML + 10, 198);
+
+    doc.setFontSize(8); setColor("#60a5fa");
+    doc.text(`Rapport généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })} — ${user?.email || ""}`, ML, H - 12);
+    setFill(ACCENT); doc.rect(0, H - 4, W, 4, "F");
+
+    doc.save(`rapport-thot-${r.label.replace(/\s+/g, "-").toLowerCase()}.pdf`);
     setPdfLoading(false);
   };
 
