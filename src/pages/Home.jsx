@@ -12,14 +12,14 @@ import { PieChart, Pie, Cell, Legend } from "recharts";
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } };
 
 const BOOKS = [
-{ title: "Atomic Habits", author: "James Clear", cover: "https://images-na.ssl-images-amazon.com/images/I/91bYsX41DVL.jpg", status: "completed" },
-{ title: "Sapiens", author: "Y.N. Harari", cover: "https://images-na.ssl-images-amazon.com/images/I/713jIoMO3UL.jpg", status: "in_progress", progress: 68 },
-{ title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://images-na.ssl-images-amazon.com/images/I/71wvKXWfcML.jpg", status: "in_progress", progress: 34 },
-{ title: "Deep Work", author: "Cal Newport", cover: "https://images-na.ssl-images-amazon.com/images/I/81JJ7fyyKyS.jpg", status: "completed" },
-{ title: "The Psychology of Money", author: "Morgan Housel", cover: "https://images-na.ssl-images-amazon.com/images/I/81HMpDp6dWL.jpg", status: "to_consume" },
-{ title: "Zero to One", author: "Peter Thiel", cover: "https://images-na.ssl-images-amazon.com/images/I/71RVNtBFAHL.jpg", status: "completed" },
-{ title: "Outliers", author: "Malcolm Gladwell", cover: "https://images-na.ssl-images-amazon.com/images/I/71HydOSVJLL.jpg", status: "to_consume" },
-{ title: "The Lean Startup", author: "Eric Ries", cover: "https://images-na.ssl-images-amazon.com/images/I/81-QB7nDh4L.jpg", status: "in_progress", progress: 52 },
+{ title: "Atomic Habits", author: "James Clear", cover: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", progress: 100 },
+{ title: "Sapiens", author: "Y.N. Harari", cover: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg", progress: 68 },
+{ title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg", progress: 34 },
+{ title: "Deep Work", author: "Cal Newport", cover: "https://covers.openlibrary.org/b/isbn/9781455586691-L.jpg", progress: 100 },
+{ title: "Psychology of Money", author: "Morgan Housel", cover: "https://covers.openlibrary.org/b/isbn/9780857197689-L.jpg", progress: 0 },
+{ title: "Zero to One", author: "Peter Thiel", cover: "https://covers.openlibrary.org/b/isbn/9780804139021-L.jpg", progress: 100 },
+{ title: "Outliers", author: "Malcolm Gladwell", cover: "https://covers.openlibrary.org/b/isbn/9780316017930-L.jpg", progress: 0 },
+{ title: "The Lean Startup", author: "Eric Ries", cover: "https://covers.openlibrary.org/b/isbn/9780307887894-L.jpg", progress: 52 },
 ];
 
 
@@ -229,12 +229,7 @@ export default function Home() {
                               className="w-[52px] h-[74px] object-cover rounded-lg shadow-lg ring-1 ring-white/10 group-hover:scale-105 transition-transform duration-200"
                               onError={(e) => e.target.style.display = 'none'}
                             />
-                            {b.status === "completed" && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
-                                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                              </div>
-                            )}
-                            {b.status === "in_progress" && b.progress && (
+                              {b.progress > 0 && b.progress < 100 && (
                               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden">
                                 <div className="h-full bg-accent rounded-b-lg" style={{ width: `${b.progress}%` }} />
                               </div>
