@@ -26,20 +26,20 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Insights",
+    items: [
+      { name: "Carte du savoir", page: "BrainMap", icon: Brain },
+      { name: "Heatmap", page: "Heatmap", icon: Flame },
+      { name: "Rapports", page: "Reports", icon: FileBarChart },
+    ],
+  },
+  {
     label: "Social",
     items: [
       { name: "Défis", page: "Challenges", icon: Trophy },
       { name: "Duels", page: "Duels", icon: Swords },
       { name: "Classement", page: "Leaderboard", icon: Crown },
       { name: "Clubs", page: "Clubs", icon: Users },
-    ],
-  },
-  {
-    label: "Insights",
-    items: [
-      { name: "Carte du savoir", page: "BrainMap", icon: Brain },
-      { name: "Heatmap", page: "Heatmap", icon: Flame },
-      { name: "Rapports", page: "Reports", icon: FileBarChart },
     ],
   },
   {
