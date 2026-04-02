@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   Home, LayoutDashboard, Trophy, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
-  Twitter, Instagram, Swords, Brain, Flame, Users, Map, ArrowRight } from
+  Twitter, Instagram, Swords, Brain, Flame, Users, Map, ArrowRight, FileBarChart } from
 "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
 { name: "Feed", page: "Feed", icon: MessageCircle },
 { name: "Mon Profil", page: "Profile", icon: User },
 { name: "Intégrations", page: "Integrations", icon: Zap },
+{ name: "Rapports", page: "Reports", icon: FileBarChart },
 { name: "Paramètres", page: "Settings", icon: Settings }];
 
 
