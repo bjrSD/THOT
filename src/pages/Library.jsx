@@ -72,7 +72,7 @@ function StatusFilter({ value, onChange }) {
 export default function Library() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
