@@ -1,6 +1,5 @@
 import React from "react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
-import { CATEGORY_LABELS } from "../shared/KPUtils";
 
 export default function RadarDomains({ user }) {
   const domains = user?.domains || {};
@@ -19,7 +18,8 @@ export default function RadarDomains({ user }) {
 
   return (
     <div className="bg-card rounded-xl border border-border p-5">
-      <h3 className="font-heading font-semibold mb-4">Carte du savoir</h3>
+      <h3 className="font-heading font-semibold mb-1">Carte du savoir</h3>
+      <p className="text-xs text-muted-foreground mb-3">Répartition de vos lectures par domaine</p>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={normalized} cx="50%" cy="50%" outerRadius="70%">

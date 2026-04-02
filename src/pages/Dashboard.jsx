@@ -16,6 +16,7 @@ import Suggestions from "@/components/dashboard/Suggestions";
 import VocabStatsRow from "@/components/dashboard/VocabStatsRow";
 import ContentStatsTab from "@/components/dashboard/ContentStatsTab";
 import VocabAI from "@/components/dashboard/VocabAI";
+import ArchetypeCard from "@/components/dashboard/ArchetypeCard";
 import { getUserLevel, getNextLevel, getLevelProgress } from "@/components/shared/KPUtils";
 import { Progress } from "@/components/ui/progress";
 
@@ -124,6 +125,9 @@ export default function Dashboard() {
         <RadarDomains user={user} />
         <ActivityFeed activities={activities} />
       </div>
+
+      {/* Profil intellectuel */}
+      <ArchetypeCard contents={contents} />
 
       {/* Detailed stats by content type */}
       <ContentStatsTab contents={contents} />
