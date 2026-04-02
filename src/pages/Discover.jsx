@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Search, BookOpen, Headphones, Play, FileText, Plus, Loader2, Check } from "lucide-react";
+import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { TYPE_LABELS, CATEGORY_LABELS } from "@/components/shared/KPUtils";
+import GoogleBooksSearch from "@/components/shared/GoogleBooksSearch";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
@@ -34,8 +34,8 @@ const FILTER_TYPES = [
 ];
 
 export default function Discover() {
-  const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [searchResults, setSearchResults] = useState([]);
   const [addedIds, setAddedIds] = useState(new Set());
   const queryClient = useQueryClient();
 
@@ -54,10 +54,16 @@ export default function Discover() {
 
   const existingTitles = new Set(existingContents.map(c => c.title));
 
-  const filtered = CURATED.filter(item => {
+  const handleSelectBook = (book) => {
+    setSearchResults(prev => {
+      const exists = prev.some(b => b.googleId === book.googleId);
+      return exists ? prev : [book, ...prev];
+    });
+  };
+
+  const filtered = (searchResults.length > 0 ? searchResults : CURATED).filter(item => {
     const matchesType = typeFilter === "all" || item.type === typeFilter;
-    const matchesSearch = !search || item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase());
-    return matchesType && matchesSearch;
+    return matchesType;
   });
 
   return (
@@ -68,9 +74,8 @@ export default function Discover() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        <div className="flex-1">
+          <GoogleBooksSearch onSelect={handleSelectBook} />
         </div>
         <div className="flex gap-2 overflow-x-auto">
           {FILTER_TYPES.map(t => (
