@@ -12,14 +12,14 @@ import { PieChart, Pie, Cell, Legend } from "recharts";
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } };
 
 const BOOKS = [
-{ title: "Atomic Habits", author: "James Clear", cover: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", progress: 100 },
-{ title: "Sapiens", author: "Y.N. Harari", cover: "https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg", progress: 68 },
-{ title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg", progress: 34 },
-{ title: "Le Monde d'hier", author: "Stefan Zweig", cover: "https://covers.openlibrary.org/b/isbn/9782253004745-L.jpg", progress: 100 },
-{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://covers.openlibrary.org/b/isbn/9782290004449-L.jpg", progress: 0 },
-{ title: "Les Misérables", author: "Victor Hugo", cover: "https://covers.openlibrary.org/b/isbn/9782070409228-L.jpg", progress: 100 },
-{ title: "Le Petit Prince", author: "Antoine de Saint-Exupéry", cover: "https://covers.openlibrary.org/b/isbn/9782070612758-L.jpg", progress: 0 },
-{ title: "The Lean Startup", author: "Eric Ries", cover: "https://covers.openlibrary.org/b/isbn/9780307887894-L.jpg", progress: 52 },
+{ title: "Atomic Habits", author: "James Clear", cover: "https://books.google.com/books/content?id=XfFvDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 100 },
+{ title: "Sapiens", author: "Y.N. Harari", cover: "https://books.google.com/books/content?id=1EiJAwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 68 },
+{ title: "Thinking, Fast and Slow", author: "D. Kahneman", cover: "https://books.google.com/books/content?id=ZuKTvERuPG8C&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 34 },
+{ title: "Le Monde d'hier", author: "Stefan Zweig", cover: "https://books.google.com/books/content?id=4PQUEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 100 },
+{ title: "L'Alchimiste", author: "Paulo Coelho", cover: "https://books.google.com/books/content?id=2H8lDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 0 },
+{ title: "Les Misérables", author: "Victor Hugo", cover: "https://books.google.com/books/content?id=P1YXAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 100 },
+{ title: "Le Petit Prince", author: "A. de Saint-Exupéry", cover: "https://books.google.com/books/content?id=BnTtDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 0 },
+{ title: "The Lean Startup", author: "Eric Ries", cover: "https://books.google.com/books/content?id=r9x-OXdzpPcC&printsec=frontcover&img=1&zoom=1&source=gbs_api", progress: 52 },
 ];
 
 
