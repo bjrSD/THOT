@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Library, Crown, User, MessageCircle, BarChart3, Settings } from "lucide-react";
+import { Loader2, Crown } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+
 import StatsRow from "@/components/dashboard/StatsRow";
 import WeeklyChart from "@/components/dashboard/WeeklyChart";
 import ContentPieChart from "@/components/dashboard/ContentPieChart";
@@ -20,14 +19,7 @@ import ArchetypeCard from "@/components/dashboard/ArchetypeCard";
 import { getUserLevel, getNextLevel, getLevelProgress } from "@/components/shared/KPUtils";
 import { Progress } from "@/components/ui/progress";
 
-const QUICK_LINKS = [
-  { label: "Bibliothèque", page: "Library", icon: Library, color: "text-accent" },
-  { label: "Feed", page: "Feed", icon: MessageCircle, color: "text-green-500" },
-  { label: "Mon profil", page: "Profile", icon: User, color: "text-purple-500" },
-  { label: "Statistiques", page: "Dashboard", icon: BarChart3, color: "text-blue-500" },
-  { label: "Premium", page: "Premium", icon: Crown, color: "text-yellow-500" },
-  { label: "Paramètres", page: "Settings", icon: Settings, color: "text-muted-foreground" },
-];
+// Quick links removed — already accessible via the sidebar nav
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -63,11 +55,10 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4">
-      {/* Header compact : salutation + profil intellectuel + raccourcis */}
-      <div className="flex flex-col md:flex-row md:items-start gap-4">
-        {/* Salutation + profil */}
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-1">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
             <h1 className="font-heading text-2xl md:text-3xl font-bold">
               Bonjour, {user.full_name?.split(" ")[0] || "apprenant"} 👋
             </h1>
@@ -77,10 +68,9 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          {/* Niveau + barre de progression inline */}
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold">{level.icon} {level.name}</span>
-            <div className="flex-1 max-w-[180px]">
+            <div className="w-32">
               <Progress value={progress} className="h-1.5" />
             </div>
             <span className="text-xs text-muted-foreground">
@@ -88,18 +78,6 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{kp.toLocaleString()} KP au total</p>
-        </div>
-
-        {/* Raccourcis rapides */}
-        <div className="flex gap-2 flex-wrap md:flex-nowrap">
-          {QUICK_LINKS.map((l) => (
-            <Link key={l.page} to={createPageUrl(l.page)}>
-              <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-card border border-border hover:border-accent/40 hover:bg-accent/5 transition-all text-center min-w-[60px]">
-                <l.icon className={`w-4 h-4 ${l.color}`} />
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{l.label}</span>
-              </div>
-            </Link>
-          ))}
         </div>
       </div>
 

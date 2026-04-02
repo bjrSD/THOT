@@ -65,7 +65,7 @@ export default function QuickAddModal({ onClose }) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter un contenu</DialogTitle>
+          <DialogTitle>Ajouter à ma bibliothèque</DialogTitle>
         </DialogHeader>
 
         {step === "type" && (
@@ -152,7 +152,7 @@ export default function QuickAddModal({ onClose }) {
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => setStep("type")} className="flex-1">Retour</Button>
               <Button onClick={handleSubmit} disabled={!form.title || createMutation.isPending} className="flex-1">
-                {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ajouter"}
+                {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ajouter à ma bibliothèque"}
               </Button>
             </div>
           </div>

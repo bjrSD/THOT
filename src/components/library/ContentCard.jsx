@@ -118,13 +118,13 @@ export default function ContentCard({ content, onClick }) {
         </div>
 
         {/* Back */}
-        <div className="backface-hidden rotate-y-180 absolute inset-0 bg-card rounded-xl border border-accent/30 p-4 shadow-md">
-          <p className="text-xs font-medium text-accent mb-2">{CATEGORY_LABELS[content.category] || "Autre"}</p>
-          <p className="text-xs text-muted-foreground line-clamp-3">{content.summary || "Pas de résumé"}</p>
+        <div className="backface-hidden rotate-y-180 absolute inset-0 bg-card rounded-xl border border-accent/30 p-4 shadow-md cursor-pointer" onClick={onClick}>
+          <p className="text-xs font-semibold text-accent mb-2">{CATEGORY_LABELS[content.category] || "Autre"}</p>
+          <p className="text-xs text-muted-foreground line-clamp-4">{content.summary || "Aucun résumé disponible"}</p>
           {content.personal_note && (
             <p className="text-xs mt-2 italic text-foreground/70 line-clamp-2">📝 {content.personal_note}</p>
           )}
-          <p className="text-xs text-accent font-medium mt-2 pt-2">Cliquer pour détails →</p>
+          <p className="text-xs text-accent font-medium mt-3">Voir les détails →</p>
         </div>
       </div>
     </div>

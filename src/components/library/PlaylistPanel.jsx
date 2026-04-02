@@ -56,7 +56,7 @@ function PlaylistForm({ initial, onSave, onCancel }) {
       <div className="flex justify-end gap-2">
         <Button size="sm" variant="outline" onClick={onCancel}>Annuler</Button>
         <Button size="sm" onClick={() => onSave({ name, description, emoji, visibility })} disabled={!name.trim()}>
-          Sauvegarder
+          Enregistrer
         </Button>
       </div>
     </div>

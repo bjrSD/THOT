@@ -18,7 +18,7 @@ export default function StatsRow({ user }) {
       bg: "bg-orange-500/10",
     },
     {
-      label: "Knowledge Points",
+      label: "KP gagnés",
       value: `${(kp).toLocaleString()} KP`,
       icon: Star,
       color: "text-accent",
@@ -52,7 +52,7 @@ export default function StatsRow({ user }) {
               <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
             </div>
           </div>
-          <p className="text-2xl font-bold leading-none">{s.value}</p>
+          <p className="text-xl font-bold leading-none">{s.value}</p>
           {s.progress !== undefined && s.nextLevel && (
             <div className="mt-2.5">
               <Progress value={s.progress} className="h-1" />

@@ -197,7 +197,7 @@ export default function Library() {
       {/* KANBAN VIEW */}
       {view === "kanban" && (
         <DragDropContext onDragEnd={onDragEnd}>
-          <p className="text-xs text-muted-foreground">Glissez-déposez pour changer le statut d'un contenu</p>
+          <p className="text-xs text-muted-foreground mb-2">Glissez-déposez un contenu pour changer son statut</p>
           <div className="flex gap-4 overflow-x-auto pb-4 lg:overflow-visible">
             {STATUSES_KANBAN.map(status => (
               <KanbanColumn
@@ -216,10 +216,10 @@ export default function Library() {
 
 function EmptyState() {
   return (
-    <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl">
-      <div className="text-5xl mb-4">📚</div>
-      <p className="font-medium">Aucun contenu</p>
-      <p className="text-sm text-muted-foreground mt-1">Ajoutez des livres, podcasts ou vidéos à votre bibliothèque</p>
+    <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl">
+      <div className="text-4xl mb-3">📚</div>
+      <p className="font-medium text-sm">Aucun contenu trouvé</p>
+      <p className="text-xs text-muted-foreground mt-1">Utilisez le bouton + pour ajouter un livre, podcast ou vidéo</p>
     </div>
   );
 }
