@@ -368,8 +368,31 @@ export default function Layout({ children, currentPageName }) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0 flex flex-col">
-            <div className="h-14 px-6 flex items-center border-b border-border shrink-0">
+            <div className="h-14 px-6 flex items-center border-b border-border shrink-0 justify-between">
               <ThotLogo size="lg" />
+              {/* Language selector mobile sidebar */}
+              <div className="flex gap-1 bg-secondary p-1 rounded-lg">
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
+                    language === 'en'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t('lang.english', language)}
+                </button>
+                <button
+                  onClick={() => changeLanguage('fr')}
+                  className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
+                    language === 'fr'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t('lang.french', language)}
+                </button>
+              </div>
             </div>
             <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
               {NAV_GROUPS.map((group) => (
@@ -423,36 +446,9 @@ export default function Layout({ children, currentPageName }) {
 
         <ThotLogo size="lg" />
 
-        <div className="flex items-center gap-2">
-          {/* Language selector mobile */}
-          <div className="relative">
-            <Button size="icon" variant="ghost" onClick={() => setShowLangMenu(!showLangMenu)}>
-              <Globe className="w-5 h-5" />
-            </Button>
-            {showLangMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)} />
-                <div className="absolute right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
-                  <button
-                    onClick={() => { changeLanguage('en'); setShowLangMenu(false); }}
-                    className={`w-full px-3 py-2 text-xs font-medium text-left hover:bg-secondary transition-colors ${language === 'en' ? 'bg-secondary text-accent' : ''}`}
-                  >
-                    English
-                  </button>
-                  <button
-                    onClick={() => { changeLanguage('fr'); setShowLangMenu(false); }}
-                    className={`w-full px-3 py-2 text-xs font-medium text-left hover:bg-secondary transition-colors ${language === 'fr' ? 'bg-secondary text-accent' : ''}`}
-                  >
-                    Français
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-          <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
-            <Plus className="w-5 h-5" />
-          </Button>
-        </div>
+        <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
+          <Plus className="w-5 h-5" />
+        </Button>
       </header>
 
       {/* Main content */}
