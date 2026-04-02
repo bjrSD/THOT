@@ -6,11 +6,13 @@ import {
   Home, LayoutDashboard, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
   Twitter, Instagram, Swords, Brain, Flame, Users, ArrowRight,
-  FileBarChart, Trophy, ListMusic, ChevronDown } from "lucide-react";
+  FileBarChart, Trophy, ListMusic, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import QuickAddModal from "@/components/shared/QuickAddModal";
 import ChatBot from "@/components/shared/ChatBot";
+import { useLanguage } from "@/lib/LanguageContext";
+import { t } from "@/lib/i18n";
 
 // ─── Navigation structure ────────────────────────────────────────────────────
 // Grouped for visual clarity in sidebar
@@ -91,10 +93,12 @@ function ThotLogo({ dark = false, size = "md" }) {
 }
 
 export default function Layout({ children, currentPageName }) {
+  const { language, changeLanguage } = useLanguage();
   const [isAuth, setIsAuth] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(auth => {
@@ -256,6 +260,26 @@ export default function Layout({ children, currentPageName }) {
           </Link>
         </div>
 
+        {/* Language selector desktop */}
+        <div className="px-3 py-2 mb-3 flex gap-1">
+          <button
+            onClick={() => changeLanguage('en')}
+            className={`flex-1 py-1.5 text-xs rounded font-medium transition-all ${
+              language === 'en' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            ENG
+          </button>
+          <button
+            onClick={() => changeLanguage('fr')}
+            className={`flex-1 py-1.5 text-xs rounded font-medium transition-all ${
+              language === 'fr' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            FRA
+          </button>
+        </div>
+
         <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
@@ -376,9 +400,36 @@ export default function Layout({ children, currentPageName }) {
 
         <ThotLogo size="lg" />
 
-        <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
-          <Plus className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Language selector mobile */}
+          <div className="relative">
+            <Button size="icon" variant="ghost" onClick={() => setShowLangMenu(!showLangMenu)}>
+              <Globe className="w-5 h-5" />
+            </Button>
+            {showLangMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)} />
+                <div className="absolute right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+                  <button
+                    onClick={() => { changeLanguage('en'); setShowLangMenu(false); }}
+                    className={`w-full px-3 py-2 text-xs font-medium text-left hover:bg-secondary transition-colors ${language === 'en' ? 'bg-secondary text-accent' : ''}`}
+                  >
+                    English
+                  </button>
+                  <button
+                    onClick={() => { changeLanguage('fr'); setShowLangMenu(false); }}
+                    className={`w-full px-3 py-2 text-xs font-medium text-left hover:bg-secondary transition-colors ${language === 'fr' ? 'bg-secondary text-accent' : ''}`}
+                  >
+                    Français
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Main content */}
