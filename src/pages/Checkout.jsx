@@ -151,6 +151,8 @@ export default function Checkout() {
                   <Input type="email" placeholder="votre@email.com" value={form.email} required
                     onChange={e => setForm({ ...form, email: e.target.value })} />
                 </div>
+                {discount < 100 && (
+                  <>
                 <div className="space-y-1.5">
                   <Label>Nom sur la carte</Label>
                   <Input placeholder="Jean Dupont" value={form.name} required
@@ -177,6 +179,8 @@ export default function Checkout() {
                       onChange={e => setForm({ ...form, cvc: e.target.value.replace(/\D/g, "").slice(0, 3) })} />
                   </div>
                 </div>
+                  </>
+                )}
 
                 {/* Promo / Parrainage */}
                 <div className="space-y-1.5">
