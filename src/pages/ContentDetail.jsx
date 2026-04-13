@@ -204,7 +204,7 @@ export default function ContentDetail() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="space-y-5">
       {/* Back */}
       <button onClick={() => window.history.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
         <ArrowLeft className="w-4 h-4" /> Retour
