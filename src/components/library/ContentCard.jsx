@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BookOpen, Headphones, Play, FileText, MoreHorizontal } from "lucide-react";
+import { BookOpen, Headphones, Play, FileText, MoreHorizontal, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { TYPE_LABELS, CATEGORY_LABELS } from "../shared/KPUtils";
 import AddToPlaylistMenu from "./AddToPlaylistMenu";
@@ -111,6 +111,15 @@ export default function ContentCard({ content, onClick }) {
         {/* Résumé court */}
         {content.summary && (
           <p className="text-xs text-muted-foreground line-clamp-2">{content.summary}</p>
+        )}
+
+        {/* Lien URL pour podcasts/vidéos */}
+        {(content.type === "podcast" || content.type === "video") && content.content_url && (
+          <a href={content.content_url} target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1 text-xs text-accent hover:underline font-medium">
+            <ExternalLink className="w-3 h-3" /> Ouvrir le lien
+          </a>
         )}
 
         {/* CTA */}

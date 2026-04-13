@@ -149,6 +149,12 @@ export default function QuickAddModal({ onClose }) {
                 <Input value={form.buy_link} onChange={(e) => setForm({ ...form, buy_link: e.target.value })} placeholder="https://..." />
               </div>
             )}
+            {(form.type === "podcast" || form.type === "video") && (
+              <div className="space-y-2">
+                <Label>Lien du contenu</Label>
+                <Input value={form.content_url || ""} onChange={(e) => setForm({ ...form, content_url: e.target.value })} placeholder="https://..." />
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => setStep("type")} className="flex-1">Retour</Button>
               <Button onClick={handleSubmit} disabled={!form.title || createMutation.isPending} className="flex-1">

@@ -1,0 +1,112 @@
+{
+  "name": "Content",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titre du contenu"
+    },
+    "author": {
+      "type": "string",
+      "description": "Auteur ou cr\u00e9ateur"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "book",
+        "podcast",
+        "video",
+        "article"
+      ],
+      "description": "Type de contenu"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "philosophie",
+        "science",
+        "business",
+        "technologie",
+        "histoire",
+        "psychologie",
+        "art",
+        "sante",
+        "autre"
+      ],
+      "description": "Domaine"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "to_consume",
+        "in_progress",
+        "paused",
+        "to_review",
+        "completed"
+      ],
+      "default": "to_consume",
+      "description": "Statut dans la biblioth\u00e8que"
+    },
+    "cover_url": {
+      "type": "string",
+      "description": "URL de couverture"
+    },
+    "summary": {
+      "type": "string",
+      "description": "R\u00e9sum\u00e9"
+    },
+    "personal_note": {
+      "type": "string",
+      "description": "Note personnelle"
+    },
+    "total_pages": {
+      "type": "number",
+      "description": "Nombre total de pages (livres)"
+    },
+    "current_page": {
+      "type": "number",
+      "default": 0,
+      "description": "Page actuelle"
+    },
+    "total_duration": {
+      "type": "number",
+      "description": "Dur\u00e9e totale en minutes"
+    },
+    "current_duration": {
+      "type": "number",
+      "default": 0,
+      "description": "Dur\u00e9e \u00e9cout\u00e9e/regard\u00e9e en minutes"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Note de 1 \u00e0 5"
+    },
+    "buy_link": {
+      "type": "string",
+      "description": "Lien d'achat"
+    },
+    "content_url": {
+      "type": "string",
+      "description": "Lien vers le podcast ou la vid\u00e9o"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true,
+      "description": "Visible par la communaut\u00e9"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de compl\u00e9tion"
+    },
+    "kp_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Points gagn\u00e9s"
+    }
+  },
+  "required": [
+    "title",
+    "type"
+  ]
+}
