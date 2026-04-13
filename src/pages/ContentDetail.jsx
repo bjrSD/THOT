@@ -106,6 +106,7 @@ export default function ContentDetail() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("descriptif");
+  const [isDirty, setIsDirty] = useState(false);
   const [googleData, setGoogleData] = useState(null);
   const [similar, setSimilar] = useState({ bySubject: [], byAuthor: [] });
   const [loadingGoogle, setLoadingGoogle] = useState(false);
@@ -113,6 +114,15 @@ export default function ContentDetail() {
   const [quotes, setQuotes] = useState([]);
   const [newQuote, setNewQuote] = useState("");
   const [saved, setSaved] = useState(false);
+
+  // Warn on browser/tab close if unsaved
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) { e.preventDefault(); e.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const { data: content, isLoading } = useQuery({
     queryKey: ["content", contentId],
@@ -138,6 +148,7 @@ export default function ContentDetail() {
         is_favorite: content.is_favorite || false,
         is_public: content.is_public !== false,
       });
+      setIsDirty(false);
       try { setQuotes(JSON.parse(content.quotes || "[]")); } catch { setQuotes([]); }
 
       if (content.type === "book") {
@@ -159,10 +170,13 @@ export default function ContentDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["content", contentId] });
       queryClient.invalidateQueries({ queryKey: ["contents"] });
+      setIsDirty(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
   });
+
+  const updateForm = (updater) => { setForm(updater); setIsDirty(true); };
 
   const handleSave = () => {
     const data = { ...form };
@@ -266,13 +280,22 @@ export default function ContentDetail() {
       {/* Tab buttons */}
       <div className="flex gap-3">
         {TABS.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+          <button key={tab.id} onClick={() => {
+            if (tab.id !== activeTab && activeTab === "suivi" && isDirty) {
+              if (!window.confirm("Vous avez des modifications non sauvegardées. Voulez-vous les enregistrer avant de quitter ?")) {
+                setIsDirty(false);
+                setActiveTab(tab.id);
+              }
+            } else {
+              setActiveTab(tab.id);
+            }
+          }}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all ${
               activeTab === tab.id
                 ? "border-accent bg-accent text-white shadow-md shadow-accent/20"
                 : "border-border bg-card hover:border-accent/40 hover:bg-accent/5"
             }`}>
-            {tab.label}
+            {tab.label}{isDirty && activeTab === "suivi" && tab.id === "suivi" && <span className="w-2 h-2 rounded-full bg-orange-400 ml-1 inline-block" title="Modifications non sauvegardées" />}
           </button>
         ))}
       </div>
@@ -433,7 +456,7 @@ export default function ContentDetail() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Statut de lecture</Label>
-                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <Select value={form.status} onValueChange={v => updateForm(f => ({ ...f, status: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
@@ -448,13 +471,13 @@ export default function ContentDetail() {
                 )}
                 <Button
                   variant={form.is_favorite ? "default" : "outline"}
-                  onClick={() => setForm(f => ({ ...f, is_favorite: !f.is_favorite }))}
+                  onClick={() => updateForm(f => ({ ...f, is_favorite: !f.is_favorite }))}
                   className={`flex-1 ${form.is_favorite ? "bg-red-500 hover:bg-red-600 border-red-500" : "border-red-300 text-red-500 hover:bg-red-50"}`}>
                   <Heart className={`w-4 h-4 mr-2 ${form.is_favorite ? "fill-white" : ""}`} /> {form.is_favorite ? "Favori ❤️" : "Ajouter aux favoris"}
                 </Button>
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
-                <div onClick={() => setForm(f => ({ ...f, is_public: !f.is_public }))}
+                <div onClick={() => updateForm(f => ({ ...f, is_public: !f.is_public }))}
                   className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${form.is_public ? "bg-accent" : "bg-border"}`}>
                   <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.is_public ? "translate-x-4" : "translate-x-0.5"}`} />
                 </div>
@@ -471,14 +494,14 @@ export default function ContentDetail() {
             <div className="space-y-4">
               <div>
                 <Label className="mb-2 block">Note (sur 5)</Label>
-                <StarRow value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} size="w-8 h-8" />
+                <StarRow value={form.rating} onChange={v => updateForm(f => ({ ...f, rating: v }))} size="w-8 h-8" />
                 {form.rating > 0 && <p className="text-sm text-muted-foreground mt-2">{["", "Pas aimé", "Passable", "Bien", "Très bien", "Chef-d'œuvre"][form.rating]}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Mon humeur de lecture</Label>
                 <div className="flex flex-wrap gap-2">
                   {MOODS.map(m => (
-                    <button key={m} onClick={() => setForm(f => ({ ...f, mood: m }))}
+                    <button key={m} onClick={() => updateForm(f => ({ ...f, mood: m }))}
                       className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${form.mood === m ? "bg-accent text-white border-accent" : "border-border hover:border-accent/40"}`}>
                       {m}
                     </button>
@@ -499,12 +522,12 @@ export default function ContentDetail() {
                   <div className="space-y-2">
                     <Label>Page actuelle / {content.total_pages || googleData?.pageCount || "?"}</Label>
                     <Input type="number" value={form.current_page} min={0} max={content.total_pages || 9999}
-                      onChange={e => setForm(f => ({ ...f, current_page: e.target.value }))} />
+                      onChange={e => updateForm(f => ({ ...f, current_page: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label>Objectif de pages / jour</Label>
                     <Input type="number" value={form.reading_goal_pages} placeholder="Ex: 30 pages/jour"
-                      onChange={e => setForm(f => ({ ...f, reading_goal_pages: e.target.value }))} />
+                      onChange={e => updateForm(f => ({ ...f, reading_goal_pages: e.target.value }))} />
                     {form.reading_goal_pages && content.total_pages && form.current_page < content.total_pages && (
                       <p className="text-xs text-accent">
                         📅 Encore ~{Math.ceil((content.total_pages - form.current_page) / form.reading_goal_pages)} jours à ce rythme
@@ -517,7 +540,7 @@ export default function ContentDetail() {
                 <div className="space-y-2">
                   <Label>Minutes écoutées / {content.total_duration || "?"}</Label>
                   <Input type="number" value={form.current_duration} min={0} max={content.total_duration || 9999}
-                    onChange={e => setForm(f => ({ ...f, current_duration: e.target.value }))} />
+                    onChange={e => updateForm(f => ({ ...f, current_duration: e.target.value }))} />
                 </div>
               )}
               {(content.total_pages || content.total_duration) && (
@@ -540,17 +563,17 @@ export default function ContentDetail() {
               <div className="space-y-2">
                 <Label>Note personnelle (privée)</Label>
                 <Textarea value={form.personal_note} rows={4} placeholder="Mes réflexions, apprentissages, idées clés…"
-                  onChange={e => setForm(f => ({ ...f, personal_note: e.target.value }))} />
+                  onChange={e => updateForm(f => ({ ...f, personal_note: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label>Avis pour la communauté (public)</Label>
                 <Textarea value={form.community_review} rows={3} placeholder="Recommanderiez-vous ce livre ? Pourquoi ?"
-                  onChange={e => setForm(f => ({ ...f, community_review: e.target.value }))} />
+                  onChange={e => updateForm(f => ({ ...f, community_review: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label>Tags personnels</Label>
                 <Input value={form.tags} placeholder="Ex: incontournable, à relire, offrir…"
-                  onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} />
+                  onChange={e => updateForm(f => ({ ...f, tags: e.target.value }))} />
                 <p className="text-xs text-muted-foreground">Séparez par des virgules</p>
               </div>
             </div>
