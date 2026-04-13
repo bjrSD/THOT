@@ -272,7 +272,6 @@ export default function ContentDetail() {
                 ? "border-accent bg-accent text-white shadow-md shadow-accent/20"
                 : "border-border bg-card hover:border-accent/40 hover:bg-accent/5"
             }`}>
-            <tab.icon className="w-4 h-4" />
             {tab.label}
           </button>
         ))}
