@@ -1,37 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X, ExternalLink, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X, ExternalLink, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { TYPE_LABELS, CATEGORY_LABELS } from "@/components/shared/KPUtils";
+import FilterPanel, { DEFAULT_FILTERS } from "@/components/discover/FilterPanel";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
-const FILTER_TYPES = [
-  { value: "all", label: "Tous" },
-  { value: "book", label: "Livres", icon: BookOpen },
-  { value: "podcast", label: "Podcasts", icon: Headphones },
-  { value: "video", label: "Vidéos", icon: Play },
-  { value: "article", label: "Articles", icon: FileText },
-];
-
-const CATEGORIES = [
-  { value: "all", label: "Toutes catégories" },
-  { value: "philosophie", label: "Philosophie" },
-  { value: "science", label: "Science" },
-  { value: "business", label: "Business" },
-  { value: "technologie", label: "Technologie" },
-  { value: "histoire", label: "Histoire" },
-  { value: "psychologie", label: "Psychologie" },
-  { value: "art", label: "Art" },
-  { value: "sante", label: "Santé" },
-];
-
-// Map Google Books subject to our categories
 function mapCategory(googleCategories = []) {
   const s = (googleCategories.join(" ") || "").toLowerCase();
   if (s.includes("business") || s.includes("management") || s.includes("economics")) return "business";
@@ -45,9 +25,10 @@ function mapCategory(googleCategories = []) {
   return "autre";
 }
 
-async function searchGoogleBooks(query, maxResults = 24) {
-  if (!query.trim()) return [];
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${maxResults}&langRestrict=fr&orderBy=relevance`;
+async function searchGoogleBooks(query, language = "fr", maxResults = 30) {
+  const q = encodeURIComponent(query.trim() || "bestseller");
+  const lang = language ? `&langRestrict=${language}` : "";
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=${maxResults}${lang}&orderBy=relevance`;
   const res = await fetch(url);
   const data = await res.json();
   if (!data.items) return [];
@@ -57,6 +38,7 @@ async function searchGoogleBooks(query, maxResults = 24) {
       googleId: item.id,
       title: info.title || "Sans titre",
       author: info.authors?.[0] || "",
+      authors: info.authors || [],
       type: "book",
       category: mapCategory(info.categories),
       summary: info.description?.slice(0, 300) || "",
@@ -71,25 +53,89 @@ async function searchGoogleBooks(query, maxResults = 24) {
   });
 }
 
-const SUGGESTED_QUERIES = ["philosophie", "intelligence artificielle", "développement personnel", "histoire de France", "science", "business startup"];
+function applyFilters(items, filters) {
+  let result = [...items];
+
+  // Content type
+  if (filters.contentType) result = result.filter(i => i.type === filters.contentType);
+
+  // Author
+  if (filters.authorQuery.trim()) {
+    const a = filters.authorQuery.toLowerCase();
+    result = result.filter(i => i.author.toLowerCase().includes(a) || (i.authors || []).some(au => au.toLowerCase().includes(a)));
+  }
+
+  // Min rating
+  if (filters.minRating > 0) result = result.filter(i => (i.rating || 0) >= filters.minRating);
+
+  // Has rating
+  if (filters.hasRating) result = result.filter(i => !!i.rating);
+
+  // Has cover
+  if (filters.hasCover) result = result.filter(i => !!i.cover_url);
+
+  // Page range
+  if (filters.pageRange) {
+    result = result.filter(i => {
+      const p = i.total_pages || 0;
+      if (filters.pageRange === "0-100") return p > 0 && p < 100;
+      if (filters.pageRange === "100-250") return p >= 100 && p < 250;
+      if (filters.pageRange === "250-400") return p >= 250 && p < 400;
+      if (filters.pageRange === "400-600") return p >= 400 && p < 600;
+      if (filters.pageRange === "600+") return p >= 600;
+      return true;
+    });
+  }
+
+  // Year
+  if (filters.yearFrom) {
+    result = result.filter(i => {
+      const year = parseInt(i.publishedDate?.slice(0, 4) || "0");
+      if (filters.yearFrom === "classic") return year < 1990;
+      return year >= parseInt(filters.yearFrom);
+    });
+  }
+
+  // Genre filter (search in googleCategories or summary)
+  if (filters.genres.length > 0) {
+    result = result.filter(i => {
+      const haystack = [...(i.googleCategories || []), i.summary, i.title].join(" ").toLowerCase();
+      return filters.genres.some(g => haystack.includes(g.toLowerCase()));
+    });
+  }
+
+  // Sort
+  if (filters.sort === "rating_desc") result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  else if (filters.sort === "rating_asc") result.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+  else if (filters.sort === "pages_asc") result.sort((a, b) => (a.total_pages || 0) - (b.total_pages || 0));
+  else if (filters.sort === "pages_desc") result.sort((a, b) => (b.total_pages || 0) - (a.total_pages || 0));
+  else if (filters.sort === "date_desc") result.sort((a, b) => (b.publishedDate || "").localeCompare(a.publishedDate || ""));
+  else if (filters.sort === "date_asc") result.sort((a, b) => (a.publishedDate || "").localeCompare(b.publishedDate || ""));
+
+  return result;
+}
+
+const SUGGESTED_QUERIES = ["philosophie", "intelligence artificielle", "développement personnel", "histoire", "science", "startup", "psychologie", "roman français"];
 
 export default function Discover() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const queryClient = useQueryClient();
 
-  // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 500);
     return () => clearTimeout(t);
   }, [query]);
 
+  // Re-search when language filter changes
+  const searchKey = `${debouncedQuery}|${filters.language}`;
+
   const { data: googleResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ["googleBooks", debouncedQuery],
-    queryFn: () => searchGoogleBooks(debouncedQuery || "bestseller littérature"),
+    queryKey: ["googleBooks", searchKey],
+    queryFn: () => searchGoogleBooks(debouncedQuery || "bestseller littérature", filters.language),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -114,40 +160,59 @@ export default function Discover() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contents"] }),
   });
 
-  // Map title → existing content record
   const existingByTitle = {};
-  for (const c of existingContents) {
-    existingByTitle[c.title] = c;
-  }
+  for (const c of existingContents) existingByTitle[c.title] = c;
 
-  const filtered = googleResults.filter(item => {
-    if (typeFilter !== "all" && item.type !== typeFilter) return false;
-    if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
-    return true;
-  });
+  const filtered = applyFilters(googleResults, filters);
+
+  const activeFiltersCount = [
+    filters.sort !== "relevance",
+    filters.contentType !== "",
+    filters.genres.length > 0,
+    filters.language !== "fr",
+    filters.minRating > 0,
+    filters.pageRange !== "",
+    filters.yearFrom !== "",
+    filters.authorQuery !== "",
+    filters.hasRating,
+    filters.hasCover,
+  ].filter(Boolean).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">Découvrir</h1>
         <p className="text-muted-foreground mt-1">Explorez des millions de livres via Google Books</p>
       </div>
 
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Rechercher un livre, auteur, sujet…"
-          className="pl-10 pr-10 h-11 text-base"
-        />
-        {query && (
-          <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-          </button>
-        )}
+      {/* Search + Filter button */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Rechercher un livre, auteur, sujet…"
+            className="pl-10 pr-10 h-11 text-base"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
+        <Button
+          variant={showFilters || activeFiltersCount > 0 ? "default" : "outline"}
+          className="h-11 gap-2 shrink-0"
+          onClick={() => setShowFilters(v => !v)}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          Filtres
+          {activeFiltersCount > 0 && (
+            <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">{activeFiltersCount}</span>
+          )}
+        </Button>
       </div>
 
       {/* Suggested queries */}
@@ -162,27 +227,19 @@ export default function Discover() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {FILTER_TYPES.map(t => (
-            <Button key={t.value} variant={typeFilter === t.value ? "default" : "outline"} size="sm"
-              onClick={() => setTypeFilter(t.value)} className="shrink-0 h-8 text-xs">
-              {t.icon && <t.icon className="w-3.5 h-3.5 mr-1" />}
-              {t.label}
-            </Button>
-          ))}
-        </div>
-        <select
-          value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value)}
-          className="text-xs h-8 px-3 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          {CATEGORIES.map(c => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
-      </div>
+      {/* Filter panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <FilterPanel
+              filters={filters}
+              onChange={setFilters}
+              onClose={() => setShowFilters(false)}
+              onReset={() => setFilters(DEFAULT_FILTERS)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
       {isSearching && (
@@ -192,13 +249,21 @@ export default function Discover() {
         </div>
       )}
 
-      {/* Results */}
+      {/* Results count */}
+      {!isSearching && googleResults.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
+          {activeFiltersCount > 0 ? ` (filtré depuis ${googleResults.length})` : ""}
+        </p>
+      )}
+
       {!isSearching && filtered.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Aucun résultat. Essayez un autre mot-clé.</p>
+          <p className="text-muted-foreground">Aucun résultat. Essayez un autre mot-clé ou ajustez les filtres.</p>
         </div>
       )}
 
+      {/* Cards grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((item, i) => {
           const Icon = TYPE_ICON_MAP[item.type] || BookOpen;
@@ -211,7 +276,6 @@ export default function Discover() {
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex items-start gap-3 mb-3">
-                    {/* Cover or icon */}
                     <div className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center border border-border">
                       {item.cover_url ? (
                         <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover" />
@@ -230,13 +294,19 @@ export default function Discover() {
                         {item.rating && (
                           <span className="text-xs text-yellow-500 font-medium">⭐ {item.rating.toFixed(1)}</span>
                         )}
+                        {item.total_pages && (
+                          <span className="text-xs text-muted-foreground">{item.total_pages}p</span>
+                        )}
+                        {item.publishedDate && (
+                          <span className="text-xs text-muted-foreground">{item.publishedDate.slice(0, 4)}</span>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground flex-1 mb-3 leading-relaxed line-clamp-3">{item.summary}</p>
 
-                  {/* Link to detail */}
+                  {/* Voir les détails */}
                   <button
                     onClick={async () => {
                       if (isAdded) {
@@ -252,19 +322,13 @@ export default function Discover() {
                     <ExternalLink className="w-3 h-3" /> Voir les détails
                   </button>
 
-                  {/* Add / Remove button */}
+                  {/* Add / Remove */}
                   <Button
                     size="sm"
                     variant={isAdded ? "secondary" : "default"}
                     className={`w-full ${isAdded ? "border border-green-500/30 text-green-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300" : ""}`}
                     disabled={addMutation.isPending || removeMutation.isPending}
-                    onClick={() => {
-                      if (isAdded) {
-                        removeMutation.mutate(existing.id);
-                      } else {
-                        addMutation.mutate(item);
-                      }
-                    }}
+                    onClick={() => isAdded ? removeMutation.mutate(existing.id) : addMutation.mutate(item)}
                   >
                     {addMutation.isPending || removeMutation.isPending ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -280,12 +344,6 @@ export default function Discover() {
           );
         })}
       </div>
-
-      {filtered.length > 0 && !isSearching && (
-        <div className="text-center py-4">
-          <p className="text-sm text-muted-foreground">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""} affiché{filtered.length !== 1 ? "s" : ""}</p>
-        </div>
-      )}
     </div>
   );
 }
