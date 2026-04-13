@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X, ExternalLink, SlidersHorizontal } from "lucide-react";
+import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X, ExternalLink, SlidersHorizontal, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,18 @@ import { TYPE_LABELS, CATEGORY_LABELS } from "@/components/shared/KPUtils";
 import FilterPanel, { DEFAULT_FILTERS } from "@/components/discover/FilterPanel";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
+
+// Pool of varied queries for random discovery
+const RANDOM_QUERIES = [
+  "roman policier", "philosophie stoïcisme", "intelligence artificielle", "histoire médiévale",
+  "développement personnel", "startup entrepreneuriat", "psychologie cognitive", "science fiction",
+  "biographie personnalité", "roman historique français", "thriller psychologique", "économie comportementale",
+  "leadership management", "spiritualité méditation", "voyage exploration", "romance contemporaine",
+  "fantasy épique", "manga aventure", "cuisine gastronomie", "nature écologie",
+  "politique société", "mathématiques vulgarisation", "art contemporain", "musique jazz",
+  "astronomie cosmos", "neurosciences cerveau", "roman noir américain", "essai philosophique",
+  "histoire révolution", "littérature classique", "crime investigation", "futurisme technologie",
+];
 
 function mapCategory(googleCategories = []) {
   const s = (googleCategories.join(" ") || "").toLowerCase();
@@ -25,10 +37,10 @@ function mapCategory(googleCategories = []) {
   return "autre";
 }
 
-async function searchGoogleBooks(query, language = "fr", maxResults = 30) {
+async function fetchGoogleBooks(query, language = "fr", startIndex = 0) {
   const q = encodeURIComponent(query.trim() || "bestseller");
   const lang = language ? `&langRestrict=${language}` : "";
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=${maxResults}${lang}&orderBy=relevance`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=20&startIndex=${startIndex}${lang}&orderBy=relevance`;
   const res = await fetch(url);
   const data = await res.json();
   if (!data.items) return [];
@@ -55,26 +67,14 @@ async function searchGoogleBooks(query, language = "fr", maxResults = 30) {
 
 function applyFilters(items, filters) {
   let result = [...items];
-
-  // Content type
   if (filters.contentType) result = result.filter(i => i.type === filters.contentType);
-
-  // Author
   if (filters.authorQuery.trim()) {
     const a = filters.authorQuery.toLowerCase();
     result = result.filter(i => i.author.toLowerCase().includes(a) || (i.authors || []).some(au => au.toLowerCase().includes(a)));
   }
-
-  // Min rating
   if (filters.minRating > 0) result = result.filter(i => (i.rating || 0) >= filters.minRating);
-
-  // Has rating
   if (filters.hasRating) result = result.filter(i => !!i.rating);
-
-  // Has cover
   if (filters.hasCover) result = result.filter(i => !!i.cover_url);
-
-  // Page range
   if (filters.pageRange) {
     result = result.filter(i => {
       const p = i.total_pages || 0;
@@ -86,8 +86,6 @@ function applyFilters(items, filters) {
       return true;
     });
   }
-
-  // Year
   if (filters.yearFrom) {
     result = result.filter(i => {
       const year = parseInt(i.publishedDate?.slice(0, 4) || "0");
@@ -95,29 +93,23 @@ function applyFilters(items, filters) {
       return year >= parseInt(filters.yearFrom);
     });
   }
-
-  // Genre filter (search in googleCategories or summary)
   if (filters.genres.length > 0) {
     result = result.filter(i => {
       const haystack = [...(i.googleCategories || []), i.summary, i.title].join(" ").toLowerCase();
       return filters.genres.some(g => haystack.includes(g.toLowerCase()));
     });
   }
-
-  // Sort
   if (filters.sort === "rating_desc") result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
   else if (filters.sort === "rating_asc") result.sort((a, b) => (a.rating || 0) - (b.rating || 0));
   else if (filters.sort === "pages_asc") result.sort((a, b) => (a.total_pages || 0) - (b.total_pages || 0));
   else if (filters.sort === "pages_desc") result.sort((a, b) => (b.total_pages || 0) - (a.total_pages || 0));
   else if (filters.sort === "date_desc") result.sort((a, b) => (b.publishedDate || "").localeCompare(a.publishedDate || ""));
   else if (filters.sort === "date_asc") result.sort((a, b) => (a.publishedDate || "").localeCompare(b.publishedDate || ""));
-
   return result;
 }
 
-const SUGGESTED_QUERIES = ["philosophie", "intelligence artificielle", "développement personnel", "histoire", "science", "startup", "psychologie", "roman français"];
-
 export default function Discover() {
+
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -125,19 +117,86 @@ export default function Discover() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const queryClient = useQueryClient();
 
+  // Infinite scroll state
+  const [allBooks, setAllBooks] = useState([]);
+  const [page, setPage] = useState(0); // startIndex = page * 20
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentQueryPool, setCurrentQueryPool] = useState(() => {
+    // Shuffle random queries on mount
+    return [...RANDOM_QUERIES].sort(() => Math.random() - 0.5);
+  });
+  const [queryPoolIndex, setQueryPoolIndex] = useState(0);
+  const loaderRef = useRef(null);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 500);
     return () => clearTimeout(t);
   }, [query]);
 
-  // Re-search when language filter changes
-  const searchKey = `${debouncedQuery}|${filters.language}`;
+  // Reset when search/language changes
+  useEffect(() => {
+    setAllBooks([]);
+    setPage(0);
+    setHasMore(true);
+    setQueryPoolIndex(0);
+  }, [debouncedQuery, filters.language]);
 
-  const { data: googleResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ["googleBooks", searchKey],
-    queryFn: () => searchGoogleBooks(debouncedQuery || "bestseller littérature", filters.language),
-    staleTime: 1000 * 60 * 5,
-  });
+  // Initial + paginated fetch
+  const loadBooks = useCallback(async (pageNum, poolIdx) => {
+    setIsFetchingMore(true);
+    try {
+      let q;
+      if (debouncedQuery.trim()) {
+        // Search mode: paginate same query with startIndex
+        q = debouncedQuery.trim();
+        const startIndex = pageNum * 20;
+        const results = await fetchGoogleBooks(q, filters.language, startIndex);
+        if (results.length === 0) { setHasMore(false); return; }
+        setAllBooks(prev => {
+          const ids = new Set(prev.map(b => b.googleId));
+          return [...prev, ...results.filter(b => !ids.has(b.googleId))];
+        });
+        setPage(pageNum + 1);
+      } else {
+        // Discovery mode: rotate through random query pool, vary startIndex
+        const currentQ = currentQueryPool[poolIdx % currentQueryPool.length];
+        const startIndex = Math.floor(Math.random() * 5) * 10; // 0,10,20,30,40
+        const results = await fetchGoogleBooks(currentQ, filters.language, startIndex);
+        setAllBooks(prev => {
+          const ids = new Set(prev.map(b => b.googleId));
+          return [...prev, ...results.filter(b => !ids.has(b.googleId))];
+        });
+        setQueryPoolIndex(poolIdx + 1);
+      }
+    } finally {
+      setIsFetchingMore(false);
+    }
+  }, [debouncedQuery, filters.language, currentQueryPool]);
+
+  // Load first batch on mount / query change
+  useEffect(() => {
+    loadBooks(0, 0);
+  }, [debouncedQuery, filters.language]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingMore && hasMore) {
+          if (debouncedQuery.trim()) {
+            loadBooks(page, queryPoolIndex);
+          } else {
+            loadBooks(page, queryPoolIndex);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [isFetchingMore, hasMore, page, queryPoolIndex, loadBooks]);
 
   const { data: existingContents = [] } = useQuery({
     queryKey: ["contents"],
@@ -163,7 +222,7 @@ export default function Discover() {
   const existingByTitle = {};
   for (const c of existingContents) existingByTitle[c.title] = c;
 
-  const filtered = applyFilters(googleResults, filters);
+  const filtered = applyFilters(allBooks, filters);
 
   const activeFiltersCount = [
     filters.sort !== "relevance",
@@ -183,7 +242,9 @@ export default function Discover() {
       {/* Header */}
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">Découvrir</h1>
-        <p className="text-muted-foreground mt-1">Explorez des millions de livres via Google Books</p>
+        <p className="text-muted-foreground mt-1">
+          {filtered.length > 0 ? `${filtered.length} livres chargés — scroll pour en découvrir plus` : "Explorez des millions de livres via Google Books"}
+        </p>
       </div>
 
       {/* Search + Filter button */}
@@ -266,23 +327,15 @@ export default function Discover() {
         )}
       </AnimatePresence>
 
-      {/* Loading */}
-      {isSearching && (
+      {/* Initial loading */}
+      {allBooks.length === 0 && isFetchingMore && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-accent mr-2" />
-          <span className="text-muted-foreground text-sm">Recherche en cours…</span>
+          <span className="text-muted-foreground text-sm">Chargement des livres…</span>
         </div>
       )}
 
-      {/* Results count */}
-      {!isSearching && googleResults.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          {filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
-          {activeFiltersCount > 0 ? ` (filtré depuis ${googleResults.length})` : ""}
-        </p>
-      )}
-
-      {!isSearching && filtered.length === 0 && (
+      {filtered.length === 0 && !isFetchingMore && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">Aucun résultat. Essayez un autre mot-clé ou ajustez les filtres.</p>
         </div>
@@ -297,7 +350,7 @@ export default function Discover() {
 
           return (
             <motion.div key={item.googleId || item.title + i}
-              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.02, 0.4) }}>
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex items-start gap-3 mb-3">
@@ -331,7 +384,6 @@ export default function Discover() {
 
                   <p className="text-xs text-muted-foreground flex-1 mb-3 leading-relaxed line-clamp-3">{item.summary}</p>
 
-                  {/* Voir les détails */}
                   <button
                     onClick={async () => {
                       if (isAdded) {
@@ -347,7 +399,6 @@ export default function Discover() {
                     <ExternalLink className="w-3 h-3" /> Voir les détails
                   </button>
 
-                  {/* Add / Remove */}
                   <Button
                     size="sm"
                     variant={isAdded ? "secondary" : "default"}
@@ -368,6 +419,21 @@ export default function Discover() {
             </motion.div>
           );
         })}
+      </div>
+
+      {/* Infinite scroll loader */}
+      <div ref={loaderRef} className="flex flex-col items-center py-8 gap-3">
+        {isFetchingMore && (
+          <>
+            <Loader2 className="w-6 h-6 animate-spin text-accent" />
+            <p className="text-sm text-muted-foreground">Chargement de nouveaux livres…</p>
+          </>
+        )}
+        {!isFetchingMore && filtered.length > 0 && (
+          <Button variant="outline" size="sm" onClick={() => loadBooks(page, queryPoolIndex)} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> Charger plus
+          </Button>
+        )}
       </div>
     </div>
   );
