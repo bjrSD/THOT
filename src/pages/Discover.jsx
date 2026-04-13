@@ -231,17 +231,26 @@ export default function Discover() {
         ))}
       </div>
 
-      {/* Suggested queries */}
-      {!query && (
-        <div className="flex flex-wrap gap-2">
-          {SUGGESTED_QUERIES.map(q => (
-            <button key={q} onClick={() => setQuery(q)}
-              className="text-xs px-3 py-1.5 rounded-full bg-secondary hover:bg-accent/10 hover:text-accent transition-colors border border-border">
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Quick criteria */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { sort: "rating_desc", label: "⭐ Mieux notés" },
+          { sort: "date_desc", label: "🆕 Plus récents" },
+          { sort: "pages_asc", label: "⚡ Lecture rapide" },
+          { sort: "pages_desc", label: "📖 Lecture longue" },
+          { sort: "date_asc", label: "🏛️ Classiques" },
+          { sort: "rating_asc", label: "💎 Pépites cachées" },
+        ].map(c => (
+          <button key={c.sort} onClick={() => setFilters(f => ({ ...f, sort: c.sort }))}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filters.sort === c.sort
+                ? "bg-accent text-white border-accent"
+                : "bg-secondary hover:bg-accent/10 hover:text-accent border-border"
+            }`}>
+            {c.label}
+          </button>
+        ))}
+      </div>
 
       {/* Filter panel */}
       <AnimatePresence>
