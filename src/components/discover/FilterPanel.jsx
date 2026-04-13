@@ -23,6 +23,40 @@ const QUICK_CRITERIA = [
   { sort: "rating_asc", label: "💎 Pépites cachées", desc: "Peu notés mais à découvrir" },
 ];
 
+const GENRES = [
+  { emoji: "🔫", label: "Policier" },
+  { emoji: "😨", label: "Thriller" },
+  { emoji: "💀", label: "Suspense" },
+  { emoji: "🚀", label: "Science-fiction" },
+  { emoji: "🧙", label: "Fantasy" },
+  { emoji: "🧙‍♀️", label: "Fantastique" },
+  { emoji: "❤️", label: "Romance" },
+  { emoji: "📚", label: "Roman historique" },
+  { emoji: "🌍", label: "Aventure" },
+  { emoji: "🤣", label: "Humour" },
+  { emoji: "👨‍💼", label: "Biographie" },
+  { emoji: "📝", label: "Autobiographie" },
+  { emoji: "🧠", label: "Développement personnel" },
+  { emoji: "💰", label: "Business" },
+  { emoji: "🔬", label: "Science" },
+  { emoji: "💻", label: "Technologie" },
+  { emoji: "🧘", label: "Philosophie" },
+  { emoji: "🧐", label: "Psychologie" },
+  { emoji: "🌎", label: "Histoire" },
+  { emoji: "🎨", label: "Art" },
+  { emoji: "🍽️", label: "Cuisine" },
+  { emoji: "✈️", label: "Voyage" },
+  { emoji: "🌱", label: "Nature & Écologie" },
+  { emoji: "💙", label: "Santé & Bien-être" },
+  { emoji: "📯", label: "Manga" },
+  { emoji: "💥", label: "BD / Comics" },
+  { emoji: "👶", label: "Jeunesse" },
+  { emoji: "📚", label: "Essai" },
+  { emoji: "🕎", label: "Politique" },
+  { emoji: "✨", label: "Spiritualité" },
+  { emoji: "📊", label: "Économie" },
+];
+
 const LANGUAGES = [
   { value: "", label: "Toutes les langues" },
   { value: "fr", label: "Français 🇫🇷" },
@@ -167,6 +201,21 @@ export default function FilterPanel({ filters, onChange, onClose, onReset }) {
                   <p className="text-xs text-muted-foreground mt-0.5">{c.desc}</p>
                 </div>
                 {filters.sort === c.sort && <span className="text-accent text-xs">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Genre / Typologie */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Genre / Typologie</p>
+          <div className="flex flex-wrap gap-1.5">
+            {GENRES.map(g => (
+              <button key={g.label} onClick={() => toggleGenre(g.label)}
+                className={`text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
+                  filters.genres.includes(g.label) ? "bg-accent text-white border-accent" : "border-border hover:border-accent/40 hover:bg-secondary"
+                }`}>
+                {g.emoji} {g.label}
               </button>
             ))}
           </div>
