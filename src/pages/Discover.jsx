@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -73,6 +74,7 @@ async function searchGoogleBooks(query, maxResults = 24) {
 const SUGGESTED_QUERIES = ["philosophie", "intelligence artificielle", "développement personnel", "histoire de France", "science", "business startup"];
 
 export default function Discover() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -234,13 +236,21 @@ export default function Discover() {
 
                   <p className="text-xs text-muted-foreground flex-1 mb-3 leading-relaxed line-clamp-3">{item.summary}</p>
 
-                  {/* Link */}
-                  {item.buy_link && (
-                    <a href={item.buy_link} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-accent hover:underline mb-3">
-                      <ExternalLink className="w-3 h-3" /> Voir le descriptif
-                    </a>
-                  )}
+                  {/* Link to detail */}
+                  <button
+                    onClick={async () => {
+                      if (isAdded) {
+                        navigate(`/ContentDetail?id=${existing.id}`);
+                      } else {
+                        const newContent = await addMutation.mutateAsync(item);
+                        queryClient.invalidateQueries({ queryKey: ["contents"] });
+                        navigate(`/ContentDetail?id=${newContent.id}`);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-xs text-accent hover:underline mb-3 font-medium"
+                  >
+                    <ExternalLink className="w-3 h-3" /> Voir les détails
+                  </button>
 
                   {/* Add / Remove button */}
                   <Button
