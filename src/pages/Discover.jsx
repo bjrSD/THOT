@@ -215,6 +215,22 @@ export default function Discover() {
         </Button>
       </div>
 
+      {/* Content type quick filters */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {[
+          { value: "", label: "Tous" },
+          { value: "book", label: "📚 Livres" },
+          { value: "podcast", label: "🎙️ Podcasts" },
+          { value: "video", label: "🎬 Vidéos" },
+          { value: "article", label: "📰 Articles" },
+        ].map(t => (
+          <Button key={t.value} variant={filters.contentType === t.value ? "default" : "outline"} size="sm"
+            onClick={() => setFilters(f => ({ ...f, contentType: t.value }))} className="shrink-0 h-8 text-xs">
+            {t.label}
+          </Button>
+        ))}
+      </div>
+
       {/* Suggested queries */}
       {!query && (
         <div className="flex flex-wrap gap-2">

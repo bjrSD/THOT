@@ -13,11 +13,14 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Nouvelles parutions" },
 ];
 
-const BOOK_GENRES = [
-  "Roman", "Thriller", "Science-fiction", "Fantasy", "Policier", "Biographie",
-  "Essai", "Développement personnel", "Histoire", "Philosophie", "Science",
-  "Psychologie", "Business", "Cuisine", "Voyage", "Art", "Santé", "Technologie",
-  "Économie", "Politique", "Spiritualité", "Jeunesse", "BD / Manga",
+const QUICK_CRITERIA = [
+  { sort: "rating_desc", label: "⭐ Mieux notés", desc: "Les mieux évalués en premier" },
+  { sort: "date_desc", label: "🆕 Plus récents", desc: "Parutions les plus récentes" },
+  { sort: "newest", label: "🔥 Nouveautés", desc: "Tout juste sortis" },
+  { sort: "pages_asc", label: "⚡ Lecture rapide", desc: "Moins de 200 pages" },
+  { sort: "pages_desc", label: "📖 Lecture longue", desc: "500+ pages" },
+  { sort: "date_asc", label: "🏛️ Classiques", desc: "Les œuvres intemporelles" },
+  { sort: "rating_asc", label: "💎 Pépites cachées", desc: "Peu notés mais à découvrir" },
 ];
 
 const LANGUAGES = [
@@ -150,14 +153,20 @@ export default function FilterPanel({ filters, onChange, onClose, onReset }) {
           </div>
         </div>
 
-        {/* Genre / Thème */}
+        {/* Critères rapides */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Genre / Thème</p>
-          <div className="flex flex-wrap gap-1.5">
-            {BOOK_GENRES.map(g => (
-              <button key={g} onClick={() => toggleGenre(g)}
-                className={`text-xs px-2.5 py-1.5 rounded-full border transition-colors ${filters.genres.includes(g) ? "bg-accent text-white border-accent" : "border-border hover:border-accent/40 hover:bg-secondary"}`}>
-                {g}
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Critères rapides</p>
+          <div className="space-y-1">
+            {QUICK_CRITERIA.map(c => (
+              <button key={c.sort} onClick={() => onChange({ ...filters, sort: c.sort })}
+                className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors flex items-center justify-between group ${
+                  filters.sort === c.sort ? "border-accent bg-accent/10" : "border-border hover:border-accent/40 hover:bg-secondary"
+                }`}>
+                <div>
+                  <span className={`text-sm font-medium ${filters.sort === c.sort ? "text-accent" : ""}`}>{c.label}</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{c.desc}</p>
+                </div>
+                {filters.sort === c.sort && <span className="text-accent text-xs">✓</span>}
               </button>
             ))}
           </div>
