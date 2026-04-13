@@ -20,6 +20,7 @@ const PROMO_CODES = {
   "AMI10": { discount: 10, label: "Parrainage ami", type: "referral" },
   "INVITE30": { discount: 30, label: "Code de parrainage", type: "referral" },
   "LAUNCH": { discount: 100, label: "Accès offert 🎁", type: "promo" },
+  "THOTPREMIUMFREE2026": { discount: 100, label: "Premium offert 🎁", type: "promo" },
 };
 
 function formatCardNumber(value) {
