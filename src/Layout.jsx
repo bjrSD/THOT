@@ -7,6 +7,8 @@ import {
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
   Twitter, Instagram, Swords, Brain, Flame, Users, ArrowRight,
   FileBarChart, Trophy, ListMusic, ChevronDown, Globe } from "lucide-react";
+import NotificationBell from "@/components/shared/NotificationBell";
+import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import QuickAddModal from "@/components/shared/QuickAddModal";
@@ -36,13 +38,14 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: "Social",
-    items: [
-      { name: "Défis", page: "Challenges", icon: Trophy },
-      { name: "Duels", page: "Duels", icon: Swords },
-      { name: "Classement", page: "Leaderboard", icon: Crown },
-      { name: "Clubs", page: "Clubs", icon: Users },
-    ],
+  label: "Social",
+  items: [
+    { name: "Défis", page: "Challenges", icon: Trophy },
+    { name: "Duels", page: "Duels", icon: Swords },
+    { name: "Classement", page: "Leaderboard", icon: Crown },
+    { name: "Clubs", page: "Clubs", icon: Users },
+    { name: "Messages", page: "Messages", icon: MessageCircle },
+  ],
   },
   {
     label: "Compte",
@@ -96,6 +99,7 @@ export default function Layout({ children, currentPageName }) {
   const { language, changeLanguage } = useLanguage();
   const [isAuth, setIsAuth] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -106,6 +110,7 @@ export default function Layout({ children, currentPageName }) {
       if (auth) {
         base44.auth.me().then(u => {
           setIsPremium(u?.role === "admin" || u?.is_premium || false);
+          setCurrentUser(u);
         });
       }
     });
@@ -314,6 +319,19 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Sidebar footer */}
         <div className="p-3 border-t border-border space-y-2">
+          {/* Bell + avatar row */}
+          <div className="flex items-center gap-2 px-2 pb-1">
+            <NotificationBell />
+            {currentUser && (
+              <Link to={createPageUrl("Profile")} className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+                <UserAvatar user={currentUser} size="sm" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">{currentUser.full_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+                </div>
+              </Link>
+            )}
+          </div>
           {!isPremium ? (
             <Link to={createPageUrl("Premium")}>
               <div className="bg-gradient-to-r from-yellow-500/15 to-accent/15 border border-yellow-500/20 rounded-xl p-3 flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -340,7 +358,7 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 justify-between">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 justify-between gap-2">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -426,9 +444,12 @@ export default function Layout({ children, currentPageName }) {
 
         <ThotLogo size="lg" />
 
-        <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
-          <Plus className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Main content */}

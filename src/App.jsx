@@ -20,6 +20,7 @@ import Feed from './pages/Feed.jsx';
 import Profile from './pages/Profile.jsx';
 import Checkout from './pages/Checkout.jsx';
 import Reports from './pages/Reports.jsx';
+import Messages from './pages/Messages.jsx';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
       <Route path="/Profile" element={<LayoutWrapper currentPageName="Profile"><Profile /></LayoutWrapper>} />
       <Route path="/Checkout" element={<Checkout />} />
       <Route path="/Reports" element={<LayoutWrapper currentPageName="Reports"><Reports /></LayoutWrapper>} />
+      <Route path="/Messages" element={<LayoutWrapper currentPageName="Messages"><Messages /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

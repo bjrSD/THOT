@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Trophy, Clock, Plus, Loader2, Flame, Crown, Search, ChevronRight, X, Check, BookOpen, Headphones, Play, Brain, Zap, TrendingUp, MessageCircle, Send } from "lucide-react";
+import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,8 +82,8 @@ function DuelCard({ duel, currentEmail }) {
         {/* VS */}
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg mx-auto mb-1">
-              {currentEmail?.[0]?.toUpperCase()}
+            <div className="mx-auto mb-1 flex justify-center">
+              <UserAvatar name={currentEmail?.split("@")[0]} size="md" />
             </div>
             <p className="text-xs font-medium">Vous</p>
             <p className="text-2xl font-black text-accent">{myKP}</p>
@@ -93,8 +94,8 @@ function DuelCard({ duel, currentEmail }) {
             <span className="text-xs text-muted-foreground font-bold">VS</span>
           </div>
           <div className="flex-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center font-bold text-lg mx-auto mb-1">
-              {opponent?.[0]?.toUpperCase()}
+            <div className="mx-auto mb-1 flex justify-center">
+              <UserAvatar name={opponent?.split("@")[0]} size="md" />
             </div>
             <p className="text-xs font-medium truncate">{opponent?.split("@")[0]}</p>
             <p className="text-2xl font-black">{theirKP}</p>
@@ -338,11 +339,7 @@ export default function Duels() {
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
                           selectedOpponent?.email === p.email ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
                         }`}>
-                        {p.photo ? (
-                          <img src={p.photo} alt={p.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold shrink-0">{p.name[0]}</div>
-                        )}
+                        <UserAvatar user={{ full_name: p.name, avatar_url: p.photo }} size="md" />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.level} · {p.kp.toLocaleString()} KP · 🔥 {p.streak}j</p>

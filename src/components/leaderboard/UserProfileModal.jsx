@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, UserPlus, UserCheck, Users, Flame, BookOpen, Headphones, Star, Trophy } from "lucide-react";
+import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
 
 export default function UserProfileModal({ user, onClose }) {
@@ -57,9 +58,7 @@ export default function UserProfileModal({ user, onClose }) {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-3xl font-black border-2 border-background shadow">
-                {user.full_name?.[0]?.toUpperCase()}
-              </div>
+              <UserAvatar user={user} size="lg" />
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="font-heading font-bold text-lg">{user.full_name}</h2>

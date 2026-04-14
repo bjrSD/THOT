@@ -1,0 +1,47 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email du destinataire"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "badge_earned",
+        "new_message",
+        "new_follower",
+        "duel_invite",
+        "challenge_completed",
+        "friend_activity"
+      ],
+      "description": "Type de notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de la notification"
+    },
+    "body": {
+      "type": "string",
+      "description": "Corps de la notification"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "action_url": {
+      "type": "string",
+      "description": "URL de redirection optionnelle"
+    },
+    "meta": {
+      "type": "string",
+      "description": "Donn\u00e9es JSON suppl\u00e9mentaires (badge id, sender, etc.)"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title"
+  ]
+}

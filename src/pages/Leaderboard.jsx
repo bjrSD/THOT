@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Crown, Flame, Star, ChevronRight, BookOpen, Brain, Headphones, Play, FileText, Zap, Globe } from "lucide-react";
+import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import UserProfileModal from "@/components/leaderboard/UserProfileModal";
@@ -131,8 +132,8 @@ export default function Leaderboard() {
               onClick={() => setSelectedUser(user)}
               className={`flex flex-col items-center p-3 rounded-2xl border cursor-pointer hover:shadow-md transition-all ${style.bg} ${style.border}`}>
               <div className="text-2xl mb-1">{style.badge}</div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold text-lg border-2 border-background mb-1">
-                {user.full_name?.[0]}
+              <div className="mb-1 flex justify-center">
+                <UserAvatar user={user} size="md" />
               </div>
               <p className="text-xs font-semibold text-center truncate w-full">{user.full_name.split(" ")[0]}</p>
               <p className={`text-sm font-black ${style.text}`}>{score.toLocaleString()}</p>
@@ -156,9 +157,7 @@ export default function Leaderboard() {
                 <div className={`w-8 text-center font-black text-sm shrink-0 ${i < 3 ? RANK_STYLES[i].text : "text-muted-foreground"}`}>
                   {i < 3 ? RANK_STYLES[i].badge : `#${i + 1}`}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold shrink-0">
-                  {user.full_name?.[0]}
-                </div>
+                <UserAvatar user={user} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm">{user.full_name}</p>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
