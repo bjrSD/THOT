@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2,
   Star, Save, Globe, TrendingUp, BookMarked, BarChart3, CheckCircle2,
-  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart
+  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube
 } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
+import VideoDescriptif from "@/components/content/VideoDescriptif";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
@@ -227,7 +228,7 @@ export default function ContentDetail() {
       {/* Hero banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 rounded-2xl border border-border p-6 md:p-8">
         <div className="flex items-start gap-5">
-          <div className="w-24 h-36 rounded-xl overflow-hidden bg-card border border-border shrink-0 shadow-md flex items-center justify-center">
+          <div className={`rounded-xl overflow-hidden bg-card border border-border shrink-0 shadow-md flex items-center justify-center ${content.type === 'video' ? 'w-40 h-24' : 'w-24 h-36'}`}>
             {coverUrl
               ? <img src={coverUrl} alt={content.title} className="w-full h-full object-cover" />
               : <Icon className="w-10 h-10 text-accent" />
@@ -240,7 +241,12 @@ export default function ContentDetail() {
               {form.is_favorite && <span className="text-xs bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">❤️ Favori</span>}
             </div>
             <h1 className="font-heading text-2xl md:text-3xl font-bold leading-tight">{content.title}</h1>
-            {content.author && <p className="text-muted-foreground mt-1 font-medium">{content.author}</p>}
+            {content.author && (
+              <p className="text-muted-foreground mt-1 font-medium flex items-center gap-1.5">
+                {content.type === 'video' && <Youtube className="w-4 h-4 text-red-500 shrink-0" />}
+                {content.author}
+              </p>
+            )}
             {(googleData?.publisher || googleData?.publishedDate) && (
               <p className="text-xs text-muted-foreground mt-0.5">
                 {googleData.publisher}{googleData.publisher && googleData.publishedDate ? " · " : ""}{googleData.publishedDate?.slice(0, 4)}
@@ -303,143 +309,149 @@ export default function ContentDetail() {
       {/* ─── TAB 1: DESCRIPTIF ─────────────────────────────────────── */}
       {activeTab === "descriptif" && (
         <div className="space-y-5">
-
-          {/* Résumé complet */}
-          {(googleData?.description || content.summary) && (
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <h2 className="font-heading font-bold text-lg mb-3 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-accent" /> Résumé
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {googleData?.description || content.summary}
-              </p>
-            </div>
-          )}
-
-          {/* Fiche technique */}
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-              <Award className="w-5 h-5 text-accent" /> Fiche technique
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                { label: "Auteur", value: content.author || googleData?.authors?.join(", ") },
-                { label: "Éditeur", value: googleData?.publisher },
-                { label: "Année", value: googleData?.publishedDate?.slice(0, 4) },
-                { label: "Pages", value: content.total_pages || googleData?.pageCount },
-                { label: "Langue", value: googleData?.language?.toUpperCase() },
-                { label: "Catégorie", value: googleData?.categories?.[0] || CATEGORY_LABELS[content.category] },
-              ].filter(f => f.value).map(f => (
-                <div key={f.label} className="bg-secondary/50 rounded-xl p-3">
-                  <p className="text-xs text-muted-foreground mb-1">{f.label}</p>
-                  <p className="text-sm font-semibold truncate">{f.value}</p>
+          {/* VIDEO: use dedicated component */}
+          {content.type === "video" ? (
+            <VideoDescriptif content={content} />
+          ) : (
+            <>
+              {/* Résumé complet */}
+              {(googleData?.description || content.summary) && (
+                <div className="bg-card rounded-2xl border border-border p-6">
+                  <h2 className="font-heading font-bold text-lg mb-3 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-accent" /> Résumé
+                  </h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {googleData?.description || content.summary}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Notes & Avis */}
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-accent" /> Notes & Avis
-            </h2>
-            <div className="space-y-4">
-              {googleData?.googleRating ? (
-                <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Google Books</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex">{[1,2,3,4,5].map(s => (
-                        <Star key={s} className={`w-4 h-4 ${googleData.googleRating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                      ))}</div>
-                      <span className="font-bold">{googleData.googleRating.toFixed(1)}</span>
-                      <span className="text-xs text-muted-foreground">({googleData.googleRatingsCount.toLocaleString()} avis)</span>
-                    </div>
-                  </div>
-                  {googleData.infoLink && (
-                    <a href={googleData.infoLink} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline flex items-center gap-1">
-                      <Globe className="w-3 h-3" /> Voir les avis
-                    </a>
-                  )}
-                </div>
-              ) : loadingGoogle ? (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement des notes Google Books…
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Aucune note Google Books disponible.</p>
               )}
 
-              {/* Goodreads link */}
-              <a href={`https://www.goodreads.com/search?q=${encodeURIComponent(content.title + " " + content.author)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
-                <MessageSquare className="w-4 h-4" />
-                <span>Voir les avis sur <strong>Goodreads</strong></span>
-                <ExternalLink className="w-3.5 h-3.5 ml-auto" />
-              </a>
-              <a href={`https://www.babelio.com/recherche.php?Recherche=${encodeURIComponent(content.title)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
-                <MessageSquare className="w-4 h-4" />
-                <span>Voir les avis sur <strong>Babelio</strong></span>
-                <ExternalLink className="w-3.5 h-3.5 ml-auto" />
-              </a>
-            </div>
-          </div>
+              {/* Fiche technique */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-accent" /> Fiche technique
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: "Auteur", value: content.author || googleData?.authors?.join(", ") },
+                    { label: "Éditeur", value: googleData?.publisher },
+                    { label: "Année", value: googleData?.publishedDate?.slice(0, 4) },
+                    { label: "Pages", value: content.total_pages || googleData?.pageCount },
+                    { label: "Langue", value: googleData?.language?.toUpperCase() },
+                    { label: "Catégorie", value: googleData?.categories?.[0] || CATEGORY_LABELS[content.category] },
+                  ].filter(f => f.value).map(f => (
+                    <div key={f.label} className="bg-secondary/50 rounded-xl p-3">
+                      <p className="text-xs text-muted-foreground mb-1">{f.label}</p>
+                      <p className="text-sm font-semibold truncate">{f.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Où trouver */}
-          <div className="bg-card rounded-2xl border border-border p-6">
-            <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-accent" /> Où trouver ce livre
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { name: "Amazon", url: `https://www.amazon.fr/s?k=${encodeURIComponent(content.title + " " + content.author)}`, emoji: "📦" },
-                { name: "Fnac", url: `https://www.fnac.com/SearchResult/ResultList.aspx?SCat=0!1&sft=1&sa=0&sf=1&Search=${encodeURIComponent(content.title)}`, emoji: "🏪" },
-                { name: "Google Books", url: googleData?.infoLink || `https://books.google.com/books?q=${encodeURIComponent(content.title)}`, emoji: "📚" },
-                { name: "Cultura", url: `https://www.cultura.com/recherche?text=${encodeURIComponent(content.title)}`, emoji: "🎨" },
-                content.buy_link && { name: "Lien direct", url: content.buy_link, emoji: "🔗" },
-              ].filter(Boolean).map(shop => (
-                <a key={shop.name} href={shop.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium">
-                  <span className="text-lg">{shop.emoji}</span> {shop.name}
-                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
+              {/* Notes & Avis */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-accent" /> Notes & Avis
+                </h2>
+                <div className="space-y-4">
+                  {googleData?.googleRating ? (
+                    <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Google Books</p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex">{[1,2,3,4,5].map(s => (
+                            <Star key={s} className={`w-4 h-4 ${googleData.googleRating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+                          ))}</div>
+                          <span className="font-bold">{googleData.googleRating.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">({googleData.googleRatingsCount.toLocaleString()} avis)</span>
+                        </div>
+                      </div>
+                      {googleData.infoLink && (
+                        <a href={googleData.infoLink} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline flex items-center gap-1">
+                          <Globe className="w-3 h-3" /> Voir les avis
+                        </a>
+                      )}
+                    </div>
+                  ) : loadingGoogle ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement des notes Google Books…
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucune note Google Books disponible.</p>
+                  )}
+                  <a href={`https://www.goodreads.com/search?q=${encodeURIComponent(content.title + " " + content.author)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Voir les avis sur <strong>Goodreads</strong></span>
+                    <ExternalLink className="w-3.5 h-3.5 ml-auto" />
+                  </a>
+                  <a href={`https://www.babelio.com/recherche.php?Recherche=${encodeURIComponent(content.title)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Voir les avis sur <strong>Babelio</strong></span>
+                    <ExternalLink className="w-3.5 h-3.5 ml-auto" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Où trouver (books only) */}
+              {content.type === "book" && (
+                <div className="bg-card rounded-2xl border border-border p-6">
+                  <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-accent" /> Où trouver ce livre
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { name: "Amazon", url: `https://www.amazon.fr/s?k=${encodeURIComponent(content.title + " " + content.author)}`, emoji: "📦" },
+                      { name: "Fnac", url: `https://www.fnac.com/SearchResult/ResultList.aspx?SCat=0!1&sft=1&sa=0&sf=1&Search=${encodeURIComponent(content.title)}`, emoji: "🏪" },
+                      { name: "Google Books", url: googleData?.infoLink || `https://books.google.com/books?q=${encodeURIComponent(content.title)}`, emoji: "📚" },
+                      { name: "Cultura", url: `https://www.cultura.com/recherche?text=${encodeURIComponent(content.title)}`, emoji: "🎨" },
+                      content.buy_link && { name: "Lien direct", url: content.buy_link, emoji: "🔗" },
+                    ].filter(Boolean).map(shop => (
+                      <a key={shop.name} href={shop.url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium">
+                        <span className="text-lg">{shop.emoji}</span> {shop.name}
+                        <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Du même auteur */}
+              {similar.byAuthor.length > 0 && (
+                <div className="bg-card rounded-2xl border border-border p-6">
+                  <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
+                  </h2>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                    {similar.byAuthor.map((b, i) => <BookMiniCard key={i} book={b} />)}
+                  </div>
+                </div>
+              )}
+
+              {/* Dans le même genre */}
+              {similar.bySubject.length > 0 && (
+                <div className="bg-card rounded-2xl border border-border p-6">
+                  <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                    <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
+                  </h2>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                    {similar.bySubject.map((b, i) => <BookMiniCard key={i} book={b} />)}
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Google Books */}
+              {googleData?.previewLink && (
+                <a href={googleData.previewLink} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-accent/30 text-accent hover:bg-accent/5 transition-colors font-medium text-sm">
+                  <Globe className="w-4 h-4" /> Lire un extrait sur Google Books
                 </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Du même auteur */}
-          {similar.byAuthor.length > 0 && (
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
-              </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {similar.byAuthor.map((b, i) => <BookMiniCard key={i} book={b} />)}
-              </div>
-            </div>
-          )}
-
-          {/* Dans le même genre */}
-          {similar.bySubject.length > 0 && (
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-                <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
-              </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                {similar.bySubject.map((b, i) => <BookMiniCard key={i} book={b} />)}
-              </div>
-            </div>
-          )}
-
-          {/* Preview Google Books */}
-          {googleData?.previewLink && (
-            <a href={googleData.previewLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-accent/30 text-accent hover:bg-accent/5 transition-colors font-medium text-sm">
-              <Globe className="w-4 h-4" /> Lire un extrait sur Google Books
-            </a>
+              )}
+            </>
           )}
         </div>
       )}
@@ -536,11 +548,24 @@ export default function ContentDetail() {
                   </div>
                 </>
               )}
-              {(content.type === "podcast" || content.type === "video") && (
+              {content.type === "podcast" && (
                 <div className="space-y-2">
                   <Label>Minutes écoutées / {content.total_duration || "?"}</Label>
                   <Input type="number" value={form.current_duration} min={0} max={content.total_duration || 9999}
                     onChange={e => updateForm(f => ({ ...f, current_duration: e.target.value }))} />
+                </div>
+              )}
+              {content.type === "video" && (
+                <div className="space-y-2">
+                  <Label>Minutes visionnées / {content.total_duration || "?"} min</Label>
+                  <Input type="number" value={form.current_duration} min={0} max={content.total_duration || 9999}
+                    onChange={e => updateForm(f => ({ ...f, current_duration: e.target.value }))} />
+                  {content.content_url && (
+                    <a href={content.content_url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:underline font-medium mt-1">
+                      <Youtube className="w-3.5 h-3.5" /> Reprendre sur YouTube
+                    </a>
+                  )}
                 </div>
               )}
               {(content.total_pages || content.total_duration) && (

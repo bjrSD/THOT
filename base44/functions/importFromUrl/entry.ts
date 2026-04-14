@@ -13,7 +13,7 @@ function extractYoutubeId(url) {
 }
 
 async function fetchYoutubeMeta(videoId, apiKey) {
-  const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`;
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
   const res = await fetch(url);
   const data = await res.json();
   const item = data.items?.[0];
@@ -29,14 +29,16 @@ async function fetchYoutubeMeta(videoId, apiKey) {
     externalId: videoId,
     externalUrl: `https://www.youtube.com/watch?v=${videoId}`,
     title: s.title,
-    description: s.description?.slice(0, 500),
+    description: s.description?.slice(0, 800),
     creator: s.channelTitle,
     sourceName: s.channelTitle,
-    imageUrl: s.thumbnails?.high?.url || s.thumbnails?.medium?.url,
+    imageUrl: s.thumbnails?.maxres?.url || s.thumbnails?.high?.url || s.thumbnails?.medium?.url,
     publishedAt: s.publishedAt,
     type: 'video',
     sourceProvider: 'youtube',
     duration: durationMin,
+    viewCount: item.statistics?.viewCount || null,
+    likeCount: item.statistics?.likeCount || null,
     metadataJson: JSON.stringify(item),
   };
 }
@@ -64,7 +66,6 @@ async function fetchDOIMeta(doi) {
 }
 
 async function fetchGenericMeta(url) {
-  // Try Open Graph via allorigins
   const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
   if (!res.ok) return { externalId: url, externalUrl: url, title: url, type: 'article', sourceProvider: 'manual' };
   const data = await res.json();
@@ -88,6 +89,31 @@ async function fetchGenericMeta(url) {
     sourceProvider: 'manual',
     metadataJson: JSON.stringify({ url }),
   };
+}
+
+// Fetch page count from Open Library using ISBN or title
+async function enrichBookWithOpenLibrary(isbn, title, author) {
+  let pageCount = null;
+  // Try by ISBN first
+  if (isbn) {
+    const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    if (res.ok) {
+      const data = await res.json();
+      const book = data[`ISBN:${isbn}`];
+      if (book?.number_of_pages) return book.number_of_pages;
+    }
+  }
+  // Fallback: search by title+author
+  if (title) {
+    const q = encodeURIComponent(`${title} ${author || ''}`);
+    const res = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=1`);
+    if (res.ok) {
+      const data = await res.json();
+      const doc = data.docs?.[0];
+      if (doc?.number_of_pages_median) pageCount = doc.number_of_pages_median;
+    }
+  }
+  return pageCount;
 }
 
 Deno.serve(async (req) => {

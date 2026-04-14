@@ -8,33 +8,71 @@ Deno.serve(async (req) => {
   const { query, language = 'fr', pageSize = 10 } = await req.json();
   if (!query) return Response.json({ error: 'Query required' }, { status: 400 });
 
-  const apiKey = Deno.env.get('NEWS_API_KEY');
-  if (!apiKey) return Response.json({ error: 'News API key not configured' }, { status: 500 });
+  const gnewsKey = Deno.env.get('GNEWS_API_KEY');
+  const currentsKey = Deno.env.get('CURRENTS_API_KEY');
 
-  const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=${language}&pageSize=${pageSize}&sortBy=relevancy&apiKey=${apiKey}`;
+  const results = [];
+  const seenUrls = new Set();
 
-  const res = await fetch(url);
-  const data = await res.json();
-
-  if (!res.ok || data.status === 'error') {
-    return Response.json({ error: data.message || 'News API error' }, { status: 502 });
+  // Source 1: GNews API
+  if (gnewsKey) {
+    const lang = language === 'fr' ? 'fr' : 'en';
+    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${lang}&max=${pageSize}&apikey=${gnewsKey}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      for (const article of (data.articles || [])) {
+        if (!seenUrls.has(article.url)) {
+          seenUrls.add(article.url);
+          results.push({
+            externalId: article.url,
+            externalUrl: article.url,
+            title: article.title,
+            description: article.description,
+            creator: article.source?.name || null,
+            sourceName: article.source?.name,
+            imageUrl: article.image,
+            publishedAt: article.publishedAt,
+            type: 'article',
+            sourceProvider: 'gnews',
+            language: language,
+            duration: null,
+            metadataJson: JSON.stringify(article),
+          });
+        }
+      }
+    }
   }
 
-  const items = (data.articles || []).map(article => ({
-    externalId: article.url,
-    externalUrl: article.url,
-    title: article.title,
-    description: article.description,
-    creator: article.author,
-    sourceName: article.source?.name,
-    imageUrl: article.urlToImage,
-    publishedAt: article.publishedAt,
-    type: 'article',
-    sourceProvider: 'newsapi',
-    language: language,
-    duration: null,
-    metadataJson: JSON.stringify(article),
-  }));
+  // Source 2: Currents API (complement)
+  if (currentsKey && results.length < pageSize) {
+    const lang = language === 'fr' ? 'fr' : 'en';
+    const url = `https://api.currentsapi.services/v1/search?keywords=${encodeURIComponent(query)}&language=${lang}&apiKey=${currentsKey}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      for (const article of (data.news || [])) {
+        if (!seenUrls.has(article.url)) {
+          seenUrls.add(article.url);
+          results.push({
+            externalId: article.url,
+            externalUrl: article.url,
+            title: article.title,
+            description: article.description,
+            creator: article.author || null,
+            sourceName: article.author,
+            imageUrl: article.image,
+            publishedAt: article.published,
+            type: 'article',
+            sourceProvider: 'currents',
+            language: language,
+            duration: null,
+            metadataJson: JSON.stringify(article),
+          });
+        }
+      }
+    }
+  }
 
-  return Response.json({ items });
+  return Response.json({ items: results.slice(0, pageSize) });
 });
