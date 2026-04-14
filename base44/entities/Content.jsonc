@@ -99,6 +99,10 @@
       "format": "date",
       "description": "Date de compl\u00e9tion"
     },
+    "published_year": {
+      "type": "string",
+      "description": "Ann\u00e9e de parution (ex: 2021)"
+    },
     "kp_earned": {
       "type": "number",
       "default": 0,

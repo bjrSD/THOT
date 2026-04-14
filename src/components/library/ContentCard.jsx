@@ -99,8 +99,8 @@ export default function ContentCard({ content, onClick }) {
           {content.total_duration && !content.total_pages && (
             <p className="text-xs text-muted-foreground mt-0.5">{content.total_duration} min</p>
           )}
-          {content.published_date && (
-            <p className="text-xs text-muted-foreground mt-0.5">{content.published_date.slice(0, 4)}</p>
+          {content.published_year && (
+            <p className="text-xs text-muted-foreground mt-0.5">📅 {content.published_year}</p>
           )}
         </div>
       </div>

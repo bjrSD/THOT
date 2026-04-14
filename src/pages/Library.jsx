@@ -72,7 +72,8 @@ function StatusFilter({ value, onChange }) {
 export default function Library() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [view, setView] = useState("kanban");
+  // Mobile defaults to "list", desktop to "kanban"
+  const [view, setView] = useState(() => window.innerWidth < 768 ? "list" : "kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
@@ -92,14 +93,22 @@ export default function Library() {
   });
 
   const handleSelectBook = (book) => {
-    const data = { ...book, status: "to_consume", type: "book" };
-    if (data.total_pages) data.total_pages = Number(data.total_pages);
-    if (!data.total_pages) delete data.total_pages;
-    if (!data.buy_link) delete data.buy_link;
+    const data = {
+      title: book.title,
+      author: book.author,
+      cover_url: book.cover_url || undefined,
+      summary: book.summary || undefined,
+      category: book.category || undefined,
+      buy_link: book.buy_link || undefined,
+      total_pages: book.total_pages ? Number(book.total_pages) : undefined,
+      published_year: book.published_date ? book.published_date.slice(0, 4) : undefined,
+      status: "to_consume",
+      type: "book",
+    };
+    // remove undefined keys
+    Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
     updateMutation.mutate({ id: null, data }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["contents"] });
-      },
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contents"] }),
     });
   };
 
@@ -136,18 +145,18 @@ export default function Library() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold">Ma Bibliothèque</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">{contents.length} contenu{contents.length !== 1 ? "s" : ""} sauvegardé{contents.length !== 1 ? "s" : ""}</p>
+          <h1 className="font-heading text-xl md:text-3xl font-bold">Ma Bibliothèque</h1>
+          <p className="text-muted-foreground text-xs md:text-sm mt-0.5">{contents.length} contenu{contents.length !== 1 ? "s" : ""}</p>
         </div>
         {/* View switcher */}
-        <div className="flex gap-1 bg-secondary p-1 rounded-xl self-start">
+        <div className="flex gap-1 bg-secondary p-1 rounded-xl shrink-0">
           {VIEWS.map(v => {
             const Icon = v.icon;
             return (
               <button key={v.id} onClick={() => setView(v.id)} title={v.label}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 <Icon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{v.label}</span>
               </button>
@@ -166,17 +175,13 @@ export default function Library() {
           
           {/* Type and status filters */}
           <div className="flex flex-wrap gap-2 items-center">
-            {/* Type filter */}
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-              {TYPES.map((t) => (
-                <Button key={t.value} variant={typeFilter === t.value ? "default" : "outline"} size="sm"
-                  onClick={() => setTypeFilter(t.value)} className="shrink-0 text-xs h-8">
-                  {t.icon && <t.icon className="w-3.5 h-3.5 mr-1" />}
-                  {t.label}
-                </Button>
-              ))}
-            </div>
-            {/* Status filter (not shown in kanban since kanban groups by status) */}
+            {TYPES.map((t) => (
+              <Button key={t.value} variant={typeFilter === t.value ? "default" : "outline"} size="sm"
+                onClick={() => setTypeFilter(t.value)} className="shrink-0 text-xs h-7 px-2.5">
+                {t.icon && <t.icon className="w-3 h-3 mr-1" />}
+                {t.label}
+              </Button>
+            ))}
             {view !== "kanban" && (
               <StatusFilter value={statusFilter} onChange={setStatusFilter} />
             )}
@@ -193,7 +198,7 @@ export default function Library() {
           {filtered.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {filtered.map(c => (
                 <ContentCard key={c.id} content={c} onClick={() => handleCardClick(c)} />
               ))}
@@ -222,21 +227,32 @@ export default function Library() {
         <PlaylistPanel contents={contents} />
       )}
 
-      {/* KANBAN VIEW */}
+      {/* KANBAN VIEW — desktop only (hidden on mobile, use list instead) */}
       {view === "kanban" && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <p className="text-xs text-muted-foreground mb-2">Glissez-déposez un contenu pour changer son statut</p>
-          <div className="flex gap-4 overflow-x-auto pb-4 lg:overflow-visible">
-            {STATUSES_KANBAN.map(status => (
-              <KanbanColumn
-                key={status}
-                status={status}
-                contents={filtered.filter(c => c.status === status)}
-                onCardClick={handleCardClick}
-              />
+        <>
+          {/* Desktop kanban */}
+          <div className="hidden md:block">
+            <DragDropContext onDragEnd={onDragEnd}>
+              <p className="text-xs text-muted-foreground mb-2">Glissez-déposez un contenu pour changer son statut</p>
+              <div className="grid grid-cols-5 gap-3">
+                {STATUSES_KANBAN.map(status => (
+                  <KanbanColumn
+                    key={status}
+                    status={status}
+                    contents={filtered.filter(c => c.status === status)}
+                    onCardClick={handleCardClick}
+                  />
+                ))}
+              </div>
+            </DragDropContext>
+          </div>
+          {/* Mobile fallback: list */}
+          <div className="md:hidden space-y-2">
+            {filtered.length === 0 ? <EmptyState /> : filtered.map(c => (
+              <ContentRow key={c.id} content={c} onClick={() => handleCardClick(c)} />
             ))}
           </div>
-        </DragDropContext>
+        </>
       )}
     </div>
   );
