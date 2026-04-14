@@ -143,20 +143,20 @@ export default function Library() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 md:space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="font-heading text-xl md:text-3xl font-bold">Ma Bibliothèque</h1>
-          <p className="text-muted-foreground text-xs md:text-sm mt-0.5">{contents.length} contenu{contents.length !== 1 ? "s" : ""}</p>
+          <h1 className="font-heading text-lg md:text-3xl font-bold leading-tight">Ma Bibliothèque</h1>
+          <p className="text-muted-foreground text-[11px] md:text-sm">{contents.length} contenu{contents.length !== 1 ? "s" : ""}</p>
         </div>
         {/* View switcher */}
-        <div className="flex gap-1 bg-secondary p-1 rounded-xl shrink-0">
+        <div className="flex gap-0.5 bg-secondary p-0.5 rounded-xl shrink-0">
           {VIEWS.map(v => {
             const Icon = v.icon;
             return (
               <button key={v.id} onClick={() => setView(v.id)} title={v.label}
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 <Icon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{v.label}</span>
               </button>
@@ -260,10 +260,10 @@ export default function Library() {
 
 function EmptyState() {
   return (
-    <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl">
-      <div className="text-4xl mb-3">📚</div>
+    <div className="text-center py-8 md:py-12 border-2 border-dashed border-border rounded-2xl">
+      <div className="text-3xl mb-2">📚</div>
       <p className="font-medium text-sm">Aucun contenu trouvé</p>
-      <p className="text-xs text-muted-foreground mt-1">Utilisez le bouton + pour ajouter un livre, podcast ou vidéo</p>
+      <p className="text-xs text-muted-foreground mt-1">Appuie sur + pour ajouter un contenu</p>
     </div>
   );
 }

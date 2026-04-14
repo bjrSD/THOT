@@ -70,10 +70,35 @@ export default function Dashboard() {
   const isPremium = user.role === "admin" || user.is_premium;
 
   return (
-    <div className="space-y-4">
-      {/* Header compact : salutation + profil intellectuel + raccourcis */}
-      <div className="flex flex-col md:flex-row md:items-start gap-4">
-        {/* Salutation + profil */}
+    <div className="space-y-3 md:space-y-4">
+      {/* MOBILE: compact hero card */}
+      <div className="md:hidden bg-card border border-border rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="font-heading text-lg font-bold leading-tight">
+              Bonjour, {(user.display_name || user.full_name || "apprenant").split(" ")[0]} 👋
+            </h1>
+            <p className="text-xs text-muted-foreground">{kp.toLocaleString()} KP · {level.icon} {level.name}</p>
+          </div>
+          {isPremium && (
+            <span className="text-[10px] bg-yellow-500/15 text-yellow-600 border border-yellow-500/20 px-2 py-0.5 rounded-full font-semibold">
+              ✦ Pro
+            </span>
+          )}
+        </div>
+        {nextLevel && (
+          <div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+              <span>{level.name}</span>
+              <span>{progress}% → {nextLevel.icon} {nextLevel.name}</span>
+            </div>
+            <Progress value={progress} className="h-1.5" />
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP: full header */}
+      <div className="hidden md:flex flex-col md:flex-row md:items-start gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="font-heading text-2xl md:text-3xl font-bold">
@@ -85,7 +110,6 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          {/* Niveau + barre de progression inline */}
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold">{level.icon} {level.name}</span>
             <div className="flex-1 max-w-[180px]">
@@ -97,8 +121,6 @@ export default function Dashboard() {
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{kp.toLocaleString()} KP au total</p>
         </div>
-
-        {/* Raccourcis rapides */}
         <div className="flex gap-2 flex-wrap md:flex-nowrap">
           {QUICK_LINKS.map((l) => (
             <Link key={l.page} to={createPageUrl(l.page)}>
@@ -109,6 +131,21 @@ export default function Dashboard() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Mobile quick stats strip */}
+      <div className="md:hidden grid grid-cols-4 gap-2">
+        {[
+          { label: "Streak", value: `${streak}🔥`, color: "text-orange-500" },
+          { label: "Livres", value: contents.filter(c => c.status === "completed" && c.type === "book").length, color: "text-blue-500" },
+          { label: "En cours", value: contents.filter(c => c.status === "in_progress").length, color: "text-accent" },
+          { label: "KP", value: kp >= 1000 ? `${(kp/1000).toFixed(1)}k` : kp, color: "text-yellow-500" },
+        ].map((s, i) => (
+          <div key={i} className="bg-card border border-border rounded-xl p-2.5 text-center">
+            <p className={`text-base font-black ${s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Streak alert */}
@@ -123,9 +160,11 @@ export default function Dashboard() {
       <StatsRow user={user} />
 
       {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-2 gap-3 md:gap-4">
         <WeeklyChart activities={activities} />
-        <ContentPieChart contents={contents} />
+        <div className="hidden md:block">
+          <ContentPieChart contents={contents} />
+        </div>
       </div>
 
       {/* Activity feed */}

@@ -37,31 +37,33 @@ export function ContentRow({ content, onClick }) {
     : (content.total_duration ? Math.round(((content.current_duration || 0) / content.total_duration) * 100) : 0);
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border hover:shadow-sm transition-all hover:border-accent/30 cursor-pointer group"
+    <div className="flex items-center gap-2.5 p-2.5 bg-card rounded-xl border border-border hover:shadow-sm transition-all hover:border-accent/30 cursor-pointer group active:scale-[0.99]"
       onClick={onClick}>
       {content.cover_url ? (
-        <img src={content.cover_url} alt={content.title} className="w-10 h-14 object-cover rounded-lg shrink-0" />
+        <img src={content.cover_url} alt={content.title} className="w-9 h-12 object-cover rounded-lg shrink-0" />
       ) : (
-        <div className="w-10 h-14 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
+        <div className="w-9 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
           <Icon className="w-4 h-4 text-accent" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{content.title}</p>
+        <p className="font-medium text-sm truncate leading-tight">{content.title}</p>
         {content.author && <p className="text-xs text-muted-foreground truncate">{content.author}</p>}
         {progress > 0 && (
-          <div className="mt-1.5 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-1.5">
             <Progress value={progress} className="h-1 flex-1" />
-            <span className="text-xs text-muted-foreground shrink-0">{progress}%</span>
+            <span className="text-[10px] text-muted-foreground shrink-0">{progress}%</span>
           </div>
         )}
       </div>
-      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-        <AddToPlaylistMenu contentId={content.id} />
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
+          {STATUS_LABELS_EXT[content.status] || content.status}
+        </span>
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <AddToPlaylistMenu contentId={content.id} />
+        </div>
       </div>
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
-        {STATUS_LABELS_EXT[content.status] || content.status}
-      </span>
     </div>
   );
 }

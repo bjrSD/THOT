@@ -56,7 +56,7 @@ Réponds en français, de manière concise et utile, en te concentrant sur les f
       {/* Floating button */}
       <motion.button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 ${open ? "hidden" : ""}`}
+        className={`hidden lg:flex fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full items-center justify-center transition-all hover:scale-110 ${open ? "!hidden" : ""}`}
         style={{
           background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
           boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
@@ -74,7 +74,7 @@ Réponds en français, de manière concise et utile, en te concentrant sur les f
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-6 right-6 z-50 w-80 md:w-96 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden"
+            className="hidden lg:block fixed bottom-6 right-6 z-50 w-80 md:w-96 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden"
           >
             {/* Header */}
             <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">

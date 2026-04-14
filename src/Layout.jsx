@@ -3,18 +3,19 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
-  Home, LayoutDashboard, Library, Compass, User,
-  Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
-  Twitter, Instagram, Swords, Brain, Flame, Users, ArrowRight,
-  FileBarChart, Trophy, ListMusic, ChevronDown, Globe, Bell } from "lucide-react";
+  LayoutDashboard, Library, Compass, User,
+  Plus, LogIn, Zap, Settings, Crown, MessageCircle,
+  Twitter, Instagram, Swords, Brain, Flame, Users,
+  FileBarChart, Trophy, Globe, Bell } from "lucide-react";
 import NotificationBell from "@/components/shared/NotificationBell";
 import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import QuickAddModal from "@/components/shared/QuickAddModal";
 import ChatBot from "@/components/shared/ChatBot";
 import { useLanguage } from "@/lib/LanguageContext";
 import { t } from "@/lib/i18n";
+import MobileBottomNav from "@/components/mobile/MobileBottomNav";
+import MobileHeader from "@/components/mobile/MobileHeader";
 
 // ─── Navigation structure ────────────────────────────────────────────────────
 // Grouped for visual clarity in sidebar
@@ -58,8 +59,7 @@ const NAV_GROUPS = [
   },
 ];
 
-// Flat list for mobile sheet (same items, no groups)
-const NAV_ITEMS_FLAT = NAV_GROUPS.flatMap(g => g.items);
+
 
 function ThotLogo({ dark = false, size = "md" }) {
   const imgH = size === "lg" ? "h-10" : "h-8";
@@ -102,8 +102,6 @@ export default function Layout({ children, currentPageName }) {
   const [isPremium, setIsPremium] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(auth => {
@@ -281,6 +279,9 @@ export default function Layout({ children, currentPageName }) {
   // ─── App layout (authenticated) ────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile header — replaces the old mobile header */}
+      <MobileHeader user={currentUser} currentPageName={currentPageName} />
+
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 bg-card border-r border-border flex-col z-40">
         <div className="h-16 px-5 flex items-center border-b border-border">
@@ -364,108 +365,19 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 justify-between gap-2">
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0 flex flex-col">
-            <div className="h-14 px-6 flex items-center border-b border-border shrink-0 justify-between">
-              <ThotLogo size="lg" />
-              {/* Language selector mobile sidebar */}
-              <div className="flex gap-1 bg-secondary p-1 rounded-lg">
-                <button
-                  onClick={() => changeLanguage('en')}
-                  className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
-                    language === 'en'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t('lang.english', language)}
-                </button>
-                <button
-                  onClick={() => changeLanguage('fr')}
-                  className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${
-                    language === 'fr'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t('lang.french', language)}
-                </button>
-              </div>
-            </div>
-            <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-              {NAV_GROUPS.map((group) => (
-                <div key={group.label}>
-                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider px-2 mb-1">
-                    {group.label}
-                  </p>
-                  <div className="space-y-0.5">
-                    {group.items.map((item) => {
-                      const isActive = currentPageName === item.page;
-                      return (
-                        <Link
-                          key={item.page}
-                          to={createPageUrl(item.page)}
-                          onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                          }`}
-                        >
-                          <item.icon className="w-4 h-4 shrink-0" />
-                          {item.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
-            <div className="p-3 border-t border-border shrink-0">
-              {!isPremium ? (
-                <Link to={createPageUrl("Premium")} onClick={() => setMobileOpen(false)}>
-                  <div className="bg-gradient-to-r from-yellow-500/15 to-accent/15 border border-yellow-500/20 rounded-xl p-3 flex items-center gap-2">
-                    <Crown className="w-4 h-4 text-yellow-500" />
-                    <div>
-                      <p className="text-xs font-semibold">Passer Premium</p>
-                      <p className="text-xs text-muted-foreground">Débloquer toutes les fonctions</p>
-                    </div>
-                  </div>
-                </Link>
-              ) : (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-                  <Crown className="w-4 h-4 text-yellow-500" />
-                  <p className="text-xs font-semibold text-yellow-600">Compte Premium ✓</p>
-                </div>
-              )}
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        <ThotLogo size="lg" />
-
-        <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
-            <Plus className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
+      {/* Mobile bottom navigation */}
+      {isAuth && (
+        <MobileBottomNav currentPageName={currentPageName} />
+      )}
 
       {/* Main content */}
-      <main className="lg:ml-60 pt-14 lg:pt-0 min-h-screen">
-        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="lg:ml-60 pt-12 lg:pt-0 min-h-screen">
+        <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto pb-[88px] lg:pb-8">
           {children}
         </div>
       </main>
 
-      {/* Floating + button (desktop) */}
+      {/* Floating + button (desktop only) */}
       {isAuth && (
         <button
           onClick={() => setShowQuickAdd(true)}
