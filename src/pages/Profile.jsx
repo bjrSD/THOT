@@ -127,13 +127,7 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingAvatar(true);
-    // Convert to base64 for upload
-    const base64 = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: base64 });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
     await base44.auth.updateMe({ avatar_url: file_url });
     setUser(u => ({ ...u, avatar_url: file_url }));
     setUploadingAvatar(false);
