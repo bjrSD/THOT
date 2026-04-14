@@ -15,7 +15,6 @@ import ChatBot from "@/components/shared/ChatBot";
 import { useLanguage } from "@/lib/LanguageContext";
 import { t } from "@/lib/i18n";
 import MobileBottomNav from "@/components/mobile/MobileBottomNav";
-import MobileHeader from "@/components/mobile/MobileHeader";
 
 // ─── Navigation structure ────────────────────────────────────────────────────
 // Grouped for visual clarity in sidebar
@@ -279,9 +278,6 @@ export default function Layout({ children, currentPageName }) {
   // ─── App layout (authenticated) ────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile header — replaces the old mobile header */}
-      <MobileHeader user={currentUser} currentPageName={currentPageName} />
-
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 bg-card border-r border-border flex-col z-40">
         <div className="h-16 px-5 flex items-center border-b border-border">
@@ -371,8 +367,8 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Main content */}
-      <main className="lg:ml-60 pt-12 lg:pt-0 min-h-screen">
-        <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto pb-[88px] lg:pb-8">
+      <main className="lg:ml-60 min-h-screen overflow-x-hidden">
+        <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto pb-[72px] lg:pb-8 overflow-x-hidden">
           {children}
         </div>
       </main>

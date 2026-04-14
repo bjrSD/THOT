@@ -160,9 +160,11 @@ export default function Dashboard() {
       <StatsRow user={user} />
 
       {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-3 md:gap-4">
-        <WeeklyChart activities={activities} />
-        <div className="hidden md:block">
+      <div className="grid lg:grid-cols-2 gap-3 md:gap-4 overflow-hidden">
+        <div className="overflow-hidden min-w-0">
+          <WeeklyChart activities={activities} />
+        </div>
+        <div className="hidden md:block overflow-hidden min-w-0">
           <ContentPieChart contents={contents} />
         </div>
       </div>

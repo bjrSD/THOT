@@ -73,7 +73,7 @@ export default function Library() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   // Mobile defaults to "list", desktop to "kanban"
-  const [view, setView] = useState(() => window.innerWidth < 768 ? "list" : "kanban");
+  const [view, setView] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768) ? "list" : "kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
@@ -143,12 +143,12 @@ export default function Library() {
   }
 
   return (
-    <div className="space-y-3 md:space-y-5">
+    <div className="space-y-3 md:space-y-5 overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="font-heading text-lg md:text-3xl font-bold leading-tight">Ma Bibliothèque</h1>
-          <p className="text-muted-foreground text-[11px] md:text-sm">{contents.length} contenu{contents.length !== 1 ? "s" : ""}</p>
+          <h1 className="font-heading text-base md:text-3xl font-bold leading-tight">Ma Bibliothèque</h1>
+          <p className="text-muted-foreground text-[10px] md:text-sm">{contents.length} contenu{contents.length !== 1 ? "s" : ""}</p>
         </div>
         {/* View switcher */}
         <div className="flex gap-0.5 bg-secondary p-0.5 rounded-xl shrink-0">
@@ -156,7 +156,7 @@ export default function Library() {
             const Icon = v.icon;
             return (
               <button key={v.id} onClick={() => setView(v.id)} title={v.label}
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                className={`flex items-center gap-1 px-1.5 py-1.5 rounded-lg text-[10px] font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                 <Icon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{v.label}</span>
               </button>
@@ -167,26 +167,22 @@ export default function Library() {
 
       {/* Filters — hidden in playlists view */}
       {view !== "playlists" && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Google Books search */}
-          <div>
-            <GoogleBooksSearch onSelect={handleSelectBook} />
-          </div>
+          <GoogleBooksSearch onSelect={handleSelectBook} />
           
-          {/* Type and status filters */}
-          <div className="flex flex-wrap gap-2 items-center">
+          {/* Type and status filters — horizontal scroll on mobile */}
+          <div className="flex gap-1.5 items-center overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
             {TYPES.map((t) => (
               <Button key={t.value} variant={typeFilter === t.value ? "default" : "outline"} size="sm"
-                onClick={() => setTypeFilter(t.value)} className="shrink-0 text-xs h-7 px-2.5">
-                {t.icon && <t.icon className="w-3 h-3 mr-1" />}
+                onClick={() => setTypeFilter(t.value)} className="shrink-0 text-[10px] h-6 px-2">
                 {t.label}
               </Button>
             ))}
             {view !== "kanban" && (
-              <StatusFilter value={statusFilter} onChange={setStatusFilter} />
-            )}
-            {filtered.length !== contents.length && (
-              <span className="text-xs text-muted-foreground">{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
+              <div className="shrink-0">
+                <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+              </div>
             )}
           </div>
         </div>
