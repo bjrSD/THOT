@@ -149,7 +149,7 @@ export default function Dashboard() {
         {contents.filter(c => c.status === "in_progress").length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {contents.filter(c => c.status === "in_progress").slice(0, 4).map(c => {
               const prog = c.total_pages
                 ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
@@ -157,16 +157,20 @@ export default function Dashboard() {
                 ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
                 : 0;
               return (
-                <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`} className="flex flex-col gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                  {c.cover_url
-                    ? <div className="w-full h-20 bg-secondary rounded flex items-center justify-center overflow-hidden shrink-0">
-                        <img src={c.cover_url} alt={c.title} className="h-full w-auto max-w-full object-contain" />
-                      </div>
-                    : <div className="w-full h-20 rounded bg-accent/10 flex items-center justify-center shrink-0">📖</div>
-                  }
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{c.title}</p>
-                    <Progress value={prog} className="h-1 mt-1" />
+                <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`}
+                  className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  {/* Miniature */}
+                  <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 bg-accent/10 flex items-center justify-center border border-border">
+                    {c.cover_url
+                      ? <img src={c.cover_url} alt={c.title} className="w-full h-full object-cover" />
+                      : <span className="text-lg">📖</span>
+                    }
+                  </div>
+                  {/* Infos */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold line-clamp-2 leading-tight">{c.title}</p>
+                    {c.total_pages && <p className="text-[10px] text-muted-foreground mt-0.5">{c.total_pages} p</p>}
+                    <Progress value={prog} className="h-1 mt-1.5" />
                     <p className="text-[10px] text-muted-foreground mt-0.5">{prog}%</p>
                   </div>
                 </Link>

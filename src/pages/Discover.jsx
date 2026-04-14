@@ -37,10 +37,37 @@ function mapCategory(googleCategories = []) {
   return "autre";
 }
 
-async function fetchGoogleBooks(query, language = "fr", startIndex = 0) {
-  const q = encodeURIComponent(query.trim() || "bestseller");
+async function fetchGoogleBooks(query, language = "fr", startIndex = 0, filters = {}) {
+  let q = query.trim() || "bestseller";
+
+  // Embed genre/subject into query
+  if (!query.trim() && filters.genres && filters.genres.length > 0) {
+    q = filters.genres.slice(0, 2).join(" ") + " " + q;
+  }
+
+  // Embed author filter into query
+  if (filters.authorQuery && filters.authorQuery.trim()) {
+    q += `+inauthor:${filters.authorQuery.trim()}`;
+  }
+
+  // Page range → Google Books filter param
+  let printType = "books";
+  let filterParam = "";
+
+  // Rating filter: ask Google for more results (we post-filter, but also add subject hint)
+  // Google Books doesn't have a native rating filter — we request more and filter client-side
+
+  // Build sort order for Google Books API
+  let orderBy = "relevance";
+  if (filters.sort === "date_desc" || filters.sort === "newest") orderBy = "newest";
+
+  // Date range → year filter in query
+  if (filters.yearFrom && filters.yearFrom !== "classic") {
+    // nothing extra needed; client filters after
+  }
+
   const lang = language ? `&langRestrict=${language}` : "";
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=20&startIndex=${startIndex}${lang}&orderBy=relevance`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&startIndex=${startIndex}${lang}&orderBy=${orderBy}&printType=${printType}`;
   const res = await fetch(url);
   const data = await res.json();
   if (!data.items) return [];
@@ -134,24 +161,21 @@ export default function Discover() {
     return () => clearTimeout(t);
   }, [query]);
 
-  // Reset when search/language changes
+  // Reset when search/language/filters change
   useEffect(() => {
     setAllBooks([]);
     setPage(0);
     setHasMore(true);
     setQueryPoolIndex(0);
-  }, [debouncedQuery, filters.language]);
+  }, [debouncedQuery, filters.language, filters.genres.join(","), filters.minRating, filters.pageRange, filters.yearFrom, filters.authorQuery, filters.sort]);
 
-  // Initial + paginated fetch
+  // Initial + paginated fetch — filters are embedded into Google Books query
   const loadBooks = useCallback(async (pageNum, poolIdx) => {
     setIsFetchingMore(true);
     try {
-      let q;
       if (debouncedQuery.trim()) {
-        // Search mode: paginate same query with startIndex
-        q = debouncedQuery.trim();
-        const startIndex = pageNum * 20;
-        const results = await fetchGoogleBooks(q, filters.language, startIndex);
+        const startIndex = pageNum * 40;
+        const results = await fetchGoogleBooks(debouncedQuery.trim(), filters.language, startIndex, filters);
         if (results.length === 0) { setHasMore(false); return; }
         setAllBooks(prev => {
           const ids = new Set(prev.map(b => b.googleId));
@@ -159,10 +183,15 @@ export default function Discover() {
         });
         setPage(pageNum + 1);
       } else {
-        // Discovery mode: rotate through random query pool, vary startIndex
-        const currentQ = currentQueryPool[poolIdx % currentQueryPool.length];
-        const startIndex = Math.floor(Math.random() * 5) * 10; // 0,10,20,30,40
-        const results = await fetchGoogleBooks(currentQ, filters.language, startIndex);
+        // Discovery mode: use genre filters or random queries
+        let q;
+        if (filters.genres.length > 0) {
+          q = filters.genres[poolIdx % filters.genres.length];
+        } else {
+          q = currentQueryPool[poolIdx % currentQueryPool.length];
+        }
+        const startIndex = Math.floor(Math.random() * 5) * 10;
+        const results = await fetchGoogleBooks(q, filters.language, startIndex, filters);
         setAllBooks(prev => {
           const ids = new Set(prev.map(b => b.googleId));
           return [...prev, ...results.filter(b => !ids.has(b.googleId))];
@@ -172,7 +201,7 @@ export default function Discover() {
     } finally {
       setIsFetchingMore(false);
     }
-  }, [debouncedQuery, filters.language, currentQueryPool]);
+  }, [debouncedQuery, filters, currentQueryPool]);
 
   // Load first batch on mount / query change
   useEffect(() => {
