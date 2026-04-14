@@ -23,7 +23,7 @@ const QUICK_LINKS = [
   { label: "Bibliothèque", page: "Library", icon: Library, color: "text-accent" },
   { label: "Feed", page: "Feed", icon: MessageCircle, color: "text-green-500" },
   { label: "Mon profil", page: "Profile", icon: User, color: "text-purple-500" },
-  { label: "Statistiques", page: "Dashboard", icon: BarChart3, color: "text-blue-500" },
+  { label: "Statistiques", page: "Reports", icon: BarChart3, color: "text-blue-500" },
   { label: "Premium", page: "Premium", icon: Crown, color: "text-yellow-500" },
   { label: "Paramètres", page: "Settings", icon: Settings, color: "text-muted-foreground" },
 ];
@@ -149,8 +149,8 @@ export default function Dashboard() {
         {contents.filter(c => c.status === "in_progress").length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {contents.filter(c => c.status === "in_progress").slice(0, 4).map(c => {
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {contents.filter(c => c.status === "in_progress").slice(0, 8).map(c => {
               const prog = c.total_pages
                 ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
                 : c.total_duration
@@ -158,20 +158,21 @@ export default function Dashboard() {
                 : 0;
               return (
                 <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`}
-                  className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors shrink-0 w-44">
                   {/* Miniature */}
-                  <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 bg-accent/10 flex items-center justify-center border border-border">
+                  <div className="w-8 h-11 rounded-md overflow-hidden shrink-0 bg-accent/10 flex items-center justify-center border border-border">
                     {c.cover_url
                       ? <img src={c.cover_url} alt={c.title} className="w-full h-full object-cover" />
-                      : <span className="text-lg">📖</span>
+                      : <span className="text-sm">📖</span>
                     }
                   </div>
                   {/* Infos */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold line-clamp-2 leading-tight">{c.title}</p>
-                    {c.total_pages && <p className="text-[10px] text-muted-foreground mt-0.5">{c.total_pages} p</p>}
-                    <Progress value={prog} className="h-1 mt-1.5" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{prog}%</p>
+                    <p className="text-[11px] font-semibold line-clamp-2 leading-tight">{c.title}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Progress value={prog} className="h-1 w-10 shrink-0" />
+                      <span className="text-[10px] text-muted-foreground shrink-0">{prog}%</span>
+                    </div>
                   </div>
                 </Link>
               );

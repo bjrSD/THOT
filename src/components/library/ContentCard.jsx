@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { BookOpen, Headphones, Play, FileText, MoreHorizontal, ExternalLink } from "lucide-react";
+import React from "react";
+import { BookOpen, Headphones, Play, FileText, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { TYPE_LABELS, CATEGORY_LABELS } from "../shared/KPUtils";
 import AddToPlaylistMenu from "./AddToPlaylistMenu";
+import { createPageUrl } from "@/utils";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
@@ -12,7 +13,6 @@ const STATUS_COLORS = {
   in_progress: "bg-accent/15 text-accent",
   completed: "bg-green-500/15 text-green-600",
   abandoned: "bg-red-500/15 text-red-500",
-  // legacy statuses
   to_consume: "bg-blue-500/15 text-blue-600",
   paused: "bg-yellow-500/15 text-yellow-600",
   to_review: "bg-purple-500/15 text-purple-600",
@@ -20,7 +20,7 @@ const STATUS_COLORS = {
 
 const STATUS_LABELS_EXT = {
   saved: "Sauvegardé",
-  want: "Envie de découvrir",
+  want: "À découvrir",
   in_progress: "En cours",
   completed: "Terminé",
   abandoned: "Abandonné",
@@ -30,7 +30,7 @@ const STATUS_LABELS_EXT = {
 };
 
 /** Carte compacte mode liste */
-export function ContentRow({ content, onClick, onStatusChange }) {
+export function ContentRow({ content, onClick }) {
   const Icon = TYPE_ICON_MAP[content.type] || BookOpen;
   const progress = content.type === "book"
     ? (content.total_pages ? Math.round(((content.current_page || 0) / content.total_pages) * 100) : 0)
@@ -66,7 +66,7 @@ export function ContentRow({ content, onClick, onStatusChange }) {
   );
 }
 
-/** Carte mode grille — cover à gauche, infos à droite */
+/** Carte mode grille — photo en haut, badges sous la photo, résumé + lien */
 export default function ContentCard({ content, onClick }) {
   const Icon = TYPE_ICON_MAP[content.type] || BookOpen;
   const progress = content.type === "book"
@@ -76,75 +76,55 @@ export default function ContentCard({ content, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group p-3"
+      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group flex flex-col"
     >
-      <div className="flex gap-3">
-        {/* Cover — petit rectangle arrondi à gauche */}
-        <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center border border-border">
-          {content.cover_url ? (
-            <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover" />
-          ) : (
-            <Icon className="w-5 h-5 text-accent" />
-          )}
-        </div>
-
-        {/* Infos à droite */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
-          <div>
-            <h4 className="font-semibold text-sm line-clamp-2 leading-tight">{content.title}</h4>
-            {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{content.author}</p>}
-          </div>
-
-          {/* Méta */}
-          <div className="mt-1.5 space-y-0.5">
-            {content.total_pages && (
-              <p className="text-xs text-muted-foreground">{content.total_pages} p</p>
-            )}
-            {content.total_duration && (
-              <p className="text-xs text-muted-foreground">{content.total_duration} min</p>
-            )}
-            {content.completed_date && (
-              <p className="text-xs text-muted-foreground">{new Date(content.completed_date).getFullYear()}</p>
-            )}
-            {!content.completed_date && content.created_date && (
-              <p className="text-xs text-muted-foreground">{new Date(content.created_date).getFullYear()}</p>
-            )}
-          </div>
-
-          {/* Badges */}
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-xs bg-secondary px-1.5 py-0.5 rounded-full">{TYPE_LABELS[content.type]}</span>
-            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
-              {STATUS_LABELS_EXT[content.status] || ""}
-            </span>
-          </div>
-
-          {progress > 0 && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <Progress value={progress} className="h-1 flex-1" />
-              <span className="text-xs text-muted-foreground shrink-0">{progress}%</span>
-            </div>
-          )}
-        </div>
+      {/* Cover — rectangle en haut, toute la largeur */}
+      <div className="w-full h-40 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden shrink-0">
+        {content.cover_url ? (
+          <img src={content.cover_url} alt={content.title} className="w-full h-full object-contain" />
+        ) : (
+          <Icon className="w-8 h-8 text-accent/40" />
+        )}
       </div>
 
-      {/* Résumé court */}
-      {content.summary && (
-        <p className="text-xs text-muted-foreground line-clamp-2 mt-2 leading-relaxed">{content.summary}</p>
-      )}
+      {/* Infos */}
+      <div className="p-3 flex flex-col flex-1">
+        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-1">{content.title}</p>
+        {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{content.author}</p>}
 
-      {/* Lien URL pour podcasts/vidéos */}
-      {(content.type === "podcast" || content.type === "video") && content.content_url && (
-        <a href={content.content_url} target="_blank" rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-xs text-accent hover:underline font-medium mt-2">
-          <ExternalLink className="w-3 h-3" /> Ouvrir le lien
-        </a>
-      )}
+        {/* Type + Statut sur une ligne */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+          <span className="text-xs bg-secondary px-1.5 py-0.5 rounded-full shrink-0">{TYPE_LABELS[content.type]}</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
+            {STATUS_LABELS_EXT[content.status] || ""}
+          </span>
+        </div>
 
-      {/* Playlist menu */}
-      <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-        <AddToPlaylistMenu contentId={content.id} />
+        {/* Progression */}
+        {progress > 0 && (
+          <div className="flex items-center gap-1.5 mb-2">
+            <Progress value={progress} className="h-1 flex-1" />
+            <span className="text-[10px] text-muted-foreground shrink-0">{progress}%</span>
+          </div>
+        )}
+
+        {/* Résumé */}
+        {content.summary && (
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2 flex-1">{content.summary}</p>
+        )}
+
+        {/* Voir le détail */}
+        <button
+          onClick={onClick}
+          className="flex items-center gap-1 text-xs text-accent hover:underline font-medium mt-auto"
+        >
+          <ExternalLink className="w-3 h-3" /> Voir le détail
+        </button>
+
+        {/* Playlist menu */}
+        <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <AddToPlaylistMenu contentId={content.id} />
+        </div>
       </div>
     </div>
   );

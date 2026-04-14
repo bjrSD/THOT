@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Lock, Users, Globe, Trash2, Copy, Pencil, X, ChevronRight, Loader2, Share2 } from "lucide-react";
+import { Plus, Lock, Users, Globe, Trash2, Copy, Pencil, X, ChevronRight, Loader2, Share2, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Headphones, Play, FileText } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const TYPE_ICON = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
@@ -198,7 +199,7 @@ export default function PlaylistPanel({ contents = [] }) {
                     </div>
                   </div>
 
-                  {/* Expanded contents */}
+                  {/* Expanded contents with drag-to-reorder */}
                   <AnimatePresence>
                     {expandedId === pl.id && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
@@ -206,23 +207,47 @@ export default function PlaylistPanel({ contents = [] }) {
                         {plContents.length === 0 ? (
                           <p className="text-xs text-muted-foreground text-center py-6">Aucun contenu dans cette playlist</p>
                         ) : (
-                          <div className="divide-y divide-border">
-                            {plContents.map(c => {
-                              const Icon = TYPE_ICON[c.type] || BookOpen;
-                              return (
-                                <div key={c.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary/30 transition-colors">
-                                  <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">{c.title}</p>
-                                    {c.author && <p className="text-xs text-muted-foreground truncate">{c.author}</p>}
-                                  </div>
-                                  <button onClick={() => removeFromPlaylist(pl, c.id)} className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors shrink-0">
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
+                          <DragDropContext onDragEnd={(result) => {
+                            if (!result.destination) return;
+                            const ids = [...(pl.content_ids || [])];
+                            const [moved] = ids.splice(result.source.index, 1);
+                            ids.splice(result.destination.index, 0, moved);
+                            updatePlaylist.mutate({ id: pl.id, data: { content_ids: ids } });
+                          }}>
+                            <Droppable droppableId={pl.id}>
+                              {(provided) => (
+                                <div ref={provided.innerRef} {...provided.droppableProps} className="divide-y divide-border">
+                                  {plContents.map((c, idx) => {
+                                    const Icon = TYPE_ICON[c.type] || BookOpen;
+                                    return (
+                                      <Draggable key={c.id} draggableId={c.id} index={idx}>
+                                        {(drag, snapshot) => (
+                                          <div ref={drag.innerRef} {...drag.draggableProps}
+                                            className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${snapshot.isDragging ? "bg-accent/5 shadow-md rounded-lg" : "hover:bg-secondary/30"}`}>
+                                            <span {...drag.dragHandleProps} className="text-muted-foreground cursor-grab active:cursor-grabbing shrink-0">
+                                              <GripVertical className="w-3.5 h-3.5" />
+                                            </span>
+                                            {c.cover_url
+                                              ? <img src={c.cover_url} alt={c.title} className="w-8 h-10 object-cover rounded shrink-0" />
+                                              : <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                                            }
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm font-medium truncate">{c.title}</p>
+                                              {c.author && <p className="text-xs text-muted-foreground truncate">{c.author}</p>}
+                                            </div>
+                                            <button onClick={() => removeFromPlaylist(pl, c.id)} className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors shrink-0">
+                                              <X className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    );
+                                  })}
+                                  {provided.placeholder}
                                 </div>
-                              );
-                            })}
-                          </div>
+                              )}
+                            </Droppable>
+                          </DragDropContext>
                         )}
                       </motion.div>
                     )}
