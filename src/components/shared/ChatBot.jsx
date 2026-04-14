@@ -56,11 +56,15 @@ Réponds en français, de manière concise et utile, en te concentrant sur les f
       {/* Floating button */}
       <motion.button
         onClick={() => setOpen(true)}
-        className={`fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-all ${open ? "hidden" : ""}`}
+        className={`fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 ${open ? "hidden" : ""}`}
+        style={{
+          background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+          boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
+        }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        <MessageCircle className="w-6 h-6" />
+        <MessageCircle className="w-5 h-5 text-white" />
       </motion.button>
 
       {/* Chat window */}

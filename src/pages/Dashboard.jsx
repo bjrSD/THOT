@@ -77,7 +77,7 @@ export default function Dashboard() {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="font-heading text-2xl md:text-3xl font-bold">
-              Bonjour, {(user.display_name || user.full_name)?.split(" ")[0] || "apprenant"} 👋
+              Bonjour, {(user.display_name || user.full_name || "apprenant").split(" ")[0]} 👋
             </h1>
             {isPremium && (
               <span className="inline-flex items-center gap-1 text-xs bg-yellow-500/15 text-yellow-600 border border-yellow-500/20 px-2 py-0.5 rounded-full font-medium">
@@ -159,8 +159,10 @@ export default function Dashboard() {
               return (
                 <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`} className="flex flex-col gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
                   {c.cover_url
-                    ? <img src={c.cover_url} alt={c.title} className="w-full h-16 object-cover rounded shrink-0" />
-                    : <div className="w-full h-16 rounded bg-accent/10 flex items-center justify-center shrink-0">📖</div>
+                    ? <div className="w-full h-20 bg-secondary rounded flex items-center justify-center overflow-hidden shrink-0">
+                        <img src={c.cover_url} alt={c.title} className="h-full w-auto max-w-full object-contain" />
+                      </div>
+                    : <div className="w-full h-20 rounded bg-accent/10 flex items-center justify-center shrink-0">📖</div>
                   }
                   <div className="min-w-0">
                     <p className="text-xs font-medium truncate">{c.title}</p>

@@ -50,10 +50,10 @@ export default function Settings() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    // full_name is read-only from auth provider — save as display_name
     await base44.auth.updateMe({ display_name: user.full_name });
     const updated = await base44.auth.me();
-    setUser({ ...updated, full_name: user.full_name });
+    // Merge so full_name shows the edited value everywhere
+    setUser({ ...updated, full_name: user.full_name, display_name: user.full_name });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

@@ -76,9 +76,9 @@ export default function ContentCard({ content, onClick }) {
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group">
       {/* Image miniature */}
-      <div className="relative w-full h-32 bg-secondary overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-36 bg-secondary overflow-hidden flex items-center justify-center">
         {content.cover_url ? (
-          <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <img src={content.cover_url} alt={content.title} className="h-full w-auto max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary/20 to-accent/20">
             <Icon className="w-8 h-8 text-accent" />

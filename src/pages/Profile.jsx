@@ -106,7 +106,6 @@ export default function Profile() {
 
   const handleSave = async () => {
     setSaving(true);
-    // Save all editable fields to the user profile
     await base44.auth.updateMe({
       bio: editForm.bio,
       city: editForm.city,
@@ -114,12 +113,10 @@ export default function Profile() {
       website: editForm.website,
       twitter: editForm.twitter,
       occupation: editForm.occupation,
-      // full_name is read-only from the auth provider but we store the preferred display name
       display_name: editForm.full_name,
     });
-    // Re-fetch the updated user from the server to ensure Dashboard + rest of app see the update
     const updated = await base44.auth.me();
-    setUser({ ...updated, ...editForm });
+    setUser({ ...updated, ...editForm, display_name: editForm.full_name });
     setSaving(false);
     setSaved(true);
     setEditing(false);

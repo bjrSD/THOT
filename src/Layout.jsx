@@ -326,7 +326,7 @@ export default function Layout({ children, currentPageName }) {
               <Link to={createPageUrl("Profile")} className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity">
                 <UserAvatar user={currentUser} size="sm" />
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold truncate">{currentUser.full_name}</p>
+                  <p className="text-xs font-semibold truncate">{currentUser.display_name || currentUser.full_name}</p>
                   <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
                 </div>
               </Link>

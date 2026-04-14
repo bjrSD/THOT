@@ -66,7 +66,7 @@ export default function Notifications() {
   const filtered = filter === "unread" ? notifications.filter(n => !n.is_read) : notifications;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
