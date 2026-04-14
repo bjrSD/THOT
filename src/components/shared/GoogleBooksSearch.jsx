@@ -1,7 +1,10 @@
 import React, { useState, useRef } from "react";
-import { Search, Loader2, X, BookOpen, Play, Headphones, FileText } from "lucide-react";
+import { Search, Loader2, X, BookOpen, Play, Headphones, FileText, Plus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { searchAll } from "@/lib/contentSearchService";
+import { searchAll, mapToContent } from "@/lib/contentSearchService";
+import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
+import { createPageUrl } from "@/utils";
 
 const TYPE_ICON = { book: BookOpen, video: Play, podcast: Headphones, article: FileText };
 const TYPE_COLOR = { book: "text-green-500", video: "text-red-500", podcast: "text-purple-500", article: "text-blue-500" };
@@ -12,7 +15,9 @@ export default function GoogleBooksSearch({ onSelect }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState({}); // itemId → 'loading' | 'done'
   const timeoutRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const handleChange = (val) => {
     setQuery(val);
@@ -32,23 +37,45 @@ export default function GoogleBooksSearch({ onSelect }) {
     }, 500);
   };
 
-  const handleSelect = (item) => {
-    // Map to the format callers expect (backward compat with book fields)
-    onSelect({
-      title: item.title,
-      author: item.creator || item.sourceName || "",
-      cover_url: item.imageUrl || null,
-      summary: item.description || "",
-      total_pages: item.pageCount || null,
-      buy_link: item.externalUrl || "",
-      published_date: item.publishedAt || "",
-      type: item.type,
-      content_url: item.externalUrl || "",
-      // raw item for full access
-      _raw: item,
-    });
-    setQuery(item.title);
+  // Quick add to library
+  const handleAdd = async (e, item) => {
+    e.stopPropagation();
+    const key = item.externalId || item.title;
+    setAdding(prev => ({ ...prev, [key]: 'loading' }));
+    const contentData = mapToContent(item);
+    const created = await base44.entities.Content.create(contentData);
+    queryClient.invalidateQueries({ queryKey: ["contents"] });
+    setAdding(prev => ({ ...prev, [key]: 'done' }));
+    // Also call onSelect for backward compat (e.g. Library adds it to form)
+    if (onSelect) onSelect({ ...item, _created: created });
+  };
+
+  // Click on item → go to ContentDetail if already in library, else open descriptif via search result
+  const handleClick = async (item) => {
     setOpen(false);
+    // Try to find existing content by externalId
+    const key = item.externalId || item.title;
+    if (adding[key] === 'done') {
+      // Already added this session — just navigate to library
+      window.location.href = createPageUrl("Library");
+      return;
+    }
+    // Otherwise call onSelect (default behaviour for Library page)
+    if (onSelect) {
+      onSelect({
+        title: item.title,
+        author: item.creator || item.sourceName || "",
+        cover_url: item.imageUrl || null,
+        summary: item.description || "",
+        total_pages: item.pageCount || null,
+        buy_link: item.externalUrl || "",
+        published_date: item.publishedAt || "",
+        type: item.type,
+        content_url: item.externalUrl || "",
+        _raw: item,
+      });
+    }
+    setQuery(item.title);
   };
 
   return (
@@ -77,10 +104,14 @@ export default function GoogleBooksSearch({ onSelect }) {
             const color = TYPE_COLOR[item.type] || "text-muted-foreground";
             const label = TYPE_LABEL[item.type] || item.type;
             const isVideo = item.type === "video";
+            const key = item.externalId || item.title;
+            const addState = adding[key];
+
             return (
-              <button key={item.externalId || i}
-                onClick={() => handleSelect(item)}
-                className="w-full flex items-center gap-3 p-3 hover:bg-secondary/60 transition-colors text-left border-b border-border last:border-0">
+              <div key={key || i}
+                className="w-full flex items-center gap-3 p-3 hover:bg-secondary/60 transition-colors border-b border-border last:border-0 cursor-pointer"
+                onClick={() => handleClick(item)}>
+                {/* Thumbnail */}
                 {item.imageUrl ? (
                   <img src={item.imageUrl} alt={item.title}
                     className={`object-cover rounded shrink-0 ${isVideo ? "w-16 h-10" : "w-10 h-14"}`} />
@@ -89,6 +120,8 @@ export default function GoogleBooksSearch({ onSelect }) {
                     <Icon className={`w-4 h-4 ${color}`} />
                   </div>
                 )}
+
+                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className={`text-[10px] font-semibold ${color}`}>{label}</span>
@@ -99,7 +132,24 @@ export default function GoogleBooksSearch({ onSelect }) {
                     <p className="text-xs text-muted-foreground">{new Date(item.publishedAt).getFullYear()}</p>
                   )}
                 </div>
-              </button>
+
+                {/* Quick add button */}
+                <button
+                  onClick={(e) => handleAdd(e, item)}
+                  disabled={!!addState}
+                  title="Ajouter à ma bibliothèque"
+                  className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+                    addState === 'done'
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : addState === 'loading'
+                      ? 'bg-secondary border-border text-muted-foreground'
+                      : 'bg-accent/10 border-accent/30 text-accent hover:bg-accent hover:text-white'
+                  }`}>
+                  {addState === 'loading' ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : addState === 'done' ? <Check className="w-3.5 h-3.5" />
+                    : <Plus className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             );
           })}
         </div>
