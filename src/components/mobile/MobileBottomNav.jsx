@@ -3,17 +3,18 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Home, BookOpen, LayoutDashboard, Mail, Plus,
-  X, BookMarked, Headphones, Play, FileText, Search
+  X, BookMarked, Headphones, Play, FileText, Search, Link as LinkIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QuickAddModal from "@/components/shared/QuickAddModal";
+import ContentImportModal from "@/components/shared/ContentImportModal";
 
 const ADD_OPTIONS = [
   { label: "Livre", icon: BookMarked, type: "book", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
   { label: "Podcast", icon: Headphones, type: "podcast", color: "bg-green-500/10 text-green-500 border-green-500/20" },
   { label: "Article", icon: FileText, type: "article", color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
   { label: "Vidéo", icon: Play, type: "video", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-  { label: "Rechercher", icon: Search, type: "search", color: "bg-accent/10 text-accent border-accent/20" },
+  { label: "Lien / URL", icon: LinkIcon, type: "import", color: "bg-accent/10 text-accent border-accent/20" },
 ];
 
 // 4 nav items + center placeholder
@@ -28,16 +29,22 @@ const NAV = [
 export default function MobileBottomNav({ currentPageName }) {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [addType, setAddType] = useState(null);
 
   const handleAddOption = (opt) => {
     setShowAddMenu(false);
-    if (opt.type === "search") {
-      window.location.href = createPageUrl("Discover");
+    if (opt.type === "import") {
+      setShowImport(true);
       return;
     }
-    setAddType(opt.type);
-    setShowQuickAdd(true);
+    if (opt.type === "book") {
+      setAddType("book");
+      setShowQuickAdd(true);
+      return;
+    }
+    // For video, podcast, article — open import modal with pre-selected type
+    setShowImport(true);
   };
 
   return (
@@ -145,6 +152,9 @@ export default function MobileBottomNav({ currentPageName }) {
 
       {showQuickAdd && (
         <QuickAddModal onClose={() => { setShowQuickAdd(false); setAddType(null); }} defaultType={addType} />
+      )}
+      {showImport && (
+        <ContentImportModal onClose={() => setShowImport(false)} />
       )}
     </>
   );

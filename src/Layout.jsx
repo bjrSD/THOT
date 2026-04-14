@@ -15,6 +15,7 @@ import ChatBot from "@/components/shared/ChatBot";
 import { useLanguage } from "@/lib/LanguageContext";
 import { t } from "@/lib/i18n";
 import MobileBottomNav from "@/components/mobile/MobileBottomNav";
+import ContentImportModal from "@/components/shared/ContentImportModal";
 
 // ─── Navigation structure ────────────────────────────────────────────────────
 // Grouped for visual clarity in sidebar
@@ -101,6 +102,7 @@ export default function Layout({ children, currentPageName }) {
   const [isPremium, setIsPremium] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(auth => {
@@ -376,7 +378,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Floating + button (desktop only) */}
       {isAuth && (
         <button
-          onClick={() => setShowQuickAdd(true)}
+          onClick={() => setShowImport(true)}
           className="hidden lg:flex fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full items-center justify-center transition-all hover:scale-110"
           style={{
             background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
@@ -389,6 +391,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
+      {showImport && <ContentImportModal onClose={() => setShowImport(false)} />}
       <ChatBot />
     </div>
   );
