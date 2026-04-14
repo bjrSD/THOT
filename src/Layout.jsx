@@ -319,10 +319,9 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Sidebar footer */}
         <div className="p-3 border-t border-border space-y-2">
-          {/* Bell + avatar row */}
-          <div className="flex items-center gap-2 px-2 pb-1">
-            <NotificationBell />
-            {currentUser && (
+          {/* Avatar row only */}
+          {currentUser && (
+            <div className="flex items-center gap-2 px-2 pb-1">
               <Link to={createPageUrl("Profile")} className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80 transition-opacity">
                 <UserAvatar user={currentUser} size="sm" />
                 <div className="min-w-0">
@@ -330,8 +329,8 @@ export default function Layout({ children, currentPageName }) {
                   <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
                 </div>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
           {!isPremium ? (
             <Link to={createPageUrl("Premium")}>
               <div className="bg-gradient-to-r from-yellow-500/15 to-accent/15 border border-yellow-500/20 rounded-xl p-3 flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -445,7 +444,6 @@ export default function Layout({ children, currentPageName }) {
         <ThotLogo size="lg" />
 
         <div className="flex items-center gap-1">
-          <NotificationBell />
           <Button size="icon" variant="ghost" onClick={() => setShowQuickAdd(true)}>
             <Plus className="w-5 h-5" />
           </Button>
@@ -459,15 +457,20 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </main>
 
-      {/* Floating action button (desktop) */}
+      {/* Floating action buttons (desktop): + add content + notification bell */}
       {isAuth && (
-        <button
-          onClick={() => setShowQuickAdd(true)}
-          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center"
-          title="Ajouter à ma bibliothèque"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
+        <>
+          <button
+            onClick={() => setShowQuickAdd(true)}
+            className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center"
+            title="Ajouter à ma bibliothèque"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+          <div className="hidden lg:block">
+            <NotificationBell fixed={true} />
+          </div>
+        </>
       )}
 
       {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}

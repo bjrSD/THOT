@@ -4,19 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Search, BookOpen, ListMusic, Quote, Trophy, Smile,
-  Loader2, MessageCircle, Plus, ArrowLeft, Paperclip
+  Loader2, MessageCircle, Plus, ArrowLeft, Users, Check, X, Globe, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/shared/UserAvatar";
-
-const MOCK_CONTACTS = [
-  { email: "marie@ex.com", full_name: "Marie Dupont", level: "Polymathe 🧠", avatar_url: null },
-  { email: "karim@ex.com", full_name: "Karim Benzali", level: "Érudit 🎓", avatar_url: null },
-  { email: "sophie@ex.com", full_name: "Sophie Laurent", level: "Érudit 🎓", avatar_url: null },
-  { email: "lucas@ex.com", full_name: "Lucas Martin", level: "Penseur 💭", avatar_url: null },
-  { email: "amina@ex.com", full_name: "Amina Traoré", level: "Penseur 💭", avatar_url: null },
-];
 
 const SHORTCUTS = [
   { icon: ListMusic, label: "Playlist", type: "playlist", placeholder: "🎵 J'ai une playlist pour toi !" },
@@ -69,6 +61,9 @@ export default function Messages() {
   const [attachment, setAttachment] = useState(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [search, setSearch] = useState("");
+  const [showFeedPrivacy, setShowFeedPrivacy] = useState(false);
+  const [privateFeedSelection, setPrivateFeedSelection] = useState([]);
+  const [feedSaved, setFeedSaved] = useState(false);
   const bottomRef = useRef(null);
   const qc = useQueryClient();
 
@@ -88,6 +83,45 @@ export default function Messages() {
     refetchInterval: 5000,
   });
 
+  // Load real followers
+  const { data: follows = [] } = useQuery({
+    queryKey: ["follows-messages", me?.email],
+    queryFn: () => base44.entities.Follow.filter({ follower_email: me.email }),
+    enabled: !!me?.email,
+  });
+  const { data: followers = [] } = useQuery({
+    queryKey: ["followers-messages", me?.email],
+    queryFn: () => base44.entities.Follow.filter({ following_email: me.email }),
+    enabled: !!me?.email,
+  });
+
+  // Build contacts from real follows + followers, deduplicated
+  const followingEmails = follows.map(f => f.following_email);
+  const followerEmails = followers.map(f => f.follower_email);
+  const allContactEmails = [...new Set([...followingEmails, ...followerEmails])].filter(e => e !== me?.email);
+
+  // Also include emails from actual message history
+  const conversationEmails = [...new Set([
+    ...allMessages.map(m => m.sender_email),
+    ...sentMessages.map(m => m.recipient_email),
+  ])].filter(e => e !== me?.email);
+
+  const allKnownEmails = [...new Set([...allContactEmails, ...conversationEmails])];
+
+  // Build contact objects — real name from follow data if available, else email prefix
+  const contacts = allKnownEmails
+    .map(email => {
+      const isFriend = followingEmails.includes(email) && followerEmails.includes(email);
+      return {
+        email,
+        full_name: email.split("@")[0],
+        level: isFriend ? "Ami(e) mutuel(le) 🤝" : followingEmails.includes(email) ? "Vous suivez" : "Vous suit",
+        avatar_url: null,
+        isFriend,
+      };
+    })
+    .filter(c => c.full_name.toLowerCase().includes(search.toLowerCase()) || conversationEmails.includes(c.email));
+
   // All messages in conversation
   const conversation = selectedContact
     ? [...allMessages, ...sentMessages]
@@ -97,17 +131,6 @@ export default function Messages() {
         )
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
     : [];
-
-  // Unique conversations
-  const conversationEmails = [...new Set([
-    ...allMessages.map(m => m.sender_email),
-    ...sentMessages.map(m => m.recipient_email),
-  ])].filter(e => e !== me?.email);
-
-  const contacts = MOCK_CONTACTS.filter(c =>
-    c.email !== me?.email &&
-    (c.full_name.toLowerCase().includes(search.toLowerCase()) || conversationEmails.includes(c.email))
-  );
 
   const unreadCount = (contactEmail) =>
     allMessages.filter(m => m.sender_email === contactEmail && !m.is_read).length;
@@ -151,14 +174,72 @@ export default function Messages() {
       {/* Sidebar contacts */}
       <div className={`${selectedContact ? "hidden md:flex" : "flex"} flex-col w-full md:w-72 border-r border-border shrink-0`}>
         <div className="p-4 border-b border-border">
-          <h1 className="font-heading font-bold text-lg flex items-center gap-2 mb-3">
-            <MessageCircle className="w-5 h-5 text-accent" /> Messages
-          </h1>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Rechercher…" className="pl-9 text-sm" value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="font-heading font-bold text-lg flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-accent" /> Messages
+            </h1>
+            <button
+              onClick={() => setShowFeedPrivacy(p => !p)}
+              title="Gérer mon feed privé"
+              className={`p-1.5 rounded-lg transition-colors text-xs flex items-center gap-1 ${showFeedPrivacy ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
+            >
+              <Users className="w-4 h-4" />
+            </button>
           </div>
+          {!showFeedPrivacy && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Rechercher…" className="pl-9 text-sm" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+          )}
         </div>
+
+        {/* Feed privacy manager */}
+        <AnimatePresence>
+          {showFeedPrivacy && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="border-b border-border bg-secondary/30 overflow-hidden">
+              <div className="p-4">
+                <h3 className="font-semibold text-sm flex items-center gap-2 mb-1">
+                  <Lock className="w-4 h-4 text-accent" /> Mon feed privé
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Sélectionnez les abonnés dont vous souhaitez voir les posts dans l'onglet "Amis" du feed.
+                </p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {allKnownEmails.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">Aucun abonné / suivi pour l'instant</p>
+                  )}
+                  {allKnownEmails.map(email => {
+                    const isSel = privateFeedSelection.includes(email);
+                    const isFriend = followingEmails.includes(email) && followerEmails.includes(email);
+                    return (
+                      <button key={email} onClick={() => setPrivateFeedSelection(prev =>
+                        isSel ? prev.filter(e => e !== email) : [...prev, email]
+                      )}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${isSel ? "bg-accent/10 ring-1 ring-accent/30" : "hover:bg-secondary"}`}>
+                        <UserAvatar name={email.split("@")[0]} size="xs" />
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="font-medium text-xs truncate">{email.split("@")[0]}</p>
+                          <p className="text-[10px] text-muted-foreground">{isFriend ? "Ami(e) 🤝" : followingEmails.includes(email) ? "Vous suivez" : "Vous suit"}</p>
+                        </div>
+                        {isSel && <Check className="w-4 h-4 text-accent shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-xs text-muted-foreground">{privateFeedSelection.length} sélectionné(s)</span>
+                  <Button size="sm" className="h-7 text-xs gap-1" onClick={() => { setFeedSaved(true); setShowFeedPrivacy(false); setTimeout(() => setFeedSaved(false), 2000); }}>
+                    <Check className="w-3 h-3" /> Sauvegarder
+                  </Button>
+                </div>
+                {feedSaved && <p className="text-xs text-green-600 font-medium mt-1.5">✓ Préférences sauvegardées !</p>}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex-1 overflow-y-auto">
           {contacts.map(c => {
             const unread = unreadCount(c.email);
@@ -179,7 +260,7 @@ export default function Messages() {
               </button>
             );
           })}
-          {contacts.length === 0 && (
+          {contacts.length === 0 && !showFeedPrivacy && (
             <div className="text-center py-10 text-muted-foreground text-sm px-4">
               <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-20" />
               Suivez des utilisateurs pour leur envoyer des messages

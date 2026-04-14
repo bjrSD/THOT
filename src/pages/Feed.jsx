@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Headphones, Play, FileText, Heart, MessageCircle,
-  Loader2, Plus, Send, X, Zap, Bookmark, BookmarkCheck, Share2, Lock, Users, Globe
+  Loader2, Plus, Send, X, Zap, Bookmark, BookmarkCheck, Share2, Lock, Users, Globe, Library
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -277,10 +277,19 @@ export default function Feed() {
   const [postContent, setPostContent] = useState("");
   const [postType, setPostType] = useState("update");
   const [postVisibility, setPostVisibility] = useState("public");
+  const [linkedContent, setLinkedContent] = useState(null); // { id, title, type }
+  const [showContentPicker, setShowContentPicker] = useState(false);
+  const [contentSearch, setContentSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [profileModal, setProfileModal] = useState(null); // { email, ... }
+  const [profileModal, setProfileModal] = useState(null);
 
   useEffect(() => { base44.auth.me().then(setUser); }, []);
+
+  const { data: myContents = [] } = useQuery({
+    queryKey: ["contents-feed-pick"],
+    queryFn: () => base44.entities.Content.list("-updated_date", 100),
+    enabled: showContentPicker,
+  });
 
   const { data: activities = [], isLoading: loadingActivities } = useQuery({
     queryKey: ["activities-feed"],
@@ -298,12 +307,16 @@ export default function Feed() {
       type: postType,
       is_public: postVisibility === "public",
       visibility: postVisibility,
+      content_ref_id: linkedContent?.id || null,
+      content_ref_title: linkedContent?.title || null,
+      content_ref_type: linkedContent?.type || null,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["posts"] });
       setPostContent("");
       setPostType("update");
       setPostVisibility("public");
+      setLinkedContent(null);
       setShowCompose(false);
     },
   });
@@ -318,7 +331,7 @@ export default function Feed() {
   const myPosts = posts.filter(p => p.created_by === user?.email);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl md:text-3xl font-bold">Feed</h1>
@@ -358,24 +371,70 @@ export default function Feed() {
                 className="min-h-[80px] text-sm resize-none"
               />
             </div>
+            {/* Link a content from library */}
+            <div className="mt-3">
+              {linkedContent ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/30 rounded-xl text-sm">
+                  <BookOpen className="w-4 h-4 text-accent shrink-0" />
+                  <span className="flex-1 truncate font-medium text-accent">{linkedContent.title}</span>
+                  <button onClick={() => setLinkedContent(null)} className="text-muted-foreground hover:text-foreground shrink-0"><X className="w-3.5 h-3.5" /></button>
+                </div>
+              ) : (
+                <button onClick={() => setShowContentPicker(p => !p)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors">
+                  <Library className="w-3.5 h-3.5" /> Lier un contenu de ma bibliothèque
+                </button>
+              )}
+              <AnimatePresence>
+                {showContentPicker && !linkedContent && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 border border-border rounded-xl overflow-hidden bg-card">
+                    <div className="p-2 border-b border-border">
+                      <input value={contentSearch} onChange={e => setContentSearch(e.target.value)}
+                        placeholder="Rechercher dans ma bibliothèque…"
+                        className="w-full text-xs bg-secondary rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent" />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto">
+                      {myContents.filter(c => c.title.toLowerCase().includes(contentSearch.toLowerCase())).slice(0, 10).map(c => (
+                        <button key={c.id} onClick={() => { setLinkedContent(c); setShowContentPicker(false); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-secondary text-left text-xs border-b border-border/50 last:border-0">
+                          <span className="shrink-0">{c.type === "book" ? "📚" : c.type === "podcast" ? "🎙️" : c.type === "video" ? "🎬" : "📰"}</span>
+                          <span className="truncate font-medium">{c.title}</span>
+                          <span className="text-muted-foreground shrink-0 ml-auto capitalize">{c.status?.replace("_", " ")}</span>
+                        </button>
+                      ))}
+                      {myContents.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu</p>}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Visibility */}
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-muted-foreground">Visibilité :</span>
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <span className="text-xs text-muted-foreground font-medium">Visibilité :</span>
               {VISIBILITY_OPTIONS.map(v => {
                 const Icon = v.icon;
                 return (
                   <button key={v.id} onClick={() => setPostVisibility(v.id)}
-                    className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${postVisibility === v.id ? "bg-accent text-accent-foreground" : "bg-secondary hover:bg-secondary/80"}`}>
+                    className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium transition-colors border ${
+                      postVisibility === v.id
+                        ? v.id === "public" ? "bg-green-500 text-white border-green-500" : v.id === "friends" ? "bg-blue-500 text-white border-blue-500" : "bg-gray-500 text-white border-gray-500"
+                        : "bg-secondary border-border hover:border-accent/40"
+                    }`}>
                     <Icon className="w-3 h-3" /> {v.label}
                   </button>
                 );
               })}
+              <span className="text-xs text-muted-foreground ml-1">
+                {postVisibility === "public" ? "— Visible par tous" : postVisibility === "friends" ? "— Visible par vos amis" : "— Visible uniquement par vous"}
+              </span>
             </div>
             <div className="flex justify-end mt-3 gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowCompose(false)}>Annuler</Button>
+              <Button variant="outline" size="sm" onClick={() => { setShowCompose(false); setLinkedContent(null); setShowContentPicker(false); }}>Annuler</Button>
               <Button size="sm" onClick={() => createPost.mutate()} disabled={!postContent.trim() || createPost.isPending} className="gap-2">
                 {createPost.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                Publier
+                {postVisibility === "public" ? "Publier" : postVisibility === "friends" ? "Publier pour amis" : "Sauvegarder (privé)"}
               </Button>
             </div>
           </motion.div>

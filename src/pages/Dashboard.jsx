@@ -31,8 +31,17 @@ const QUICK_LINKS = [
 export default function Dashboard() {
   const [user, setUser] = useState(null);
 
+  // Re-fetch user every time the page mounts so the name reflects latest profile edits
   useEffect(() => {
     base44.auth.me().then(setUser);
+  }, []);
+
+  // Also listen to profile updates via the User entity subscription
+  useEffect(() => {
+    const unsub = base44.entities.User?.subscribe?.((event) => {
+      if (event.type === "update") base44.auth.me().then(setUser);
+    });
+    return () => unsub?.();
   }, []);
 
   const { data: contents = [] } = useQuery({
@@ -68,7 +77,7 @@ export default function Dashboard() {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="font-heading text-2xl md:text-3xl font-bold">
-              Bonjour, {user.full_name?.split(" ")[0] || "apprenant"} 👋
+              Bonjour, {(user.display_name || user.full_name)?.split(" ")[0] || "apprenant"} 👋
             </h1>
             {isPremium && (
               <span className="inline-flex items-center gap-1 text-xs bg-yellow-500/15 text-yellow-600 border border-yellow-500/20 px-2 py-0.5 rounded-full font-medium">

@@ -14,7 +14,7 @@ const TYPE_ICONS = {
   friend_activity: "📚",
 };
 
-export default function NotificationBell() {
+export default function NotificationBell({ fixed = false }) {
   const [open, setOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
   const ref = useRef(null);
@@ -51,11 +51,20 @@ export default function NotificationBell() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", userEmail] }),
   });
 
+  if (!userEmail) return null;
+
+  const wrapperClass = fixed
+    ? "fixed bottom-6 right-24 z-50"
+    : "relative";
+
   return (
-    <div className="relative" ref={ref}>
+    <div className={wrapperClass} ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="relative p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+        className={fixed
+          ? "w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center"
+          : "relative p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+        }
       >
         <Bell className="w-5 h-5" />
         {unread.length > 0 && (
@@ -74,7 +83,7 @@ export default function NotificationBell() {
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            className="absolute right-0 top-12 w-80 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className={`absolute w-80 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden ${fixed ? "bottom-16 right-0" : "right-0 top-12"}`}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="font-semibold text-sm">Notifications</h3>
