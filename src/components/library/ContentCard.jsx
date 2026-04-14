@@ -89,18 +89,18 @@ export default function ContentCard({ content, onClick }) {
           )}
         </div>
 
-        {/* Infos : titre, auteur, date, pages — à droite de l'image */}
+        {/* Infos : titre, auteur, pages, date — à droite de l'image */}
         <div className="flex flex-col min-w-0 flex-1">
           <p className="font-semibold text-sm line-clamp-2 leading-tight">{content.title}</p>
           {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{content.author}</p>}
-          {content.published_date && (
-            <p className="text-xs text-muted-foreground mt-0.5">{content.published_date.slice(0, 4)}</p>
-          )}
           {content.total_pages && (
             <p className="text-xs text-muted-foreground mt-0.5">{content.total_pages} pages</p>
           )}
           {content.total_duration && !content.total_pages && (
             <p className="text-xs text-muted-foreground mt-0.5">{content.total_duration} min</p>
+          )}
+          {content.published_date && (
+            <p className="text-xs text-muted-foreground mt-0.5">{content.published_date.slice(0, 4)}</p>
           )}
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function ContentCard({ content, onClick }) {
         >
           <ExternalLink className="w-3 h-3" /> Voir le détail
         </button>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <div onClick={e => e.stopPropagation()}>
           <AddToPlaylistMenu contentId={content.id} />
         </div>
       </div>
