@@ -2,230 +2,153 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X, ExternalLink, SlidersHorizontal, RefreshCw } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X,
+  ExternalLink, RefreshCw, LayoutGrid
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { TYPE_LABELS, CATEGORY_LABELS } from "@/components/shared/KPUtils";
-import FilterPanel, { DEFAULT_FILTERS } from "@/components/discover/FilterPanel";
+import { searchByType, searchAll, mapToContent } from "@/lib/contentSearchService";
 
-const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
+// ─── Config ───────────────────────────────────────────────────────────────
 
-// Pool of varied queries for random discovery
-const RANDOM_QUERIES = [
-  "roman policier", "philosophie stoïcisme", "intelligence artificielle", "histoire médiévale",
-  "développement personnel", "startup entrepreneuriat", "psychologie cognitive", "science fiction",
-  "biographie personnalité", "roman historique français", "thriller psychologique", "économie comportementale",
-  "leadership management", "spiritualité méditation", "voyage exploration", "romance contemporaine",
-  "fantasy épique", "manga aventure", "cuisine gastronomie", "nature écologie",
-  "politique société", "mathématiques vulgarisation", "art contemporain", "musique jazz",
-  "astronomie cosmos", "neurosciences cerveau", "roman noir américain", "essai philosophique",
-  "histoire révolution", "littérature classique", "crime investigation", "futurisme technologie",
+const TABS = [
+  { id: "all",     label: "Tous",     icon: LayoutGrid,  color: "text-muted-foreground" },
+  { id: "book",    label: "Livres",   icon: BookOpen,    color: "text-green-500" },
+  { id: "video",   label: "Vidéos",   icon: Play,        color: "text-red-500" },
+  { id: "podcast", label: "Podcasts", icon: Headphones,  color: "text-purple-500" },
+  { id: "article", label: "Articles", icon: FileText,    color: "text-blue-500" },
 ];
 
-function mapCategory(googleCategories = []) {
-  const s = (googleCategories.join(" ") || "").toLowerCase();
-  if (s.includes("business") || s.includes("management") || s.includes("economics")) return "business";
-  if (s.includes("psychology") || s.includes("self-help") || s.includes("personal")) return "psychologie";
-  if (s.includes("science") || s.includes("physics") || s.includes("biology") || s.includes("chemistry")) return "science";
-  if (s.includes("history") || s.includes("histoire")) return "histoire";
-  if (s.includes("philosoph")) return "philosophie";
-  if (s.includes("technology") || s.includes("computer") || s.includes("programming")) return "technologie";
-  if (s.includes("art") || s.includes("music") || s.includes("design")) return "art";
-  if (s.includes("health") || s.includes("medical") || s.includes("fitness")) return "sante";
-  return "autre";
+const PLACEHOLDERS = {
+  all:     "Rechercher un contenu…",
+  book:    "Rechercher un livre…",
+  video:   "Rechercher une vidéo…",
+  podcast: "Rechercher un podcast…",
+  article: "Rechercher un article…",
+};
+
+const TYPE_LABEL = { book: "Livre", video: "Vidéo", podcast: "Podcast", article: "Article" };
+const TYPE_COLOR = { book: "text-green-500 bg-green-500/10", video: "text-red-500 bg-red-500/10", podcast: "text-purple-500 bg-purple-500/10", article: "text-blue-500 bg-blue-500/10" };
+
+// Discovery seed queries per type
+const SEEDS = {
+  book:    ["développement personnel", "intelligence artificielle", "philosophie stoïcisme", "biographie", "science économie", "histoire", "leadership", "psychologie"],
+  video:   ["documentaire science", "conférence TED", "cours philosophie", "tutoriel programmation", "podcast vidéo", "histoire monde", "vulgarisation", "entrepreneuriat"],
+  podcast: ["histoire monde", "science cerveau", "business startup", "psychologie", "culture générale", "développement personnel", "technologie", "économie"],
+  article: ["intelligence artificielle", "technologie société", "science découverte", "économie monde", "philosophie éthique", "histoire récente", "santé recherche", "innovation"],
+};
+
+// ─── Components ───────────────────────────────────────────────────────────
+
+function TypeBadge({ type }) {
+  const Icon = { book: BookOpen, video: Play, podcast: Headphones, article: FileText }[type] || FileText;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${TYPE_COLOR[type] || 'bg-secondary text-muted-foreground'}`}>
+      <Icon style={{ width: 10, height: 10 }} /> {TYPE_LABEL[type] || type}
+    </span>
+  );
 }
 
-async function fetchGoogleBooks(query, language = "fr", startIndex = 0, filters = {}) {
-  let q = query.trim() || "bestseller";
+function ContentCard({ item, isAdded, onAdd, onOpen, adding, removing, onRemove }) {
+  const isVideo = item.type === 'video';
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-xl border border-border hover:shadow-md hover:border-accent/30 transition-all flex flex-col overflow-hidden">
+      {/* Thumbnail / Cover */}
+      <div className={`relative overflow-hidden bg-secondary shrink-0 ${isVideo ? 'aspect-video' : 'h-36'}`}>
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <TypeBadge type={item.type} />
+          </div>
+        )}
+        <div className="absolute top-2 left-2">
+          <TypeBadge type={item.type} />
+        </div>
+      </div>
 
-  // Embed genre/subject into query
-  if (!query.trim() && filters.genres && filters.genres.length > 0) {
-    q = filters.genres.slice(0, 2).join(" ") + " " + q;
-  }
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1">
+        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-0.5">{item.title}</p>
+        <p className="text-xs text-muted-foreground truncate mb-1">{item.creator || item.sourceName}</p>
+        {item.publishedAt && (
+          <p className="text-xs text-muted-foreground mb-2">{new Date(item.publishedAt).getFullYear()}</p>
+        )}
+        {item.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2 flex-1 mb-3 leading-relaxed">{item.description}</p>
+        )}
 
-  // Embed author filter into query
-  if (filters.authorQuery && filters.authorQuery.trim()) {
-    q += `+inauthor:${filters.authorQuery.trim()}`;
-  }
-
-  // Page range → Google Books filter param
-  let printType = "books";
-  let filterParam = "";
-
-  // Rating filter: ask Google for more results (we post-filter, but also add subject hint)
-  // Google Books doesn't have a native rating filter — we request more and filter client-side
-
-  // Build sort order for Google Books API
-  let orderBy = "relevance";
-  if (filters.sort === "date_desc" || filters.sort === "newest") orderBy = "newest";
-
-  // Date range → year filter in query
-  if (filters.yearFrom && filters.yearFrom !== "classic") {
-    // nothing extra needed; client filters after
-  }
-
-  const lang = language ? `&langRestrict=${language}` : "";
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=40&startIndex=${startIndex}${lang}&orderBy=${orderBy}&printType=${printType}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!data.items) return [];
-  return data.items.map(item => {
-    const info = item.volumeInfo;
-    return {
-      googleId: item.id,
-      title: info.title || "Sans titre",
-      author: info.authors?.[0] || "",
-      authors: info.authors || [],
-      type: "book",
-      category: mapCategory(info.categories),
-      summary: info.description?.slice(0, 300) || "",
-      total_pages: info.pageCount || null,
-      cover_url: info.imageLinks?.thumbnail?.replace("http://", "https://") || null,
-      buy_link: info.infoLink || `https://books.google.com/books?id=${item.id}`,
-      googleCategories: info.categories || [],
-      publishedDate: info.publishedDate || "",
-      rating: info.averageRating || null,
-      ratingsCount: info.ratingsCount || 0,
-    };
-  });
+        <div className="flex gap-1.5 mt-auto">
+          <button onClick={onOpen}
+            className="text-xs text-accent hover:underline flex items-center gap-1 shrink-0">
+            <ExternalLink className="w-3 h-3" /> Détail
+          </button>
+          <Button size="sm" variant={isAdded ? "secondary" : "default"}
+            className={`flex-1 text-xs h-7 ${isAdded ? "text-green-700 border border-green-500/30 hover:bg-red-50 hover:text-red-600" : ""}`}
+            disabled={adding || removing}
+            onClick={() => isAdded ? onRemove() : onAdd()}>
+            {adding || removing ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : isAdded ? (
+              <><Check className="w-3 h-3 mr-1" /> Ajouté</>
+            ) : (
+              <><Plus className="w-3 h-3 mr-1" /> Ajouter</>
+            )}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
-function applyFilters(items, filters) {
-  let result = [...items];
-  if (filters.contentType) result = result.filter(i => i.type === filters.contentType);
-  if (filters.authorQuery.trim()) {
-    const a = filters.authorQuery.toLowerCase();
-    result = result.filter(i => i.author.toLowerCase().includes(a) || (i.authors || []).some(au => au.toLowerCase().includes(a)));
-  }
-  if (filters.minRating > 0) result = result.filter(i => (i.rating || 0) >= filters.minRating);
-  if (filters.hasRating) result = result.filter(i => !!i.rating);
-  if (filters.hasCover) result = result.filter(i => !!i.cover_url);
-  if (filters.pageRange) {
-    result = result.filter(i => {
-      const p = i.total_pages || 0;
-      if (filters.pageRange === "0-100") return p > 0 && p < 100;
-      if (filters.pageRange === "100-250") return p >= 100 && p < 250;
-      if (filters.pageRange === "250-400") return p >= 250 && p < 400;
-      if (filters.pageRange === "400-600") return p >= 400 && p < 600;
-      if (filters.pageRange === "600+") return p >= 600;
-      return true;
-    });
-  }
-  if (filters.yearFrom) {
-    result = result.filter(i => {
-      const year = parseInt(i.publishedDate?.slice(0, 4) || "0");
-      if (filters.yearFrom === "classic") return year < 1990;
-      return year >= parseInt(filters.yearFrom);
-    });
-  }
-  if (filters.genres.length > 0) {
-    result = result.filter(i => {
-      const haystack = [...(i.googleCategories || []), i.summary, i.title].join(" ").toLowerCase();
-      return filters.genres.some(g => haystack.includes(g.toLowerCase()));
-    });
-  }
-  if (filters.sort === "rating_desc") result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  else if (filters.sort === "rating_asc") result.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-  else if (filters.sort === "pages_asc") result.sort((a, b) => (a.total_pages || 0) - (b.total_pages || 0));
-  else if (filters.sort === "pages_desc") result.sort((a, b) => (b.total_pages || 0) - (a.total_pages || 0));
-  else if (filters.sort === "date_desc") result.sort((a, b) => (b.publishedDate || "").localeCompare(a.publishedDate || ""));
-  else if (filters.sort === "date_asc") result.sort((a, b) => (a.publishedDate || "").localeCompare(b.publishedDate || ""));
-  return result;
+function SkeletonCard() {
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden animate-pulse">
+      <div className="h-36 bg-secondary" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-secondary rounded w-3/4" />
+        <div className="h-2.5 bg-secondary rounded w-1/2" />
+        <div className="h-2.5 bg-secondary rounded w-full" />
+        <div className="h-7 bg-secondary rounded mt-3" />
+      </div>
+    </div>
+  );
 }
+
+// ─── Main Page ────────────────────────────────────────────────────────────
 
 export default function Discover() {
-
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState("book");
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const queryClient = useQueryClient();
-
-  // Infinite scroll state
-  const [allBooks, setAllBooks] = useState([]);
-  const [page, setPage] = useState(0); // startIndex = page * 20
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [seedIdx, setSeedIdx] = useState(0);
+  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [currentQueryPool, setCurrentQueryPool] = useState(() => {
-    // Shuffle random queries on mount
-    return [...RANDOM_QUERIES].sort(() => Math.random() - 0.5);
-  });
-  const [queryPoolIndex, setQueryPoolIndex] = useState(0);
   const loaderRef = useRef(null);
+  const abortRef = useRef(null);
 
+  // Debounce search query
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 500);
     return () => clearTimeout(t);
   }, [query]);
 
-  // Reset when search/language/filters change
+  // Reset on tab or query change
   useEffect(() => {
-    setAllBooks([]);
+    setItems([]);
     setPage(0);
+    setSeedIdx(0);
     setHasMore(true);
-    setQueryPoolIndex(0);
-  }, [debouncedQuery, filters.language, filters.genres.join(","), filters.minRating, filters.pageRange, filters.yearFrom, filters.authorQuery, filters.sort]);
-
-  // Initial + paginated fetch — filters are embedded into Google Books query
-  const loadBooks = useCallback(async (pageNum, poolIdx) => {
-    setIsFetchingMore(true);
-    try {
-      if (debouncedQuery.trim()) {
-        const startIndex = pageNum * 40;
-        const results = await fetchGoogleBooks(debouncedQuery.trim(), filters.language, startIndex, filters);
-        if (results.length === 0) { setHasMore(false); return; }
-        setAllBooks(prev => {
-          const ids = new Set(prev.map(b => b.googleId));
-          return [...prev, ...results.filter(b => !ids.has(b.googleId))];
-        });
-        setPage(pageNum + 1);
-      } else {
-        // Discovery mode: use genre filters or random queries
-        let q;
-        if (filters.genres.length > 0) {
-          q = filters.genres[poolIdx % filters.genres.length];
-        } else {
-          q = currentQueryPool[poolIdx % currentQueryPool.length];
-        }
-        const startIndex = Math.floor(Math.random() * 5) * 10;
-        const results = await fetchGoogleBooks(q, filters.language, startIndex, filters);
-        setAllBooks(prev => {
-          const ids = new Set(prev.map(b => b.googleId));
-          return [...prev, ...results.filter(b => !ids.has(b.googleId))];
-        });
-        setQueryPoolIndex(poolIdx + 1);
-      }
-    } finally {
-      setIsFetchingMore(false);
-    }
-  }, [debouncedQuery, filters, currentQueryPool]);
-
-  // Load first batch on mount / query change
-  useEffect(() => {
-    loadBooks(0, 0);
-  }, [debouncedQuery, filters.language]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    if (!loaderRef.current) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isFetchingMore && hasMore) {
-          if (debouncedQuery.trim()) {
-            loadBooks(page, queryPoolIndex);
-          } else {
-            loadBooks(page, queryPoolIndex);
-          }
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [isFetchingMore, hasMore, page, queryPoolIndex, loadBooks]);
+  }, [activeTab, debouncedQuery]);
 
   const { data: existingContents = [] } = useQuery({
     queryKey: ["contents"],
@@ -233,234 +156,192 @@ export default function Discover() {
   });
 
   const addMutation = useMutation({
-    mutationFn: (item) => {
-      const data = { title: item.title, author: item.author, type: item.type, category: item.category, summary: item.summary, status: "to_consume" };
-      if (item.total_pages) data.total_pages = item.total_pages;
-      if (item.cover_url) data.cover_url = item.cover_url;
-      if (item.buy_link) data.buy_link = item.buy_link;
-      return base44.entities.Content.create(data);
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contents"] }),
+    mutationFn: (item) => base44.entities.Content.create(mapToContent(item)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["contents"] }),
   });
 
   const removeMutation = useMutation({
     mutationFn: (id) => base44.entities.Content.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contents"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["contents"] }),
   });
 
-  const existingByTitle = {};
-  for (const c of existingContents) existingByTitle[c.title] = c;
+  // Find existing content by externalId or title match
+  const findExisting = (item) => {
+    return existingContents.find(c => {
+      try {
+        const meta = JSON.parse(c.personal_note || '{}');
+        if (meta.externalId && meta.externalId === item.externalId) return true;
+      } catch {}
+      return c.title === item.title && c.type === item.type;
+    });
+  };
 
-  const filtered = applyFilters(allBooks, filters);
+  const loadItems = useCallback(async (isLoadMore = false) => {
+    const token = {};
+    abortRef.current = token;
 
-  const activeFiltersCount = [
-    filters.sort !== "relevance",
-    filters.contentType !== "",
-    filters.genres.length > 0,
-    filters.language !== "fr",
-    filters.minRating > 0,
-    filters.pageRange !== "",
-    filters.yearFrom !== "",
-    filters.authorQuery !== "",
-    filters.hasRating,
-    filters.hasCover,
-  ].filter(Boolean).length;
+    if (isLoadMore) setLoadingMore(true);
+    else setLoading(true);
+
+    try {
+      let results = [];
+      const q = debouncedQuery.trim();
+
+      if (q) {
+        // Search mode
+        if (activeTab === 'all') {
+          results = await searchAll(q, 20);
+        } else {
+          const offset = isLoadMore ? (page + 1) * 15 : 0;
+          results = await searchByType(activeTab, q, 15);
+          if (results.length < 5) setHasMore(false);
+        }
+      } else {
+        // Discovery mode — cycle through seeds
+        const seeds = SEEDS[activeTab] || SEEDS.book;
+        const idx = isLoadMore ? seedIdx : 0;
+        const seed = seeds[idx % seeds.length];
+        const nextSeed = seeds[(idx + 1) % seeds.length];
+        // Fetch 2 seeds for richer discovery
+        const [r1, r2] = await Promise.allSettled([
+          searchByType(activeTab === 'all' ? 'book' : activeTab, seed, 12),
+          searchByType(activeTab === 'all' ? 'video' : activeTab, nextSeed, 8),
+        ]);
+        const batch1 = r1.status === 'fulfilled' ? r1.value : [];
+        const batch2 = r2.status === 'fulfilled' ? r2.value : [];
+        results = [...batch1, ...batch2];
+        if (isLoadMore) setSeedIdx(idx + 2);
+      }
+
+      if (abortRef.current !== token) return;
+
+      setItems(prev => {
+        if (!isLoadMore) return results;
+        const existingIds = new Set(prev.map(i => i.externalId || i.title));
+        const fresh = results.filter(i => !existingIds.has(i.externalId || i.title));
+        return [...prev, ...fresh];
+      });
+      if (isLoadMore) setPage(p => p + 1);
+    } catch (e) {
+      console.error('[Discover] load error:', e);
+    } finally {
+      if (abortRef.current === token) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    }
+  }, [activeTab, debouncedQuery, page, seedIdx]);
+
+  // Initial load
+  useEffect(() => {
+    loadItems(false);
+  }, [activeTab, debouncedQuery]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !loading && !loadingMore && hasMore) {
+        loadItems(true);
+      }
+    }, { threshold: 0.1 });
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [loading, loadingMore, hasMore, loadItems]);
+
+  const handleOpen = async (item) => {
+    const existing = findExisting(item);
+    if (existing) {
+      navigate(`/ContentDetail?id=${existing.id}`);
+    } else {
+      const newContent = await addMutation.mutateAsync(item);
+      qc.invalidateQueries({ queryKey: ["contents"] });
+      navigate(`/ContentDetail?id=${newContent.id}`);
+    }
+  };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">Découvrir</h1>
-        <p className="text-muted-foreground mt-1">
-          {filtered.length > 0 ? `${filtered.length} livres chargés — scroll pour en découvrir plus` : "Explorez des millions de livres via Google Books"}
-        </p>
+        <p className="text-muted-foreground text-sm mt-0.5">Explorez livres, vidéos, podcasts et articles</p>
       </div>
 
-      {/* Search + Filter button */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Rechercher un livre, auteur, sujet…"
-            className="pl-10 pr-10 h-11 text-base"
-          />
-          {query && (
-            <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-            </button>
-          )}
-        </div>
-        <Button
-          variant={showFilters || activeFiltersCount > 0 ? "default" : "outline"}
-          className="h-11 gap-2 shrink-0"
-          onClick={() => setShowFilters(v => !v)}
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          Filtres
-          {activeFiltersCount > 0 && (
-            <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">{activeFiltersCount}</span>
-          )}
-        </Button>
-      </div>
-
-      {/* Content type quick filters */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {[
-          { value: "", label: "Tous" },
-          { value: "book", label: "📚 Livres" },
-          { value: "podcast", label: "🎙️ Podcasts" },
-          { value: "video", label: "🎬 Vidéos" },
-          { value: "article", label: "📰 Articles" },
-        ].map(t => (
-          <Button key={t.value} variant={filters.contentType === t.value ? "default" : "outline"} size="sm"
-            onClick={() => setFilters(f => ({ ...f, contentType: t.value }))} className="shrink-0 h-8 text-xs">
-            {t.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Quick criteria */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          { sort: "rating_desc", label: "⭐ Mieux notés" },
-          { sort: "date_desc", label: "🆕 Plus récents" },
-          { sort: "pages_asc", label: "⚡ Lecture rapide" },
-          { sort: "pages_desc", label: "📖 Lecture longue" },
-          { sort: "date_asc", label: "🏛️ Classiques" },
-          { sort: "rating_asc", label: "💎 Pépites cachées" },
-        ].map(c => (
-          <button key={c.sort} onClick={() => setFilters(f => ({ ...f, sort: c.sort }))}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              filters.sort === c.sort
-                ? "bg-accent text-white border-accent"
-                : "bg-secondary hover:bg-accent/10 hover:text-accent border-border"
-            }`}>
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Filter panel */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-            <FilterPanel
-              filters={filters}
-              onChange={setFilters}
-              onClose={() => setShowFilters(false)}
-              onReset={() => setFilters(DEFAULT_FILTERS)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Initial loading */}
-      {allBooks.length === 0 && isFetchingMore && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-accent mr-2" />
-          <span className="text-muted-foreground text-sm">Chargement des livres…</span>
-        </div>
-      )}
-
-      {filtered.length === 0 && !isFetchingMore && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Aucun résultat. Essayez un autre mot-clé ou ajustez les filtres.</p>
-        </div>
-      )}
-
-      {/* Cards grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((item, i) => {
-          const Icon = TYPE_ICON_MAP[item.type] || BookOpen;
-          const existing = existingByTitle[item.title];
-          const isAdded = !!existing;
-
+      {/* Tabs */}
+      <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+        {TABS.map(t => {
+          const Icon = t.icon;
           return (
-            <motion.div key={item.googleId || item.title + i}
-              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.02, 0.4) }}>
-              <Card className="h-full hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex flex-col h-full">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center border border-border">
-                      {item.cover_url ? (
-                        <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <Icon className="w-5 h-5 text-accent" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm leading-tight line-clamp-2">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.author}</p>
-                      <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                        <span className="text-xs bg-secondary px-1.5 py-0.5 rounded">{TYPE_LABELS[item.type] || item.type}</span>
-                        {item.category && item.category !== "autre" && (
-                          <span className="text-xs bg-secondary px-1.5 py-0.5 rounded">{CATEGORY_LABELS[item.category] || item.category}</span>
-                        )}
-                        {item.rating && (
-                          <span className="text-xs text-yellow-500 font-medium">⭐ {item.rating.toFixed(1)}</span>
-                        )}
-                        {item.total_pages && (
-                          <span className="text-xs text-muted-foreground">{item.total_pages}p</span>
-                        )}
-                        {item.publishedDate && (
-                          <span className="text-xs text-muted-foreground">{item.publishedDate.slice(0, 4)}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground flex-1 mb-3 leading-relaxed line-clamp-3">{item.summary}</p>
-
-                  <button
-                    onClick={async () => {
-                      if (isAdded) {
-                        navigate(`/ContentDetail?id=${existing.id}`);
-                      } else {
-                        const newContent = await addMutation.mutateAsync(item);
-                        queryClient.invalidateQueries({ queryKey: ["contents"] });
-                        navigate(`/ContentDetail?id=${newContent.id}`);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1 text-xs text-accent hover:underline mb-3 font-medium"
-                  >
-                    <ExternalLink className="w-3 h-3" /> Voir les détails
-                  </button>
-
-                  <Button
-                    size="sm"
-                    variant={isAdded ? "secondary" : "default"}
-                    className={`w-full ${isAdded ? "border border-green-500/30 text-green-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300" : ""}`}
-                    disabled={addMutation.isPending || removeMutation.isPending}
-                    onClick={() => isAdded ? removeMutation.mutate(existing.id) : addMutation.mutate(item)}
-                  >
-                    {addMutation.isPending || removeMutation.isPending ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : isAdded ? (
-                      <><Check className="w-3.5 h-3.5 mr-1.5" /> Ajouté — Retirer</>
-                    ) : (
-                      <><Plus className="w-3.5 h-3.5 mr-1.5" /> Ajouter à ma bibliothèque</>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <button key={t.id} onClick={() => { setActiveTab(t.id); setQuery(""); }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all shrink-0 ${activeTab === t.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:border-accent/40 hover:text-foreground'}`}>
+              <Icon className={activeTab === t.id ? '' : t.color} style={{ width: 14, height: 14 }} />
+              {t.label}
+            </button>
           );
         })}
       </div>
 
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input value={query} onChange={e => setQuery(e.target.value)}
+          placeholder={PLACEHOLDERS[activeTab]}
+          className="pl-10 pr-10 h-11 text-base" />
+        {query && (
+          <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+          </button>
+        )}
+      </div>
+
+      {/* Results count */}
+      {items.length > 0 && !loading && (
+        <p className="text-xs text-muted-foreground">
+          {debouncedQuery ? `${items.length} résultat${items.length > 1 ? 's' : ''} pour "${debouncedQuery}"` : `${items.length} contenus chargés`}
+        </p>
+      )}
+
+      {/* Grid */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      ) : items.length === 0 && !loading ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-sm">Aucun résultat. Essayez un autre mot-clé.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {items.map((item, i) => {
+            const existing = findExisting(item);
+            const itemId = item.externalId || (item.title + item.type);
+            return (
+              <ContentCard key={itemId + i}
+                item={item}
+                isAdded={!!existing}
+                adding={addMutation.isPending && addMutation.variables?.title === item.title}
+                removing={removeMutation.isPending && removeMutation.variables === existing?.id}
+                onOpen={() => handleOpen(item)}
+                onAdd={() => addMutation.mutate(item)}
+                onRemove={() => existing && removeMutation.mutate(existing.id)}
+              />
+            );
+          })}
+        </div>
+      )}
+
       {/* Infinite scroll loader */}
-      <div ref={loaderRef} className="flex flex-col items-center py-8 gap-3">
-        {isFetchingMore && (
+      <div ref={loaderRef} className="flex flex-col items-center py-6 gap-3">
+        {loadingMore && (
           <>
-            <Loader2 className="w-6 h-6 animate-spin text-accent" />
-            <p className="text-sm text-muted-foreground">Chargement de nouveaux livres…</p>
+            <Loader2 className="w-5 h-5 animate-spin text-accent" />
+            <p className="text-xs text-muted-foreground">Chargement…</p>
           </>
         )}
-        {!isFetchingMore && filtered.length > 0 && (
-          <Button variant="outline" size="sm" onClick={() => loadBooks(page, queryPoolIndex)} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> Charger plus
+        {!loadingMore && items.length > 0 && (
+          <Button variant="outline" size="sm" onClick={() => loadItems(true)} className="gap-2 text-xs">
+            <RefreshCw className="w-3.5 h-3.5" /> Charger plus
           </Button>
         )}
       </div>

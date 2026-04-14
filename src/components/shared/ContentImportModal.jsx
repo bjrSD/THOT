@@ -1,29 +1,57 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { searchContent, importFromUrl, mapToContent, findDuplicate } from '@/lib/contentImportService';
-import { X, Search, Link, Loader2, Plus, Play, Headphones, FileText, BookOpen, CheckCircle, ExternalLink } from 'lucide-react';
+import { searchByType, searchAll, mapToContent, findDuplicate, importFromUrl } from '@/lib/contentSearchService';
+import { X, Search, Link, Loader2, Plus, Play, Headphones, FileText, BookOpen, CheckCircle, ExternalLink, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const TYPES = [
-  { id: 'video', label: 'Vidéo', icon: Play, color: 'text-red-500', bg: 'bg-red-500/10' },
-  { id: 'podcast', label: 'Podcast', icon: Headphones, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-  { id: 'article', label: 'Article', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-  { id: 'book', label: 'Livre', icon: BookOpen, color: 'text-green-500', bg: 'bg-green-500/10' },
+  { id: 'all',     label: 'Tous',    icon: LayoutGrid,  color: 'text-muted-foreground', bg: 'bg-secondary' },
+  { id: 'video',   label: 'Vidéo',   icon: Play,        color: 'text-red-500',          bg: 'bg-red-500/10' },
+  { id: 'podcast', label: 'Podcast', icon: Headphones,  color: 'text-purple-500',       bg: 'bg-purple-500/10' },
+  { id: 'article', label: 'Article', icon: FileText,    color: 'text-blue-500',         bg: 'bg-blue-500/10' },
+  { id: 'book',    label: 'Livre',   icon: BookOpen,    color: 'text-green-500',        bg: 'bg-green-500/10' },
 ];
+
+const TYPE_ICON_MAP = { video: Play, podcast: Headphones, article: FileText, book: BookOpen };
+const TYPE_COLOR_MAP = { video: 'text-red-500', podcast: 'text-purple-500', article: 'text-blue-500', book: 'text-green-500' };
+const TYPE_LABEL_MAP = { video: 'Vidéo', podcast: 'Podcast', article: 'Article', book: 'Livre' };
+
+const PLACEHOLDERS = {
+  all:     'Rechercher un contenu…',
+  video:   'Rechercher une vidéo YouTube…',
+  podcast: 'Rechercher un podcast…',
+  article: 'Rechercher un article…',
+  book:    'Rechercher un livre…',
+};
+
+function TypeBadge({ type }) {
+  const Icon = TYPE_ICON_MAP[type] || FileText;
+  const color = TYPE_COLOR_MAP[type] || 'text-muted-foreground';
+  const label = TYPE_LABEL_MAP[type] || type;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-secondary ${color}`}>
+      <Icon style={{ width: 10, height: 10 }} /> {label}
+    </span>
+  );
+}
 
 function ResultCard({ item, onAdd, adding }) {
   return (
     <div className="flex items-start gap-3 p-3 bg-card border border-border rounded-xl hover:border-accent/40 transition-all">
       {item.imageUrl ? (
-        <img src={item.imageUrl} alt={item.title} className="w-14 h-14 rounded-lg object-cover shrink-0 bg-secondary" />
+        <img src={item.imageUrl} alt={item.title}
+          className={`rounded-lg object-cover shrink-0 bg-secondary ${item.type === 'video' ? 'w-20 h-12' : 'w-12 h-14'}`} />
       ) : (
-        <div className="w-14 h-14 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+        <div className={`rounded-lg bg-secondary flex items-center justify-center shrink-0 ${item.type === 'video' ? 'w-20 h-12' : 'w-12 h-14'}`}>
           <FileText className="w-5 h-5 text-muted-foreground" />
         </div>
       )}
       <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <TypeBadge type={item.type} />
+        </div>
         <p className="text-sm font-semibold line-clamp-2 leading-tight">{item.title}</p>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.creator || item.sourceName}</p>
         {item.publishedAt && (
@@ -41,8 +69,9 @@ function ResultCard({ item, onAdd, adding }) {
 function SkeletonCard() {
   return (
     <div className="flex items-start gap-3 p-3 bg-card border border-border rounded-xl animate-pulse">
-      <div className="w-14 h-14 rounded-lg bg-secondary shrink-0" />
+      <div className="w-12 h-14 rounded-lg bg-secondary shrink-0" />
       <div className="flex-1 space-y-2">
+        <div className="h-2.5 bg-secondary rounded w-1/3" />
         <div className="h-3 bg-secondary rounded w-3/4" />
         <div className="h-2.5 bg-secondary rounded w-1/2" />
       </div>
@@ -51,7 +80,7 @@ function SkeletonCard() {
 }
 
 export default function ContentImportModal({ onClose }) {
-  const [mode, setMode] = useState('search'); // 'search' | 'url'
+  const [mode, setMode] = useState('search');
   const [selectedType, setSelectedType] = useState('video');
   const [query, setQuery] = useState('');
   const [urlInput, setUrlInput] = useState('');
@@ -62,6 +91,7 @@ export default function ContentImportModal({ onClose }) {
   const [addingId, setAddingId] = useState(null);
   const [urlPreview, setUrlPreview] = useState(null);
   const debounceRef = useRef(null);
+  const abortRef = useRef(null);
   const qc = useQueryClient();
 
   const createMutation = useMutation({
@@ -71,12 +101,21 @@ export default function ContentImportModal({ onClose }) {
 
   const handleSearch = useCallback(async (q, type) => {
     if (!q.trim() || q.length < 2) { setResults([]); return; }
+    // Cancel previous request signal
+    if (abortRef.current) abortRef.current = false;
+    const token = {};
+    abortRef.current = token;
+
     setLoading(true);
     setError(null);
     try {
-      const items = await searchContent(type, q);
+      const items = type === 'all'
+        ? await searchAll(q, 20)
+        : await searchByType(type, q, 15);
+      if (abortRef.current !== token) return; // stale
       setResults(items);
     } catch (e) {
+      if (abortRef.current !== token) return;
       setError('Erreur lors de la recherche. Vérifiez votre connexion.');
       setResults([]);
     }
@@ -86,7 +125,7 @@ export default function ContentImportModal({ onClose }) {
   const onQueryChange = (val) => {
     setQuery(val);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => handleSearch(val, selectedType), 600);
+    debounceRef.current = setTimeout(() => handleSearch(val, selectedType), 500);
   };
 
   const onTypeChange = (type) => {
@@ -105,6 +144,7 @@ export default function ContentImportModal({ onClose }) {
     setUrlPreview(null);
     try {
       const item = await importFromUrl(urlInput.trim());
+      if (!item) throw new Error('no data');
       setUrlPreview(item);
     } catch (e) {
       setError('Impossible de récupérer les métadonnées. Vérifiez le lien.');
@@ -127,14 +167,14 @@ export default function ContentImportModal({ onClose }) {
       await createMutation.mutateAsync(contentData);
       setAddedIds(s => new Set([...s, itemId]));
     } catch (e) {
-      setError('Erreur lors de l\'ajout.');
+      setError("Erreur lors de l'ajout.");
     }
     setAddingId(null);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-background w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl border border-border shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-background w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl border border-border shadow-2xl flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <h2 className="font-heading font-bold text-base">Ajouter un contenu</h2>
@@ -159,15 +199,15 @@ export default function ContentImportModal({ onClose }) {
         <div className="flex-1 overflow-y-auto p-3 space-y-3">
           {mode === 'search' ? (
             <>
-              {/* Type selector */}
-              <div className="grid grid-cols-4 gap-1.5">
+              {/* Type selector — 5 chips */}
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
                 {TYPES.map(t => {
                   const Icon = t.icon;
                   return (
                     <button key={t.id} onClick={() => onTypeChange(t.id)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all text-xs font-medium ${selectedType === t.id ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-card text-muted-foreground hover:border-accent/40'}`}>
-                      <div className={`w-7 h-7 rounded-lg ${t.bg} flex items-center justify-center`}>
-                        <Icon className={`w-3.5 h-3.5 ${t.color}`} style={{ width: 14, height: 14 }} />
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all text-xs font-medium shrink-0 ${selectedType === t.id ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-card text-muted-foreground hover:border-accent/40'}`}>
+                      <div className={`w-5 h-5 rounded ${t.bg} flex items-center justify-center`}>
+                        <Icon className={t.color} style={{ width: 11, height: 11 }} />
                       </div>
                       {t.label}
                     </button>
@@ -179,7 +219,7 @@ export default function ContentImportModal({ onClose }) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input value={query} onChange={e => onQueryChange(e.target.value)}
-                  placeholder={`Rechercher ${TYPES.find(t => t.id === selectedType)?.label.toLowerCase()}...`}
+                  placeholder={PLACEHOLDERS[selectedType]}
                   className="pl-9 text-sm" autoFocus />
               </div>
 
@@ -210,14 +250,14 @@ export default function ContentImportModal({ onClose }) {
                   <p className="text-xs mt-1">Essayez avec d'autres mots-clés</p>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm">Tapez au moins 2 caractères pour rechercher</p>
+                <div className="text-center py-6 text-muted-foreground">
+                  <p className="text-sm">Tapez pour rechercher</p>
+                  <p className="text-xs mt-1 opacity-60">{PLACEHOLDERS[selectedType]}</p>
                 </div>
               )}
             </>
           ) : (
             <>
-              {/* URL mode */}
               <div className="flex gap-2">
                 <Input value={urlInput} onChange={e => setUrlInput(e.target.value)}
                   placeholder="https://youtube.com/watch?v=... ou article..."
@@ -239,7 +279,7 @@ export default function ContentImportModal({ onClose }) {
                     )}
                     <div className="p-4 space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs bg-accent/15 text-accent px-2 py-0.5 rounded-full font-medium capitalize">{urlPreview.type}</span>
+                        <TypeBadge type={urlPreview.type} />
                         {urlPreview.sourceProvider && (
                           <span className="text-xs text-muted-foreground">{urlPreview.sourceProvider}</span>
                         )}
