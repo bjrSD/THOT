@@ -102,6 +102,9 @@ export default function ContentCard({ content, onClick }) {
           {content.total_duration && !content.total_pages && (
             <p className="text-xs text-muted-foreground mt-0.5">{content.total_duration} min</p>
           )}
+          {content.published_date && (
+            <p className="text-xs text-muted-foreground mt-0.5">📅 {content.published_date.slice(0, 4)}</p>
+          )}
         </div>
       </div>
 
@@ -134,7 +137,7 @@ export default function ContentCard({ content, onClick }) {
         >
           <ExternalLink className="w-3 h-3" /> Voir le détail
         </button>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+        <div onClick={e => e.stopPropagation()}>
           <AddToPlaylistMenu contentId={content.id} />
         </div>
       </div>
