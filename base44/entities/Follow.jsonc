@@ -1,0 +1,23 @@
+{
+  "name": "Follow",
+  "type": "object",
+  "properties": {
+    "follower_email": {
+      "type": "string",
+      "description": "Email de celui qui suit"
+    },
+    "following_email": {
+      "type": "string",
+      "description": "Email de celui qui est suivi"
+    },
+    "is_friend": {
+      "type": "boolean",
+      "default": false,
+      "description": "Les deux se suivent mutuellement (amis)"
+    }
+  },
+  "required": [
+    "follower_email",
+    "following_email"
+  ]
+}
