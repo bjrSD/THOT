@@ -64,11 +64,15 @@ function PlaylistForm({ initial, onSave, onCancel }) {
   );
 }
 
+import { Search } from "lucide-react";
+
 export default function PlaylistPanel({ contents = [] }) {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [addingToId, setAddingToId] = useState(null);
+  const [addSearch, setAddSearch] = useState("");
 
   const { data: playlists = [], isLoading } = useQuery({
     queryKey: ["playlists"],
@@ -182,6 +186,13 @@ export default function PlaylistPanel({ contents = [] }) {
 
                     {/* Actions */}
                     <div className="flex gap-1 shrink-0">
+                      <button
+                        onClick={() => { setAddingToId(addingToId === pl.id ? null : pl.id); setAddSearch(""); setExpandedId(pl.id); }}
+                        className="p-1.5 rounded-lg hover:bg-accent/10 transition-colors text-accent"
+                        title="Ajouter un contenu"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
                       <button onClick={() => setEditingId(pl.id)} className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
@@ -198,6 +209,56 @@ export default function PlaylistPanel({ contents = [] }) {
                       </button>
                     </div>
                   </div>
+
+                  {/* Add content picker */}
+                  <AnimatePresence>
+                    {addingToId === pl.id && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-accent/30 bg-accent/5 px-4 py-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-accent">Ajouter un contenu</p>
+                          <button onClick={() => setAddingToId(null)} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                        <div className="relative mb-2">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                          <input
+                            autoFocus
+                            value={addSearch}
+                            onChange={e => setAddSearch(e.target.value)}
+                            placeholder="Rechercher dans ma bibliothèque…"
+                            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                          />
+                        </div>
+                        <div className="max-h-48 overflow-y-auto space-y-0.5">
+                          {contents
+                            .filter(c => !(pl.content_ids || []).includes(c.id))
+                            .filter(c => !addSearch || c.title.toLowerCase().includes(addSearch.toLowerCase()) || (c.author || "").toLowerCase().includes(addSearch.toLowerCase()))
+                            .slice(0, 20)
+                            .map(c => {
+                              const Icon = TYPE_ICON[c.type] || BookOpen;
+                              return (
+                                <button key={c.id}
+                                  onClick={() => updatePlaylist.mutate({ id: pl.id, data: { content_ids: [...(pl.content_ids || []), c.id] } })}
+                                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary transition-colors text-left">
+                                  {c.cover_url
+                                    ? <img src={c.cover_url} alt={c.title} className="w-7 h-9 object-cover rounded shrink-0" />
+                                    : <div className="w-7 h-9 rounded bg-secondary flex items-center justify-center shrink-0"><Icon className="w-3.5 h-3.5 text-muted-foreground" /></div>
+                                  }
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{c.title}</p>
+                                    {c.author && <p className="text-[10px] text-muted-foreground truncate">{c.author}</p>}
+                                  </div>
+                                  <Plus className="w-3.5 h-3.5 text-accent shrink-0" />
+                                </button>
+                              );
+                            })}
+                          {contents.filter(c => !(pl.content_ids || []).includes(c.id)).length === 0 && (
+                            <p className="text-xs text-muted-foreground text-center py-3">Tous vos contenus sont déjà dans cette playlist</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Expanded contents with drag-to-reorder */}
                   <AnimatePresence>
