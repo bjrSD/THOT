@@ -72,6 +72,7 @@ function StatusFilter({ value, onChange }) {
 export default function Library() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [playlistFilter, setPlaylistFilter] = useState("all"); // "all" or playlistId
   // Mobile defaults to "list", desktop to "kanban"
   const [view, setView] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768) ? "list" : "kanban");
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,6 +81,11 @@ export default function Library() {
   const { data: contents = [], isLoading } = useQuery({
     queryKey: ["contents"],
     queryFn: () => base44.entities.Content.list("-updated_date", 200),
+  });
+
+  const { data: playlists = [] } = useQuery({
+    queryKey: ["playlists"],
+    queryFn: () => base44.entities.Playlist.list("-updated_date", 100),
   });
 
   const createMutation = useMutation({
@@ -115,6 +121,11 @@ export default function Library() {
   const filtered = contents
     .filter(c => typeFilter === "all" || c.type === typeFilter)
     .filter(c => statusFilter === "all" || c.status === statusFilter)
+    .filter(c => {
+      if (playlistFilter === "all") return true;
+      const playlist = playlists.find(p => p.id === playlistFilter);
+      return playlist?.content_ids?.includes(c.id);
+    })
     .filter(c => !searchQuery || c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.author.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const onDragEnd = (result) => {
@@ -182,6 +193,18 @@ export default function Library() {
             {view !== "kanban" && (
               <div className="shrink-0">
                 <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+              </div>
+            )}
+            {/* Playlist filter */}
+            {playlists.length > 0 && (
+              <div className="shrink-0">
+                <select value={playlistFilter} onChange={(e) => setPlaylistFilter(e.target.value)}
+                  className="text-xs px-3 py-2 rounded-xl border border-border bg-card hover:border-accent/40 transition-colors font-medium cursor-pointer">
+                  <option value="all">Tous les contenus</option>
+                  {playlists.map(p => (
+                    <option key={p.id} value={p.id}>{p.emoji || "🎵"} {p.name}</option>
+                  ))}
+                </select>
               </div>
             )}
           </div>

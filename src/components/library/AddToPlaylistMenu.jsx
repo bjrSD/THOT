@@ -1,134 +1,126 @@
 import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ListMusic, Check, Plus, Loader2 } from "lucide-react";
+import { Music, Plus, Check, Loader2, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-export default function AddToPlaylistMenu({ contentId, className = "" }) {
+export default function AddToPlaylistMenu({ contentId }) {
   const [open, setOpen] = useState(false);
-  const [newName, setNewName] = useState("");
+  const [newPlaylistName, setNewPlaylistName] = useState("");
   const [creating, setCreating] = useState(false);
-  const [openUp, setOpenUp] = useState(false);
-  const btnRef = useRef(null);
-  const qc = useQueryClient();
+  const menuRef = useRef(null);
+  const queryClient = useQueryClient();
 
-  // Detect if dropdown should open upward (near bottom of viewport)
+  // Close on outside click
   useEffect(() => {
-    if (open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setOpenUp(rect.bottom > window.innerHeight - 260);
-    }
-  }, [open]);
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
 
   const { data: playlists = [] } = useQuery({
     queryKey: ["playlists"],
-    queryFn: () => base44.entities.Playlist.list("-created_date", 50),
+    queryFn: () => base44.entities.Playlist.list("-updated_date", 100),
     enabled: open,
   });
 
-  const updatePlaylist = useMutation({
-    mutationFn: ({ id, content_ids }) => base44.entities.Playlist.update(id, { content_ids }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["playlists"] }),
-  });
-
-  const createPlaylist = useMutation({
-    mutationFn: (name) => base44.entities.Playlist.create({ name, content_ids: [contentId] }),
+  const updatePlaylistMutation = useMutation({
+    mutationFn: (playlistId) => {
+      const playlist = playlists.find(p => p.id === playlistId);
+      const ids = playlist.content_ids || [];
+      if (!ids.includes(contentId)) ids.push(contentId);
+      return base44.entities.Playlist.update(playlistId, { content_ids: ids });
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["playlists"] });
-      setNewName("");
-      setCreating(false);
+      queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      setOpen(false);
     },
   });
 
-  const isInPlaylist = (pl) => (pl.content_ids || []).includes(contentId);
+  const createPlaylistMutation = useMutation({
+    mutationFn: () =>
+      base44.entities.Playlist.create({
+        name: newPlaylistName,
+        content_ids: [contentId],
+        visibility: "private",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      setNewPlaylistName("");
+      setCreating(false);
+      setOpen(false);
+    },
+  });
 
-  const toggle = (pl) => {
-    const ids = pl.content_ids || [];
-    const newIds = isInPlaylist(pl) ? ids.filter(i => i !== contentId) : [...ids, contentId];
-    updatePlaylist.mutate({ id: pl.id, content_ids: newIds });
+  const handleCreatePlaylist = () => {
+    if (!newPlaylistName.trim()) return;
+    setCreating(true);
+    createPlaylistMutation.mutate();
+  };
+
+  const isInPlaylist = (playlistId) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    return playlist?.content_ids?.includes(contentId);
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <button
-        ref={btnRef}
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${
-          open
-            ? "bg-accent text-white"
-            : "text-muted-foreground hover:text-accent hover:bg-secondary"
-        }`}
-        title="Ajouter à une playlist"
-      >
-        <ListMusic className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline text-[10px] font-medium">Playlist</span>
-      </button>
+    <div className="relative" ref={menuRef}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(!open)}
+        className="gap-1.5">
+        <Music className="w-4 h-4" /> Playlist
+        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </Button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpen(false); setCreating(false); }} />
-          <div
-            className={`absolute right-0 w-56 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1 ${
-              openUp ? "bottom-full mb-1" : "top-full mt-1"
-            }`}
-          >
-            <p className="text-xs font-semibold text-muted-foreground px-3 py-2 border-b border-border flex items-center gap-1.5">
-              <ListMusic className="w-3 h-3" /> Mes playlists
-            </p>
+        <div className="absolute top-full mt-1 right-0 w-56 bg-card border border-border rounded-xl shadow-xl z-50 p-3 space-y-2">
+          {/* Create new */}
+          <div className="flex gap-1">
+            <Input
+              placeholder="Nouvelle playlist"
+              value={newPlaylistName}
+              onChange={(e) => setNewPlaylistName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreatePlaylist()}
+              className="h-8 text-xs"
+            />
+            <Button
+              size="sm"
+              onClick={handleCreatePlaylist}
+              disabled={!newPlaylistName.trim() || createPlaylistMutation.isPending}
+              className="h-8 px-2">
+              {createPlaylistMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+            </Button>
+          </div>
 
-            {playlists.length === 0 && !creating && (
-              <p className="text-xs text-muted-foreground px-3 py-3 text-center">Aucune playlist</p>
-            )}
-
-            <div className="max-h-40 overflow-y-auto">
-              {playlists.map(pl => (
+          {/* Existing playlists */}
+          {playlists.length === 0 && !newPlaylistName ? (
+            <p className="text-xs text-muted-foreground text-center py-2">Aucune playlist</p>
+          ) : (
+            <div className="space-y-1 max-h-48 overflow-y-auto">
+              {playlists.map(p => (
                 <button
-                  key={pl.id}
-                  onClick={(e) => { e.stopPropagation(); toggle(pl); }}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left ${
-                    isInPlaylist(pl) ? "bg-accent/10 text-accent" : "hover:bg-secondary"
-                  }`}
-                >
-                  <span>{pl.emoji || "📚"}</span>
-                  <span className="flex-1 truncate font-medium">{pl.name}</span>
-                  {isInPlaylist(pl)
-                    ? <Check className="w-3.5 h-3.5 text-accent shrink-0" />
-                    : <Plus className="w-3 h-3 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100" />
-                  }
+                  key={p.id}
+                  onClick={() => updatePlaylistMutation.mutate(p.id)}
+                  disabled={updatePlaylistMutation.isPending}
+                  className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-lg border transition-all ${
+                    isInPlaylist(p.id)
+                      ? "bg-accent/10 border-accent text-accent"
+                      : "border-border hover:border-accent/40 hover:bg-secondary/50"
+                  }`}>
+                  {p.emoji && <span>{p.emoji}</span>}
+                  <span className="flex-1 truncate">{p.name}</span>
+                  {isInPlaylist(p.id) && <Check className="w-3 h-3 shrink-0" />}
+                  {updatePlaylistMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
                 </button>
               ))}
             </div>
-
-            {/* Créer nouvelle playlist */}
-            <div className="border-t border-border px-2 pt-1 pb-2">
-              {creating ? (
-                <div className="flex gap-1 mt-1" onClick={e => e.stopPropagation()}>
-                  <input
-                    autoFocus
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createPlaylist.mutate(newName.trim()); }}
-                    placeholder="Nom de la playlist…"
-                    className="flex-1 text-xs px-2 py-1.5 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <button
-                    onClick={(e) => { e.stopPropagation(); if (newName.trim()) createPlaylist.mutate(newName.trim()); }}
-                    disabled={!newName.trim() || createPlaylist.isPending}
-                    className="px-2 py-1 bg-accent text-white rounded-md text-xs disabled:opacity-50 shrink-0"
-                  >
-                    {createPlaylist.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "OK"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setCreating(true); }}
-                  className="w-full flex items-center gap-1.5 text-xs text-accent hover:bg-accent/10 px-2 py-1.5 rounded-lg transition-colors mt-1 font-medium"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Nouvelle playlist
-                </button>
-              )}
-            </div>
-          </div>
-        </>
+          )}
+        </div>
       )}
     </div>
   );

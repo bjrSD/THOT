@@ -50,32 +50,11 @@ export default function GoogleBooksSearch({ onSelect }) {
     if (onSelect) onSelect({ ...item, _created: created });
   };
 
-  // Click on item → go to ContentDetail if already in library, else open descriptif via search result
-  const handleClick = async (item) => {
+  // Click on item → redirect to SearchResultDetail
+  const handleClick = (item) => {
     setOpen(false);
-    // Try to find existing content by externalId
-    const key = item.externalId || item.title;
-    if (adding[key] === 'done') {
-      // Already added this session — just navigate to library
-      window.location.href = createPageUrl("Library");
-      return;
-    }
-    // Otherwise call onSelect (default behaviour for Library page)
-    if (onSelect) {
-      onSelect({
-        title: item.title,
-        author: item.creator || item.sourceName || "",
-        cover_url: item.imageUrl || null,
-        summary: item.description || "",
-        total_pages: item.pageCount || null,
-        buy_link: item.externalUrl || "",
-        published_date: item.publishedAt || "",
-        type: item.type,
-        content_url: item.externalUrl || "",
-        _raw: item,
-      });
-    }
-    setQuery(item.title);
+    const itemData = encodeURIComponent(JSON.stringify(item));
+    window.location.href = createPageUrl("SearchResultDetail") + `?data=${itemData}`;
   };
 
   return (

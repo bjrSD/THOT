@@ -249,15 +249,9 @@ export default function Discover() {
     return () => observer.disconnect();
   }, [loading, loadingMore, hasMore, loadItems]);
 
-  const handleOpen = async (item) => {
-    const existing = findExisting(item);
-    if (existing) {
-      navigate(`/ContentDetail?id=${existing.id}`);
-    } else {
-      const newContent = await addMutation.mutateAsync(item);
-      qc.invalidateQueries({ queryKey: ["contents"] });
-      navigate(`/ContentDetail?id=${newContent.id}`);
-    }
+  const handleOpen = (item) => {
+    const itemData = encodeURIComponent(JSON.stringify(item));
+    navigate(`/SearchResultDetail?data=${itemData}`);
   };
 
   return (
