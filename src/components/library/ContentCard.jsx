@@ -76,57 +76,66 @@ export default function ContentCard({ content, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group flex items-start gap-3 p-3"
+      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group flex flex-col p-3 gap-2"
     >
-      {/* Cover — petit rectangle arrondi à gauche */}
-      <div className="w-14 h-20 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden shrink-0 border border-border">
-        {content.cover_url ? (
-          <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover" />
-        ) : (
-          <Icon className="w-6 h-6 text-accent/40" />
-        )}
-      </div>
-
-      {/* Infos à droite */}
-      <div className="flex flex-col flex-1 min-w-0">
-        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-0.5">{content.title}</p>
-        {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{content.author}</p>}
-
-        {/* Type + Statut + pages */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-          <span className="text-xs bg-secondary px-1.5 py-0.5 rounded-full shrink-0">{TYPE_LABELS[content.type]}</span>
-          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
-            {STATUS_LABELS_EXT[content.status] || ""}
-          </span>
-          {content.total_pages && (
-            <span className="text-xs text-muted-foreground shrink-0">{content.total_pages}p</span>
+      {/* Ligne 1 : cover + infos principales côte à côte */}
+      <div className="flex items-start gap-3">
+        {/* Cover */}
+        <div className="w-14 h-20 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden shrink-0 border border-border">
+          {content.cover_url ? (
+            <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover" />
+          ) : (
+            <Icon className="w-6 h-6 text-accent/40" />
           )}
         </div>
 
-        {/* Progression */}
-        {progress > 0 && (
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Progress value={progress} className="h-1 flex-1" />
-            <span className="text-[10px] text-muted-foreground shrink-0">{progress}%</span>
-          </div>
-        )}
+        {/* Infos : titre, auteur, date, pages — à droite de l'image */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <p className="font-semibold text-sm line-clamp-2 leading-tight">{content.title}</p>
+          {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{content.author}</p>}
+          {content.published_date && (
+            <p className="text-xs text-muted-foreground mt-0.5">{content.published_date.slice(0, 4)}</p>
+          )}
+          {content.total_pages && (
+            <p className="text-xs text-muted-foreground mt-0.5">{content.total_pages} pages</p>
+          )}
+          {content.total_duration && !content.total_pages && (
+            <p className="text-xs text-muted-foreground mt-0.5">{content.total_duration} min</p>
+          )}
+        </div>
+      </div>
 
-        {/* Résumé */}
-        {content.summary && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-1.5">{content.summary}</p>
-        )}
+      {/* Ligne 2 : Type + Statut sur toute la largeur */}
+      <div className="flex items-center justify-between gap-1.5">
+        <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{TYPE_LABELS[content.type]}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
+          {STATUS_LABELS_EXT[content.status] || ""}
+        </span>
+      </div>
 
-        {/* Voir le détail + Playlist menu */}
-        <div className="flex items-center justify-between mt-auto">
-          <button
-            onClick={onClick}
-            className="flex items-center gap-1 text-xs text-accent hover:underline font-medium"
-          >
-            <ExternalLink className="w-3 h-3" /> Voir le détail
-          </button>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-            <AddToPlaylistMenu contentId={content.id} />
-          </div>
+      {/* Ligne 3 : Progression */}
+      {progress > 0 && (
+        <div className="flex items-center gap-1.5">
+          <Progress value={progress} className="h-1 flex-1" />
+          <span className="text-[10px] text-muted-foreground shrink-0">{progress}%</span>
+        </div>
+      )}
+
+      {/* Ligne 4 : Résumé */}
+      {content.summary && (
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{content.summary}</p>
+      )}
+
+      {/* Ligne 5 : Voir le détail + Playlist menu */}
+      <div className="flex items-center justify-between mt-auto pt-0.5">
+        <button
+          onClick={onClick}
+          className="flex items-center gap-1 text-xs text-accent hover:underline font-medium"
+        >
+          <ExternalLink className="w-3 h-3" /> Voir le détail
+        </button>
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <AddToPlaylistMenu contentId={content.id} />
         </div>
       </div>
     </div>
