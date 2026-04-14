@@ -182,6 +182,11 @@ export const translations = {
 };
 
 export function detectLanguage() {
+  // Check if running in browser
+  if (typeof window === 'undefined') {
+    return 'en'; // Default for SSR
+  }
+
   // Check localStorage first
   const saved = localStorage.getItem('thot-language');
   if (saved) return saved;
