@@ -172,19 +172,7 @@ export default function PlaylistPanel({ contents = [] }) {
                   {/* Playlist header */}
                   <div className="flex items-center gap-3 p-4">
                     <button onClick={() => setExpandedId(expandedId === pl.id ? null : pl.id)} className="flex items-center gap-3 flex-1 text-left min-w-0">
-                      {/* Cover stack: 3 premiers contenus superposés, ou emoji si vide */}
-                      {plContents.filter(c => c.cover_url).slice(0, 3).length > 0 ? (
-                        <div className="relative shrink-0 w-10 h-12">
-                          {plContents.filter(c => c.cover_url).slice(0, 3).reverse().map((c, i) => (
-                            <img key={c.id} src={c.cover_url} alt={c.title}
-                              className="absolute w-8 h-11 object-cover rounded-md border-2 border-card shadow-sm"
-                              style={{ left: `${i * 5}px`, top: `${i * 2}px`, zIndex: i }}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-2xl shrink-0">{pl.emoji || "📚"}</span>
-                      )}
+                      <span className="text-2xl shrink-0">{pl.emoji || "📚"}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-sm truncate">{pl.name}</p>

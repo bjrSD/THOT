@@ -10,10 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2,
   Star, Save, Globe, TrendingUp, BookMarked, BarChart3, CheckCircle2,
-  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, ChevronRight
+  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
@@ -83,19 +81,19 @@ function StarRow({ value, onChange, size = "w-5 h-5" }) {
 function BookMiniCard({ book }) {
   return (
     <a href={book.link || `https://www.google.com/search?q=${encodeURIComponent(book.title)}`} target="_blank" rel="noopener noreferrer"
-      className="group flex flex-col shrink-0 w-20">
-      <div className="w-20 h-28 rounded-lg overflow-hidden bg-secondary mb-1.5 border border-border">
+      className="group flex flex-col">
+      <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-secondary mb-2 border border-border">
         {book.cover
           ? <img src={book.cover} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-5 h-5 text-muted-foreground" /></div>
+          : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-6 h-6 text-muted-foreground" /></div>
         }
       </div>
-      <p className="text-[10px] font-semibold leading-tight line-clamp-2">{book.title}</p>
-      <p className="text-[10px] text-muted-foreground truncate mt-0.5">{book.author}</p>
+      <p className="text-xs font-semibold leading-tight line-clamp-2">{book.title}</p>
+      <p className="text-xs text-muted-foreground truncate mt-0.5">{book.author}</p>
       {book.rating && (
-        <div className="flex items-center gap-0.5 mt-0.5">
-          <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
-          <span className="text-[10px] font-semibold">{book.rating.toFixed(1)}</span>
+        <div className="flex items-center gap-1 mt-1">
+          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+          <span className="text-xs font-semibold">{book.rating.toFixed(1)}</span>
         </div>
       )}
     </a>
@@ -415,24 +413,11 @@ export default function ContentDetail() {
           {/* Du même auteur */}
           {similar.byAuthor.length > 0 && (
             <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
-                </h2>
-                <Link to={createPageUrl("Discover") + `?q=${encodeURIComponent("inauthor:" + content.author)}`}
-                  className="flex items-center gap-1 text-xs text-accent hover:underline">
-                  Voir tout <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {similar.byAuthor.slice(0, 10).map((b, i) => <BookMiniCard key={i} book={b} />)}
-                {similar.byAuthor.length >= 10 && (
-                  <Link to={createPageUrl("Discover") + `?q=${encodeURIComponent("inauthor:" + content.author)}`}
-                    className="shrink-0 w-20 h-28 rounded-lg bg-secondary border border-border flex flex-col items-center justify-center gap-1 hover:bg-secondary/80 transition-colors self-start">
-                    <ChevronRight className="w-5 h-5 text-accent" />
-                    <span className="text-[10px] text-accent font-medium text-center leading-tight">Voir plus</span>
-                  </Link>
-                )}
+              <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                {similar.byAuthor.map((b, i) => <BookMiniCard key={i} book={b} />)}
               </div>
             </div>
           )}
@@ -440,24 +425,11 @@ export default function ContentDetail() {
           {/* Dans le même genre */}
           {similar.bySubject.length > 0 && (
             <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-                  <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
-                </h2>
-                <Link to={createPageUrl("Discover") + `?q=${encodeURIComponent(content.category || content.title)}`}
-                  className="flex items-center gap-1 text-xs text-accent hover:underline">
-                  Voir tout <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {similar.bySubject.slice(0, 10).map((b, i) => <BookMiniCard key={i} book={b} />)}
-                {similar.bySubject.length >= 10 && (
-                  <Link to={createPageUrl("Discover") + `?q=${encodeURIComponent(content.category || content.title)}`}
-                    className="shrink-0 w-20 h-28 rounded-lg bg-secondary border border-border flex flex-col items-center justify-center gap-1 hover:bg-secondary/80 transition-colors self-start">
-                    <ChevronRight className="w-5 h-5 text-accent" />
-                    <span className="text-[10px] text-accent font-medium text-center leading-tight">Voir plus</span>
-                  </Link>
-                )}
+              <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
+                <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                {similar.bySubject.map((b, i) => <BookMiniCard key={i} book={b} />)}
               </div>
             </div>
           )}
