@@ -356,6 +356,13 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </aside>
 
+      {/* Desktop top-right notification bell */}
+      {isAuth && (
+        <div className="hidden lg:block fixed top-3 right-6 z-50">
+          <NotificationBell fixed={false} />
+        </div>
+      )}
+
       {/* Mobile header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 justify-between gap-2">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -457,20 +464,19 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </main>
 
-      {/* Floating action buttons (desktop): + add content + notification bell */}
+      {/* Floating + button (desktop) */}
       {isAuth && (
-        <>
-          <button
-            onClick={() => setShowQuickAdd(true)}
-            className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 items-center justify-center"
-            title="Ajouter à ma bibliothèque"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
-          <div className="hidden lg:block">
-            <NotificationBell fixed={true} />
-          </div>
-        </>
+        <button
+          onClick={() => setShowQuickAdd(true)}
+          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full items-center justify-center transition-all hover:scale-110"
+          style={{
+            background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+            boxShadow: "0 0 20px rgba(59,130,246,0.6), 0 0 40px rgba(59,130,246,0.3), 0 4px 15px rgba(0,0,0,0.3)"
+          }}
+          title="Ajouter à ma bibliothèque"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </button>
       )}
 
       {showQuickAdd && <QuickAddModal onClose={() => setShowQuickAdd(false)} />}
