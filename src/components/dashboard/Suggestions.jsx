@@ -54,6 +54,7 @@ export default function Suggestions({ contents = [] }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [aiLoaded, setAiLoaded] = useState(false);
+  const [addedIndex, setAddedIndex] = useState(null);
   const qc = useQueryClient();
 
   const addMutation = useMutation({
@@ -66,8 +67,16 @@ export default function Suggestions({ contents = [] }) {
       buy_link: item.buy_link || undefined,
       total_pages: item.total_pages || undefined,
     }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contents"] }),
+    onSuccess: (_, __, ctx) => {
+      qc.invalidateQueries({ queryKey: ["contents"] });
+    },
   });
+
+  const handleAdd = (item, i) => {
+    addMutation.mutate(item);
+    setAddedIndex(i);
+    setTimeout(() => setAddedIndex(null), 1800);
+  };
 
   const loadSuggestions = async () => {
     setLoading(true);
@@ -142,9 +151,10 @@ export default function Suggestions({ contents = [] }) {
           {suggestions.map((item, i) => {
             const Icon = ICON_MAP[item.type] || BookOpen;
             const alreadyAdded = existingTitles.has(item.title.toLowerCase());
+            const justAdded = addedIndex === i;
             return (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group">
+                <div className={`flex items-center gap-3 p-2 rounded-lg transition-colors group ${justAdded ? "bg-green-500/10" : "hover:bg-secondary/50"}`}>
                   {/* Cover or icon */}
                   <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-border">
                     {item.cover_url
@@ -162,19 +172,28 @@ export default function Suggestions({ contents = [] }) {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
-                    {!alreadyAdded && (
+                    {justAdded ? (
+                      <motion.div
+                        initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center"
+                      >
+                        <span className="text-white text-xs font-bold">✓</span>
+                      </motion.div>
+                    ) : !alreadyAdded ? (
                       <Button
                         size="icon"
                         variant="ghost"
                         className="w-7 h-7 opacity-0 group-hover:opacity-100 transition-opacity"
                         disabled={addMutation.isPending}
-                        onClick={() => addMutation.mutate(item)}
+                        onClick={() => handleAdd(item, i)}
                         title="Ajouter à ma bibliothèque"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </Button>
+                    ) : (
+                      <span className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 text-xs">✓</span>
                     )}
-                    {item.buy_link && (
+                    {item.buy_link && !justAdded && (
                       <a href={item.buy_link} target="_blank" rel="noopener noreferrer"
                         className="w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-accent"
                         onClick={e => e.stopPropagation()}

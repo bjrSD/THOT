@@ -66,7 +66,7 @@ export function ContentRow({ content, onClick }) {
   );
 }
 
-/** Carte mode grille — photo en haut, badges sous la photo, résumé + lien */
+/** Carte mode grille — cover petite à gauche, infos à droite */
 export default function ContentCard({ content, onClick }) {
   const Icon = TYPE_ICON_MAP[content.type] || BookOpen;
   const progress = content.type === "book"
@@ -76,33 +76,36 @@ export default function ContentCard({ content, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group flex flex-col"
+      className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/40 transition-all cursor-pointer group flex items-start gap-3 p-3"
     >
-      {/* Cover — rectangle en haut, toute la largeur */}
-      <div className="w-full h-40 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden shrink-0">
+      {/* Cover — petit rectangle arrondi à gauche */}
+      <div className="w-14 h-20 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center overflow-hidden shrink-0 border border-border">
         {content.cover_url ? (
-          <img src={content.cover_url} alt={content.title} className="w-full h-full object-contain" />
+          <img src={content.cover_url} alt={content.title} className="w-full h-full object-cover" />
         ) : (
-          <Icon className="w-8 h-8 text-accent/40" />
+          <Icon className="w-6 h-6 text-accent/40" />
         )}
       </div>
 
-      {/* Infos */}
-      <div className="p-3 flex flex-col flex-1">
-        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-1">{content.title}</p>
-        {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{content.author}</p>}
+      {/* Infos à droite */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <p className="font-semibold text-sm line-clamp-2 leading-tight mb-0.5">{content.title}</p>
+        {content.author && <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{content.author}</p>}
 
-        {/* Type + Statut sur une ligne */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+        {/* Type + Statut + pages */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
           <span className="text-xs bg-secondary px-1.5 py-0.5 rounded-full shrink-0">{TYPE_LABELS[content.type]}</span>
           <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
             {STATUS_LABELS_EXT[content.status] || ""}
           </span>
+          {content.total_pages && (
+            <span className="text-xs text-muted-foreground shrink-0">{content.total_pages}p</span>
+          )}
         </div>
 
         {/* Progression */}
         {progress > 0 && (
-          <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex items-center gap-1.5 mb-1.5">
             <Progress value={progress} className="h-1 flex-1" />
             <span className="text-[10px] text-muted-foreground shrink-0">{progress}%</span>
           </div>
@@ -110,20 +113,20 @@ export default function ContentCard({ content, onClick }) {
 
         {/* Résumé */}
         {content.summary && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2 flex-1">{content.summary}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-1.5">{content.summary}</p>
         )}
 
-        {/* Voir le détail */}
-        <button
-          onClick={onClick}
-          className="flex items-center gap-1 text-xs text-accent hover:underline font-medium mt-auto"
-        >
-          <ExternalLink className="w-3 h-3" /> Voir le détail
-        </button>
-
-        {/* Playlist menu */}
-        <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-          <AddToPlaylistMenu contentId={content.id} />
+        {/* Voir le détail + Playlist menu */}
+        <div className="flex items-center justify-between mt-auto">
+          <button
+            onClick={onClick}
+            className="flex items-center gap-1 text-xs text-accent hover:underline font-medium"
+          >
+            <ExternalLink className="w-3 h-3" /> Voir le détail
+          </button>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+            <AddToPlaylistMenu contentId={content.id} />
+          </div>
         </div>
       </div>
     </div>

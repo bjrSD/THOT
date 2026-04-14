@@ -140,46 +140,71 @@ export default function Dashboard() {
       {/* Profil Intellectuel */}
       <RadarDomains user={user} />
 
-      {/* En cours de lecture */}
-      <div className="bg-card border border-border rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-sm">En cours de lecture</h3>
-          <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
-        </div>
-        {contents.filter(c => c.status === "in_progress").length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
-        ) : (
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {contents.filter(c => c.status === "in_progress").slice(0, 8).map(c => {
-              const prog = c.total_pages
-                ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
-                : c.total_duration
-                ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
-                : 0;
-              return (
-                <Link key={c.id} to={createPageUrl("ContentDetail") + `?id=${c.id}`}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors shrink-0 w-44">
-                  {/* Miniature */}
-                  <div className="w-8 h-11 rounded-md overflow-hidden shrink-0 bg-accent/10 flex items-center justify-center border border-border">
-                    {c.cover_url
-                      ? <img src={c.cover_url} alt={c.title} className="w-full h-full object-cover" />
-                      : <span className="text-sm">📖</span>
-                    }
-                  </div>
-                  {/* Infos */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold line-clamp-2 leading-tight">{c.title}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Progress value={prog} className="h-1 w-10 shrink-0" />
-                      <span className="text-[10px] text-muted-foreground shrink-0">{prog}%</span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+      {/* En cours — 2 colonnes */}
+      {(() => {
+        const inProgress = contents.filter(c => c.status === "in_progress");
+        const reading = inProgress.filter(c => c.type === "book" || c.type === "article");
+        const watching = inProgress.filter(c => c.type === "video" || c.type === "podcast");
+
+        const InProgressCard = ({ c, emoji }) => {
+          const prog = c.total_pages
+            ? Math.round(((c.current_page || 0) / c.total_pages) * 100)
+            : c.total_duration
+            ? Math.round(((c.current_duration || 0) / c.total_duration) * 100)
+            : 0;
+          return (
+            <Link to={createPageUrl("ContentDetail") + `?id=${c.id}`}
+              className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors shrink-0 w-44">
+              <div className="w-8 h-11 rounded-md overflow-hidden shrink-0 bg-accent/10 flex items-center justify-center border border-border">
+                {c.cover_url
+                  ? <img src={c.cover_url} alt={c.title} className="w-full h-full object-cover" />
+                  : <span className="text-sm">{emoji}</span>
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold line-clamp-2 leading-tight">{c.title}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Progress value={prog} className="h-1 w-10 shrink-0" />
+                  <span className="text-[10px] text-muted-foreground shrink-0">{prog}%</span>
+                </div>
+              </div>
+            </Link>
+          );
+        };
+
+        if (inProgress.length === 0) return (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-xs text-muted-foreground text-center py-4">Aucun contenu en cours</p>
           </div>
-        )}
-      </div>
+        );
+
+        return (
+          <div className="grid md:grid-cols-2 gap-4">
+            {reading.length > 0 && (
+              <div className="bg-card border border-border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm">📖 En cours de lecture</h3>
+                  <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {reading.slice(0, 8).map(c => <InProgressCard key={c.id} c={c} emoji="📖" />)}
+                </div>
+              </div>
+            )}
+            {watching.length > 0 && (
+              <div className="bg-card border border-border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm">🎧 En cours de visionnage/d'écoute</h3>
+                  <Link to={createPageUrl("Library")} className="text-xs text-accent hover:underline">Voir tout →</Link>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {watching.slice(0, 8).map(c => <InProgressCard key={c.id} c={c} emoji={c.type === "video" ? "🎬" : "🎧"} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Vocab AI + Suggestions */}
       <div className="grid lg:grid-cols-2 gap-4">
