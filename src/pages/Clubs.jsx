@@ -30,7 +30,7 @@ export default function Clubs() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/20 via-accent/10 to-purple-500/20 border border-blue-500/20 p-6">
         <motion.div

@@ -1223,7 +1223,7 @@ Rédige en français, ton premium, encourageant, intelligent, non culpabilisant.
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div>

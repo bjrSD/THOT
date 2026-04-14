@@ -247,7 +247,7 @@ export default function Feed() {
 
   const { data: remotePosts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ["posts"],
-    queryFn: () => base44.entities.Post.filter({ is_public: true }, "-created_date", 50),
+    queryFn: () => base44.entities.Post.list("-created_date", 100),
   });
 
   // Merge remote posts with local optimistic posts (avoid duplicates by id)
@@ -258,7 +258,12 @@ export default function Feed() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingPhoto(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: base64 });
     setPhotoUrl(file_url);
     setUploadingPhoto(false);
   };
@@ -324,7 +329,7 @@ export default function Feed() {
   ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 
   const myPosts = posts.filter(p => p.created_by === user?.email);
-  const myPublicPosts = myPosts.filter(p => p.visibility === "public" || p.is_public);
+  const myPublicPosts = myPosts.filter(p => p.visibility !== "friends");
   const myFriendsPosts = myPosts.filter(p => p.visibility === "friends");
 
   const resetCompose = () => {

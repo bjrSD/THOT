@@ -6,7 +6,7 @@ import {
   Home, LayoutDashboard, Library, Compass, User,
   Menu, Plus, LogIn, Zap, Settings, Crown, MessageCircle,
   Twitter, Instagram, Swords, Brain, Flame, Users, ArrowRight,
-  FileBarChart, Trophy, ListMusic, ChevronDown, Globe } from "lucide-react";
+  FileBarChart, Trophy, ListMusic, ChevronDown, Globe, Bell } from "lucide-react";
 import NotificationBell from "@/components/shared/NotificationBell";
 import UserAvatar from "@/components/shared/UserAvatar";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ const NAV_GROUPS = [
     label: "Compte",
     items: [
       { name: "Mon Profil", page: "Profile", icon: User },
+      { name: "Notifications", page: "Notifications", icon: Bell },
       { name: "Intégrations", page: "Integrations", icon: Zap },
       { name: "Paramètres", page: "Settings", icon: Settings },
     ],
@@ -359,7 +360,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Desktop top-right notification bell */}
       {isAuth && (
         <div className="hidden lg:block fixed top-3 right-6 z-50">
-          <NotificationBell fixed={false} />
+          <NotificationBell fixed={false} notifPageUrl="/Notifications" />
         </div>
       )}
 
@@ -468,14 +469,14 @@ export default function Layout({ children, currentPageName }) {
       {isAuth && (
         <button
           onClick={() => setShowQuickAdd(true)}
-          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full items-center justify-center transition-all hover:scale-110"
+          className="hidden lg:flex fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full items-center justify-center transition-all hover:scale-110"
           style={{
             background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
-            boxShadow: "0 0 20px rgba(59,130,246,0.6), 0 0 40px rgba(59,130,246,0.3), 0 4px 15px rgba(0,0,0,0.3)"
+            boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
           }}
           title="Ajouter à ma bibliothèque"
         >
-          <Plus className="w-6 h-6 text-white" />
+          <Plus className="w-5 h-5 text-white" />
         </button>
       )}
 

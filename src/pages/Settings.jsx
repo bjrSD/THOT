@@ -50,7 +50,10 @@ export default function Settings() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    await base44.auth.updateMe({ full_name: user.full_name });
+    // full_name is read-only from auth provider — save as display_name
+    await base44.auth.updateMe({ display_name: user.full_name });
+    const updated = await base44.auth.me();
+    setUser({ ...updated, full_name: user.full_name });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -65,7 +68,7 @@ export default function Settings() {
   if (!user) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold">Paramètres</h1>
         <p className="text-muted-foreground mt-1">Gérez votre compte et vos préférences</p>

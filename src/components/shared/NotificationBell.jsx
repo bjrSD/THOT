@@ -14,7 +14,7 @@ const TYPE_ICONS = {
   friend_activity: "📚",
 };
 
-export default function NotificationBell({ fixed = false }) {
+export default function NotificationBell({ fixed = false, notifPageUrl = null }) {
   const [open, setOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
   const ref = useRef(null);
@@ -62,9 +62,13 @@ export default function NotificationBell({ fixed = false }) {
       <button
         onClick={() => setOpen(o => !o)}
         className={fixed
-          ? "w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center"
+          ? "w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110"
           : "relative p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
         }
+        style={fixed ? {
+          background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+          boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
+        } : {}}
       >
         <Bell className="w-5 h-5" />
         {unread.length > 0 && (
@@ -120,9 +124,12 @@ export default function NotificationBell({ fixed = false }) {
               ))}
             </div>
 
-            <div className="px-4 py-2.5 border-t border-border">
-              <Link to="/Messages" onClick={() => setOpen(false)} className="text-xs text-accent hover:underline block text-center">
-                Voir tous les messages →
+            <div className="px-4 py-2.5 border-t border-border flex items-center justify-between gap-2">
+              <Link to="/Messages" onClick={() => setOpen(false)} className="text-xs text-accent hover:underline">
+                Messages →
+              </Link>
+              <Link to="/Notifications" onClick={() => setOpen(false)} className="text-xs text-accent hover:underline">
+                Voir tout →
               </Link>
             </div>
           </motion.div>

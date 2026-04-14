@@ -21,6 +21,7 @@ import Profile from './pages/Profile.jsx';
 import Checkout from './pages/Checkout.jsx';
 import Reports from './pages/Reports.jsx';
 import Messages from './pages/Messages.jsx';
+import Notifications from './pages/Notifications.jsx';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
       <Route path="/Checkout" element={<Checkout />} />
       <Route path="/Reports" element={<LayoutWrapper currentPageName="Reports"><Reports /></LayoutWrapper>} />
       <Route path="/Messages" element={<LayoutWrapper currentPageName="Messages"><Messages /></LayoutWrapper>} />
+      <Route path="/Notifications" element={<LayoutWrapper currentPageName="Notifications"><Notifications /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
