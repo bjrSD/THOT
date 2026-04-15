@@ -89,7 +89,7 @@ function ContentCard({ item, isAdded, onAdd, onOpen, adding, removing, onRemove 
         <div className="flex gap-1.5 mt-2">
           <button onClick={onOpen}
             className="text-xs text-accent hover:underline flex items-center gap-1">
-            <ExternalLink className="w-3 h-3" /> Détail
+            <ExternalLink className="w-3 h-3" /> Voir la fiche descriptif
           </button>
         </div>
       </div>
