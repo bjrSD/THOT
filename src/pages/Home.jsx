@@ -359,11 +359,11 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {[LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].map((user, i) => {
+                  {LEADERBOARD_MOCK[lbTab] && [LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].map((user, i) => {
                     const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
                     const style = RANK_STYLES[realRank];
                     return (
-                      <motion.div key={user.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                      <motion.div key={user?.name || i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                       className={`flex flex-col items-center p-2 rounded-xl border ${style.bg} ${style.border}`}>
                         <span className="text-lg">{style.badge}</span>
                         {user.photo ?
