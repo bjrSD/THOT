@@ -359,8 +359,7 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {[LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].map((user, i) => {
-                    if (!user) return null;
+                  {[LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].filter(Boolean).map((user, i) => {
                     const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
                     const style = RANK_STYLES[realRank];
                     return (
