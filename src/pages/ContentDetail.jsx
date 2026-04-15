@@ -196,11 +196,30 @@ export default function ContentDetail() {
   });
 
   // Community stats: all users who have this same content (by title+type) with a rating
-  const communityReviews = allContents.filter(c =>
+  // Merge: replace current user's saved entry with live form values so avis appears instantly
+  const rawCommunityReviews = allContents.filter(c =>
     c.title === content?.title && c.type === content?.type && c.rating > 0
   );
-  const communityAvg = communityReviews.length > 0
-    ? (communityReviews.reduce((sum, c) => sum + c.rating, 0) / communityReviews.length)
+  const communityReviews = rawCommunityReviews.map(c => {
+    if (c.id === contentId) {
+      // Reflect live form state
+      return {
+        ...c,
+        rating: form.rating || c.rating,
+        community_review: form.community_review ?? c.community_review,
+      };
+    }
+    return c;
+  }).filter(c => c.rating > 0);
+
+  // If current user hasn't saved yet but has a rating in form, inject it
+  const currentUserInReviews = communityReviews.some(c => c.id === contentId);
+  const liveReviews = (!currentUserInReviews && form.rating > 0)
+    ? [...communityReviews, { id: contentId, rating: form.rating, community_review: form.community_review, created_by: content?.created_by, updated_date: new Date().toISOString() }]
+    : communityReviews;
+
+  const communityAvg = liveReviews.length > 0
+    ? (liveReviews.reduce((sum, c) => sum + c.rating, 0) / liveReviews.length)
     : null;
 
   const { data: myLibrary = [] } = useQuery({
@@ -334,7 +353,12 @@ export default function ContentDetail() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap gap-1.5 mb-2">
-              <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full font-medium">{TYPE_LABELS[content.type]}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${{
+                book: "bg-green-500/20 text-green-700 dark:text-green-400",
+                podcast: "bg-purple-500/20 text-purple-700 dark:text-purple-400",
+                video: "bg-red-500/20 text-red-700 dark:text-red-400",
+                article: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
+              }[content.type] || "bg-accent/20 text-accent"}`}>{TYPE_LABELS[content.type]}</span>
               <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{CATEGORY_LABELS[content.category] || "Autre"}</span>
               {form.is_favorite && <span className="text-xs bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">❤️ Favori</span>}
             </div>
@@ -525,13 +549,13 @@ export default function ContentDetail() {
                           <Star key={s} className={`w-3.5 h-3.5 ${communityAvg && communityAvg >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
                         ))}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{communityReviews.length} avis</p>
+                      <p className="text-xs text-muted-foreground mt-1">{liveReviews.length} avis</p>
                     </div>
                     {/* Distribution */}
                     <div className="flex-1 space-y-1.5 justify-center flex flex-col">
                       {[5,4,3,2,1].map(star => {
-                        const count = communityReviews.filter(c => Math.round(c.rating) === star).length;
-                        const pct = communityReviews.length > 0 ? Math.round((count / communityReviews.length) * 100) : 0;
+                        const count = liveReviews.filter(c => Math.round(c.rating) === star).length;
+                        const pct = liveReviews.length > 0 ? Math.round((count / liveReviews.length) * 100) : 0;
                         return (
                           <div key={star} className="flex items-center gap-2 text-xs">
                             <span className="w-3 text-right text-muted-foreground shrink-0">{star}</span>
@@ -547,12 +571,12 @@ export default function ContentDetail() {
                   </div>
 
                   {/* Avis textuels des membres */}
-                  {communityReviews.filter(c => c.community_review).length > 0 ? (
+                  {liveReviews.filter(c => c.community_review).length > 0 ? (
                     <div className="space-y-3 pt-2 border-t border-border">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                        {communityReviews.filter(c => c.community_review).length} avis rédigé{communityReviews.filter(c => c.community_review).length > 1 ? "s" : ""}
+                        {liveReviews.filter(c => c.community_review).length} avis rédigé{liveReviews.filter(c => c.community_review).length > 1 ? "s" : ""}
                       </p>
-                      {communityReviews.filter(c => c.community_review).map((c, i) => (
+                      {liveReviews.filter(c => c.community_review).map((c, i) => (
                         <div key={i} className="bg-secondary/40 rounded-xl p-4">
                           <div className="flex items-center gap-2 mb-2">
                             {/* Avatar initiale */}
@@ -579,7 +603,7 @@ export default function ContentDetail() {
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground text-center py-3 border-t border-border pt-4">
-                      💬 Soyez le premier à laisser un avis — notez ce contenu dans "Mon Suivi" !
+                      💬 Soyez le premier à laisser un avis — allez dans "Mon Suivi" !
                     </p>
                   )}
                 </div>
