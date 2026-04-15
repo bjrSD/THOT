@@ -1,0 +1,91 @@
+{
+  "name": "Club",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "philosophie",
+        "science",
+        "business",
+        "technologie",
+        "histoire",
+        "psychologie",
+        "startup",
+        "etudiants",
+        "art",
+        "sante",
+        "sport",
+        "finance",
+        "litterature",
+        "langues",
+        "developpement_personnel",
+        "spiritualite",
+        "politique",
+        "environnement",
+        "gastronomie",
+        "autre"
+      ]
+    },
+    "themes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Th\u00e8mes sp\u00e9cifiques du club"
+    },
+    "content_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "book",
+          "podcast",
+          "video",
+          "article"
+        ]
+      },
+      "description": "Types de contenus mis en avant dans ce club"
+    },
+    "emoji": {
+      "type": "string"
+    },
+    "cover_url": {
+      "type": "string"
+    },
+    "members_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "friends",
+        "private"
+      ],
+      "default": "public"
+    },
+    "rules": {
+      "type": "string",
+      "description": "R\u00e8gles du club"
+    },
+    "welcome_message": {
+      "type": "string",
+      "description": "Message de bienvenue"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
