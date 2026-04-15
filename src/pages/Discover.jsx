@@ -4,12 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  BookOpen, Headphones, Play, FileText, Plus, Loader2, Check, Search, X,
+  BookOpen, Headphones, Play, FileText, Loader2, Search, X,
   ExternalLink, RefreshCw, LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { searchByType, searchAll, mapToContent } from "@/lib/contentSearchService";
+import AddButton from "@/components/discover/AddButton";
 
 // ─── Config ───────────────────────────────────────────────────────────────
 
@@ -68,6 +69,10 @@ function ContentCard({ item, isAdded, onAdd, onOpen, adding, removing, onRemove 
         <div className="absolute top-2 left-2">
           <TypeBadge type={item.type} />
         </div>
+        {/* Add button overlaid on image */}
+        <div className="absolute bottom-2 right-2">
+          <AddButton item={item} isAdded={isAdded} adding={adding} removing={removing} onAdd={onAdd} onRemove={onRemove} />
+        </div>
       </div>
 
       {/* Info */}
@@ -78,26 +83,14 @@ function ContentCard({ item, isAdded, onAdd, onOpen, adding, removing, onRemove 
           <p className="text-xs text-muted-foreground mb-2">{new Date(item.publishedAt).getFullYear()}</p>
         )}
         {item.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 flex-1 mb-3 leading-relaxed">{item.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 flex-1 leading-relaxed">{item.description}</p>
         )}
 
-        <div className="flex gap-1.5 mt-auto">
+        <div className="flex gap-1.5 mt-2">
           <button onClick={onOpen}
-            className="text-xs text-accent hover:underline flex items-center gap-1 shrink-0">
+            className="text-xs text-accent hover:underline flex items-center gap-1">
             <ExternalLink className="w-3 h-3" /> Détail
           </button>
-          <Button size="sm" variant={isAdded ? "secondary" : "default"}
-            className={`flex-1 text-xs h-7 ${isAdded ? "text-green-700 border border-green-500/30 hover:bg-red-50 hover:text-red-600" : ""}`}
-            disabled={adding || removing}
-            onClick={() => isAdded ? onRemove() : onAdd()}>
-            {adding || removing ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : isAdded ? (
-              <><Check className="w-3 h-3 mr-1" /> Ajouté</>
-            ) : (
-              <><Plus className="w-3 h-3 mr-1" /> Ajouter</>
-            )}
-          </Button>
         </div>
       </div>
     </motion.div>
