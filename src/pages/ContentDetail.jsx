@@ -94,10 +94,11 @@ function BookMiniCard({ book, onAdd, isAdded, adding }) {
           onClick={onAdd}
           disabled={isAdded || adding}
           title={isAdded ? "Déjà dans la bibliothèque" : "Ajouter à ma bibliothèque"}
+          style={!isAdded ? { background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)", boxShadow: "0 0 8px rgba(59,130,246,0.6), 0 2px 6px rgba(0,0,0,0.3)" } : {}}
           className={`absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-all ${
             isAdded
               ? "bg-green-500 text-white cursor-default"
-              : "bg-white/90 text-accent hover:bg-accent hover:text-white"
+              : "text-white hover:scale-110 active:scale-95"
           }`}
         >
           {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : isAdded ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
