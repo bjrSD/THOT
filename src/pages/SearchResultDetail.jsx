@@ -3,10 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, Play, Headphones, FileText } from "lucide-react";
+import { ArrowLeft, BookOpen, Play, Headphones, FileText, Loader2, Plus, Check } from "lucide-react";
 import { mapToContent } from "@/lib/contentSearchService";
 import { createPageUrl } from "@/utils";
 import AddButton from "@/components/discover/AddButton";
+import VideoDescriptif from "@/components/content/VideoDescriptif";
+import ArticleDescriptif from "@/components/content/ArticleDescriptif";
+import PodcastDescriptif from "@/components/content/PodcastDescriptif";
 
 const TYPE_ICON = { book: BookOpen, video: Play, podcast: Headphones, article: FileText };
 
@@ -28,8 +31,8 @@ export default function SearchResultDetail() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Aucun contenu trouvé</p>
-        <Button onClick={() => window.history.back()} className="mt-4">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Retour
+        <Button onClick={() => window.location.href = createPageUrl("Discover")} className="mt-4">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Retour à Découvrir
         </Button>
       </div>
     );
@@ -42,7 +45,7 @@ export default function SearchResultDetail() {
     return (
       <div className="text-center py-12">
         <p className="text-red-500">Erreur de chargement du contenu</p>
-        <Button onClick={() => window.history.back()} className="mt-4">Retour</Button>
+        <Button onClick={() => window.location.href = createPageUrl("Discover")} className="mt-4">Retour</Button>
       </div>
     );
   }
@@ -57,8 +60,8 @@ export default function SearchResultDetail() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
       {/* Back button */}
-      <button onClick={() => window.history.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
-        <ArrowLeft className="w-4 h-4" /> Retour
+      <button onClick={() => window.location.href = createPageUrl("Discover")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+        <ArrowLeft className="w-4 h-4" /> Retour à Découvrir
       </button>
 
       {/* Hero section */}
@@ -110,8 +113,63 @@ export default function SearchResultDetail() {
         </div>
       </div>
 
-      {/* Description */}
-      {item.description && (
+      {/* Typed Descriptive Sections */}
+      {item.type === "video" && (
+        <VideoDescriptif 
+          content={{ 
+            title: item.title, 
+            author: item.creator, 
+            content_url: item.externalUrl,
+            cover_url: item.imageUrl,
+            total_duration: item.duration,
+            published_year: item.publishedAt?.split("-")[0],
+            summary: item.description,
+            personal_note: JSON.stringify({ externalId: item.externalId, description: item.description })
+          }} 
+          liveReviews={[]} 
+          communityAvg={null} 
+          progress={0} 
+        />
+      )}
+
+      {item.type === "article" && (
+        <ArticleDescriptif 
+          content={{ 
+            title: item.title, 
+            author: item.creator, 
+            content_url: item.externalUrl,
+            cover_url: item.imageUrl,
+            published_year: item.publishedAt?.split("-")[0],
+            summary: item.description,
+            personal_note: JSON.stringify({ externalId: item.externalId, sourceName: item.sourceName })
+          }} 
+          liveReviews={[]} 
+          communityAvg={null} 
+          progress={0}
+          form={{}}
+        />
+      )}
+
+      {item.type === "podcast" && (
+        <PodcastDescriptif 
+          content={{ 
+            title: item.title, 
+            author: item.creator, 
+            content_url: item.externalUrl,
+            cover_url: item.imageUrl,
+            total_duration: item.duration,
+            published_year: item.publishedAt?.split("-")[0],
+            summary: item.description,
+            personal_note: JSON.stringify({ externalId: item.externalId, description: item.description })
+          }} 
+          liveReviews={[]} 
+          communityAvg={null} 
+          progress={0}
+          form={{}}
+        />
+      )}
+
+      {item.type === "book" && (
         <div className="bg-card rounded-2xl border border-border p-6">
           <h2 className="font-heading font-bold text-lg mb-3">Description</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
