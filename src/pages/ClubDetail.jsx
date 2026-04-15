@@ -295,7 +295,12 @@ export default function ClubDetail() {
 
       {/* ── Tab: Accueil (mini dashboard) ── */}
       {activeTab === "accueil" && (
-        <ClubDashboard club={club} myMembership={myMembership} />
+        <ClubDashboard
+          club={club}
+          myMembership={myMembership}
+          clubChallengesCount={clubChallenges.filter(c => c.description?.includes(`[Club: ${club.name}]`) || club.challenges?.includes(c.title)).length}
+          clubId={clubId}
+        />
       )}
 
       {/* ── Tab: Discussion ── */}
@@ -316,8 +321,8 @@ export default function ClubDetail() {
       {/* ── Tab: Défis ── */}
       {activeTab === "defis" && (
         <ClubChallenges
-          club={club}
-          challenges={clubChallenges.filter(c => c.description?.includes(`[Club: ${club.name}]`) || club.challenges?.includes(c.title))}
+          club={dbClub || { id: clubId, name: club.name, emoji: club.emoji }}
+          clubChallenges={clubChallenges.filter(c => c.description?.includes(`[Club: ${club.name}]`) || club.challenges?.includes(c.title))}
           canCreate={canManageChallenges}
           isMember={isMember}
         />
