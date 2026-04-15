@@ -109,7 +109,12 @@ export default function ContentCard({ content, onClick }) {
 
       {/* Ligne 2 : Type + Statut sur toute la largeur */}
       <div className="flex items-center justify-between gap-1.5">
-        <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{TYPE_LABELS[content.type]}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${{
+          book: "text-green-700 bg-green-500/25 dark:text-green-300 dark:bg-green-500/30",
+          podcast: "text-purple-700 bg-purple-500/25 dark:text-purple-300 dark:bg-purple-500/30",
+          video: "text-red-700 bg-red-500/25 dark:text-red-300 dark:bg-red-500/30",
+          article: "text-blue-700 bg-blue-500/25 dark:text-blue-300 dark:bg-blue-500/30",
+        }[content.type] || "bg-secondary text-muted-foreground"}`}>{TYPE_LABELS[content.type]}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[content.status] || "bg-secondary text-muted-foreground"}`}>
           {STATUS_LABELS_EXT[content.status] || ""}
         </span>

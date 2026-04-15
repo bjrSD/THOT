@@ -31,7 +31,7 @@ const PLACEHOLDERS = {
 };
 
 const TYPE_LABEL = { book: "Livre", video: "Vidéo", podcast: "Podcast", article: "Article" };
-const TYPE_COLOR = { book: "text-green-500 bg-green-500/10", video: "text-red-500 bg-red-500/10", podcast: "text-purple-500 bg-purple-500/10", article: "text-blue-500 bg-blue-500/10" };
+const TYPE_COLOR = { book: "text-green-700 bg-green-500/25 dark:text-green-300 dark:bg-green-500/30", video: "text-red-700 bg-red-500/25 dark:text-red-300 dark:bg-red-500/30", podcast: "text-purple-700 bg-purple-500/25 dark:text-purple-300 dark:bg-purple-500/30", article: "text-blue-700 bg-blue-500/25 dark:text-blue-300 dark:bg-blue-500/30" };
 
 // Discovery seed queries per type
 const SEEDS = {
