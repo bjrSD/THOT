@@ -442,10 +442,10 @@ export default function Home() {
                     <h3 className="font-heading font-bold text-lg">Évolution du Capital Savoir</h3>
                     <p className="text-sm text-muted-foreground">30 derniers jours</p>
                   </div>
-                  <span className="text-2xl font-black text-fuchsia-500">{CAPITAL_DATA[29].kp.toLocaleString()} KP</span>
+                  <span className="text-2xl font-black text-fuchsia-500">{CAPITAL_DATA?.[29]?.kp?.toLocaleString() || "0"} KP</span>
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={CAPITAL_DATA} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <AreaChart data={CAPITAL_DATA && CAPITAL_DATA.length > 0 ? CAPITAL_DATA : [{ day: 1, kp: 0 }]} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="kpGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#d946ef" stopOpacity={0.4} />
@@ -499,8 +499,8 @@ export default function Home() {
                   <h3 className="font-heading font-bold text-lg mb-4 text-center">Répartition de votre consommation</h3>
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
-                      <Pie data={CONSOMMATION_DATA} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
-                        {CONSOMMATION_DATA.map((entry, index) =>
+                      <Pie data={CONSOMMATION_DATA && CONSOMMATION_DATA.length > 0 ? CONSOMMATION_DATA : [{ name: "Aucune donnée", value: 100, color: "#ccc" }]} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
+                        {(CONSOMMATION_DATA && CONSOMMATION_DATA.length > 0 ? CONSOMMATION_DATA : [{ name: "Aucune donnée", value: 100, color: "#ccc" }]).map((entry, index) =>
                         <Cell key={index} fill={entry.color} />
                         )}
                       </Pie>
