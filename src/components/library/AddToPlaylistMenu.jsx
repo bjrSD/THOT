@@ -73,7 +73,7 @@ export default function AddToPlaylistMenu({ contentId }) {
         size="sm"
         onClick={() => setOpen(!open)}
         className="gap-1.5">
-        <Music className="w-4 h-4" /> Playlist
+        <Music className="w-4 h-4" />
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </Button>
 

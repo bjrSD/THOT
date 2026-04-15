@@ -139,7 +139,7 @@ export default function ContentCard({ content, onClick }) {
           onClick={onClick}
           className="flex items-center gap-1 text-xs text-accent hover:underline font-medium"
         >
-          <ExternalLink className="w-3 h-3" /> Voir le détail
+          <ExternalLink className="w-3 h-3" /> Voir la fiche descriptif
         </button>
         <div onClick={e => e.stopPropagation()}>
           <AddToPlaylistMenu contentId={content.id} />
