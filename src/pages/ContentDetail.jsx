@@ -330,7 +330,7 @@ export default function ContentDetail() {
         </div>
         {/* Progress bar mini */}
         {(content.total_pages || content.total_duration) && progress > 0 && (
-          <div className="mt-4">
+          <div className="mt-4 pr-14">
             <Progress value={progress} className="h-1.5" />
           </div>
         )}
