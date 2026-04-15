@@ -243,12 +243,11 @@ export default function Discover() {
   const handleOpen = (item) => {
     const existing = findExisting(item);
     if (existing) {
-      // Already in library → go to ContentDetail
       navigate(`/ContentDetail?id=${existing.id}`);
     } else {
-      // Not in library → go to SearchResultDetail
+      // Create temporary content first, then navigate to ContentDetail
       const itemData = encodeURIComponent(JSON.stringify(item));
-      navigate(`/SearchResultDetail?data=${itemData}`);
+      navigate(`/ContentDetail?data=${itemData}`);
     }
   };
 
