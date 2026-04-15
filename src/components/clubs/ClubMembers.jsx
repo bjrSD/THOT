@@ -1,19 +1,28 @@
 import React, { useState } from "react";
-import { Crown, Flame, Shield, ChevronDown, Loader2, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Crown, Flame, ChevronDown, Loader2, Users, Star } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import UserAvatar from "@/components/shared/UserAvatar";
+import UserProfileModal from "@/components/leaderboard/UserProfileModal";
 
 const ROLE_CONFIG = {
-  admin: { label: "Admin", color: "text-yellow-600 bg-yellow-500/10 border-yellow-500/20", icon: "🛡️" },
-  moderateur: { label: "Modérateur", color: "text-blue-600 bg-blue-500/10 border-blue-500/20", icon: "🔵" },
-  member: { label: "Membre", color: "text-green-600 bg-green-500/10 border-green-500/20", icon: "✓" },
+  admin:      { label: "Admin",       color: "text-yellow-600 bg-yellow-500/10 border-yellow-500/20", icon: "🛡️" },
+  moderateur: { label: "Modérateur",  color: "text-blue-600 bg-blue-500/10 border-blue-500/20",       icon: "🔵" },
+  member:     { label: "Membre",      color: "text-green-600 bg-green-500/10 border-green-500/20",     icon: "✓"  },
 };
 
-function MemberRow({ member, canPromote, currentUserRole }) {
+const RANK_STYLES = [
+  { badge: "🥇", text: "text-yellow-600", bg: "bg-yellow-500/5 border-yellow-500/20" },
+  { badge: "🥈", text: "text-slate-500",  bg: "bg-slate-400/5 border-slate-400/20"  },
+  { badge: "🥉", text: "text-orange-500", bg: "bg-orange-400/5 border-orange-400/20" },
+];
+
+function MemberRow({ member, canPromote, rank, onSelect }) {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
+  const roleInfo = ROLE_CONFIG[member.role] || ROLE_CONFIG.member;
+  const rankStyle = rank <= 3 ? RANK_STYLES[rank - 1] : null;
 
   const promoteMutation = useMutation({
     mutationFn: (newRole) => base44.entities.ClubMember.update(member.id, { role: newRole }),
@@ -25,57 +34,78 @@ function MemberRow({ member, canPromote, currentUserRole }) {
     },
   });
 
-  const roleInfo = ROLE_CONFIG[member.role] || ROLE_CONFIG.member;
+  // Build user-like object for UserProfileModal
+  const userObj = {
+    full_name: member.created_by || "Membre",
+    email: member.created_by || "",
+    total_kp: member.total_kp || 0,
+    current_streak: member.current_streak || 0,
+    level: member.level || "Curieux 🔍",
+    books: member.books || 0,
+    podcasts: member.podcasts || 0,
+    categories: {},
+  };
 
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold text-sm shrink-0">
-        {(member.created_by || member.club_name || "M")[0].toUpperCase()}
+    <div className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:shadow-sm ${rankStyle ? `${rankStyle.bg}` : "bg-card border-border hover:border-accent/20"}`}
+      onClick={() => onSelect(userObj)}>
+      {/* Rank */}
+      <div className={`w-7 text-center font-black text-sm shrink-0 ${rankStyle ? rankStyle.text : "text-muted-foreground"}`}>
+        {rank <= 3 ? rankStyle.badge : `#${rank}`}
       </div>
+
+      {/* Avatar */}
+      <UserAvatar user={userObj} size="sm" />
+
+      {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">{member.created_by || "Membre"}</p>
-        <p className="text-xs text-muted-foreground">{new Date(member.created_date).toLocaleDateString("fr-FR")}</p>
+        <p className="font-semibold text-sm truncate">{member.created_by || "Membre"}</p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {member.current_streak > 0 && <span className="flex items-center gap-0.5"><Flame className="w-3 h-3 text-orange-500" /> {member.current_streak}j</span>}
+          {member.total_kp > 0 && <span className="text-accent font-semibold">{member.total_kp.toLocaleString()} KP</span>}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${roleInfo.color}`}>
-          {roleInfo.icon} {roleInfo.label}
-        </span>
-        {canPromote && member.role !== "admin" && (
-          <div className="relative">
-            <button onClick={() => setOpen(!open)}
-              className="text-xs text-muted-foreground hover:text-foreground p-1 rounded hover:bg-secondary transition-colors">
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-            {open && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-xl z-20 py-1 w-40 text-xs">
-                  {member.role !== "moderateur" && (
-                    <button onClick={() => promoteMutation.mutate("moderateur")} disabled={promoteMutation.isPending}
-                      className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors flex items-center gap-2">
-                      🔵 Promouvoir modérateur
-                    </button>
-                  )}
-                  {member.role === "moderateur" && (
-                    <button onClick={() => promoteMutation.mutate("member")} disabled={promoteMutation.isPending}
-                      className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors flex items-center gap-2">
-                      ✓ Rétrograder membre
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+
+      {/* Role badge */}
+      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${roleInfo.color}`}>
+        {roleInfo.icon} {roleInfo.label}
+      </span>
+
+      {/* Promote menu */}
+      {canPromote && member.role !== "admin" && (
+        <div className="relative shrink-0" onClick={e => e.stopPropagation()}>
+          <button onClick={() => setOpen(!open)}
+            className="text-xs text-muted-foreground hover:text-foreground p-1 rounded hover:bg-secondary transition-colors">
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+          {open && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+              <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-xl z-20 py-1 w-44 text-xs">
+                {member.role !== "moderateur" && (
+                  <button onClick={() => promoteMutation.mutate("moderateur")} disabled={promoteMutation.isPending}
+                    className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors">
+                    🔵 Promouvoir modérateur
+                  </button>
+                )}
+                {member.role === "moderateur" && (
+                  <button onClick={() => promoteMutation.mutate("member")} disabled={promoteMutation.isPending}
+                    className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors">
+                    ✓ Rétrograder membre
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function ClubMembers({ members, topMembers, isAdmin, isModerator }) {
+  const [selectedUser, setSelectedUser] = useState(null);
   const canPromote = isAdmin || isModerator;
-
-  // Show DB members if available, else show static top_members
   const hasDbMembers = members && members.length > 0;
 
   return (
@@ -88,43 +118,46 @@ export default function ClubMembers({ members, topMembers, isAdmin, isModerator 
         </span>
       </div>
 
-      {/* Role legend */}
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(ROLE_CONFIG).map(([key, cfg]) => (
-          <span key={key} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.color}`}>
-            {cfg.icon} {cfg.label}
-          </span>
-        ))}
-      </div>
+      <p className="text-xs text-muted-foreground">Cliquez sur un membre pour voir son profil, le suivre ou l'ajouter.</p>
 
       {hasDbMembers ? (
-        <div className="bg-card border border-border rounded-2xl p-4">
+        <div className="space-y-2">
           {members.map((m, i) => (
-            <MemberRow key={m.id || i} member={m} canPromote={canPromote} />
+            <MemberRow key={m.id || i} member={m} canPromote={canPromote} rank={i + 1} onSelect={setSelectedUser} />
           ))}
         </div>
       ) : topMembers?.length > 0 ? (
         <div className="space-y-2">
-          {topMembers.map((member, i) => (
-            <div key={i} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 hover:shadow-sm transition-all hover:border-accent/30">
-              {member.photo
-                ? <img src={member.photo} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
-                : <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold text-lg">{member.name[0]}</div>
-              }
-              <div className="flex-1">
-                <p className="font-semibold">{member.name}</p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span><Flame className="w-3 h-3 text-orange-500 inline" /> {member.streak}j streak</span>
-                  <span className="text-accent font-medium">{member.kp?.toLocaleString()} KP</span>
+          {topMembers.map((member, i) => {
+            const userObj = { full_name: member.name, email: member.name, total_kp: member.kp || 0, current_streak: member.streak || 0, level: "Lecteur 📖", books: 0, podcasts: 0, categories: {} };
+            const rankStyle = i < 3 ? RANK_STYLES[i] : null;
+            return (
+              <div key={i} onClick={() => setSelectedUser(userObj)}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:shadow-sm ${rankStyle ? `${rankStyle.bg}` : "bg-card border-border hover:border-accent/20"}`}>
+                <div className={`w-7 text-center font-black text-sm shrink-0 ${rankStyle ? rankStyle.text : "text-muted-foreground"}`}>
+                  {i < 3 ? rankStyle.badge : `#${i + 1}`}
                 </div>
+                {member.photo
+                  ? <img src={member.photo} alt={member.name} className="w-9 h-9 rounded-full object-cover" />
+                  : <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center font-bold">{member.name[0]}</div>
+                }
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{member.name}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-0.5"><Flame className="w-3 h-3 text-orange-500" /> {member.streak}j</span>
+                    <span className="text-accent font-semibold">{member.kp?.toLocaleString()} KP</span>
+                  </div>
+                </div>
+                {i === 0 && <Crown className="w-5 h-5 text-yellow-500 shrink-0" />}
               </div>
-              {i === 0 && <Crown className="w-5 h-5 text-yellow-500 shrink-0" />}
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="text-center text-muted-foreground py-8 text-sm">Aucun membre visible.</p>
       )}
+
+      {selectedUser && <UserProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
     </div>
   );
 }

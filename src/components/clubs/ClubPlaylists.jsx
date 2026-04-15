@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { ListMusic, Plus, Share2, Lock, Globe, Users, X, Loader2, ExternalLink } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ListMusic, Share2, Lock, Globe, Users, X, Loader2, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,32 +9,109 @@ import { fr } from "date-fns/locale";
 
 const VISIBILITY_ICONS = { public: Globe, friends: Users, private: Lock };
 
+const TYPE_ICONS = { book: "📖", podcast: "🎧", video: "🎬", article: "📰" };
+
+function PlaylistDetailModal({ post, myPlaylists, onClose }) {
+  const [expanding, setExpanding] = useState(false);
+  const [contents, setContents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [addedIds, setAddedIds] = useState(new Set());
+  const qc = useQueryClient();
+
+  const addMutation = useMutation({
+    mutationFn: (item) => base44.entities.Content.create({
+      title: item.title, type: item.type || "book",
+      author: item.author || "", status: "to_consume",
+      cover_url: item.cover_url || undefined,
+    }),
+    onSuccess: (_, item) => {
+      setAddedIds(prev => new Set([...prev, item.title]));
+      qc.invalidateQueries({ queryKey: ["contents"] });
+      toast.success(`"${item.title}" ajouté à ta bibliothèque !`);
+    },
+  });
+
+  // Try to fetch the actual playlist contents by name
+  React.useEffect(() => {
+    setLoading(true);
+    base44.entities.Playlist.filter({ name: post.content_ref_title }).then(async playlists => {
+      const playlist = playlists[0];
+      if (playlist?.content_ids?.length) {
+        const all = await base44.entities.Content.list("-updated_date", 200);
+        const items = all.filter(c => playlist.content_ids.includes(c.id));
+        setContents(items);
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [post.content_ref_title]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🎵</span>
+            <div>
+              <p className="font-bold">{post.content_ref_title || "Playlist"}</p>
+              <p className="text-xs text-muted-foreground">Partagée par {post.created_by || "un membre"}</p>
+            </div>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 text-muted-foreground" /></button>
+        </div>
+
+        <div className="p-4 max-h-[70vh] overflow-y-auto space-y-2">
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-accent" /></div>
+          ) : contents.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">Aucun contenu trouvé dans cette playlist.</p>
+          ) : (
+            contents.map((item, i) => (
+              <div key={item.id || i} className="flex items-center gap-3 p-3 bg-secondary/40 rounded-xl">
+                <span className="text-xl shrink-0">{TYPE_ICONS[item.type] || "📄"}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{item.title}</p>
+                  {item.author && <p className="text-xs text-muted-foreground truncate">{item.author}</p>}
+                </div>
+                <button
+                  onClick={() => addMutation.mutate(item)}
+                  disabled={addedIds.has(item.title) || addMutation.isPending}
+                  className={`text-xs px-2.5 py-1 rounded-lg border transition-colors shrink-0 ${addedIds.has(item.title) ? "bg-green-500/10 border-green-500/20 text-green-600" : "border-border hover:border-accent/40 hover:text-accent"}`}>
+                  {addedIds.has(item.title) ? "✓ Ajouté" : <><Plus className="w-3 h-3 inline mr-0.5" /> Ajouter</>}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ClubPlaylists({ club, isMember }) {
   const [showShare, setShowShare] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState("");
+  const [expandedPost, setExpandedPost] = useState(null);
   const qc = useQueryClient();
 
-  // Fetch user's own playlists to share
   const { data: myPlaylists = [] } = useQuery({
     queryKey: ["playlists"],
     queryFn: () => base44.entities.Playlist.list("-updated_date", 50),
     enabled: isMember,
   });
 
-  // Fetch posts that contain playlists shared in this club (using Post entity with tag)
   const { data: sharedPosts = [] } = useQuery({
     queryKey: ["club-playlists", club.id],
     queryFn: () => base44.entities.Post.filter({ content_ref_id: club.id, type: "milestone" }),
     enabled: !!club.id,
   });
 
-  // We use Post entity to "share" a playlist to a club
   const shareMutation = useMutation({
     mutationFn: async () => {
       const playlist = myPlaylists.find(p => p.id === selectedPlaylistId);
       if (!playlist) return;
       await base44.entities.Post.create({
-        content: `J'ai partagé ma playlist "${playlist.name}" ${playlist.emoji || "🎵"} dans le club ${club.emoji} ${club.name} !`,
+        content: `J'ai partagé ma playlist "${playlist.name}" ${playlist.emoji || "🎵"} dans le club ${club.emoji || ""} ${club.name} !`,
         type: "milestone",
         content_ref_id: club.id,
         content_ref_title: playlist.name,
@@ -101,7 +177,7 @@ export default function ClubPlaylists({ club, isMember }) {
         </div>
       )}
 
-      {/* Shared playlists */}
+      {/* Shared playlists grid */}
       {sharedPosts.length === 0 && !showShare ? (
         <div className="text-center py-10 border-2 border-dashed border-border rounded-2xl">
           <div className="text-4xl mb-2">🎵</div>
@@ -111,23 +187,31 @@ export default function ClubPlaylists({ club, isMember }) {
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {sharedPosts.map((post, i) => (
-            <div key={post.id || i} className="bg-card border border-border rounded-xl p-4 hover:shadow-sm hover:border-accent/30 transition-all">
+            <button key={post.id || i} onClick={() => setExpandedPost(post)}
+              className="bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-accent/30 transition-all text-left w-full">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-xl shrink-0">
-                  🎵
-                </div>
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-xl shrink-0">🎵</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{post.content_ref_title || "Playlist"}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Partagé par {post.created_by || "un membre"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">par {post.created_by || "un membre"}</p>
                   {post.created_date && (
                     <p className="text-xs text-muted-foreground">{format(new Date(post.created_date), "d MMM yyyy", { locale: fr })}</p>
                   )}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{post.content}</p>
-            </div>
+              <p className="text-xs text-accent mt-2 font-medium">👆 Cliquer pour voir les contenus</p>
+            </button>
           ))}
         </div>
+      )}
+
+      {/* Detail modal */}
+      {expandedPost && (
+        <PlaylistDetailModal
+          post={expandedPost}
+          myPlaylists={myPlaylists}
+          onClose={() => setExpandedPost(null)}
+        />
       )}
     </div>
   );

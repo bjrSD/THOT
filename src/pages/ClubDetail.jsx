@@ -14,6 +14,7 @@ import ClubDashboard from "@/components/clubs/ClubDashboard";
 import ClubChallenges from "@/components/clubs/ClubChallenges";
 import ClubPlaylists from "@/components/clubs/ClubPlaylists";
 import ClubMembers from "@/components/clubs/ClubMembers";
+import ClubChat from "@/components/clubs/ClubChat";
 
 const CLUBS_INFO = {
   "entrepreneurs": {
@@ -208,12 +209,7 @@ export default function ClubDetail() {
     recent_reads: staticClub.recent_reads || [],
   } : staticClub;
 
-  const [newMessage, setNewMessage] = useState("");
-  const [messages, setMessages] = useState([
-    { id: 1, author: "Marie D.", text: "Je viens de terminer Zero to One ! Absolument incroyable. Qui l'a lu ?", time: "il y a 2h", likes: 5 },
-    { id: 2, author: "Karim B.", text: "Je le lis en ce moment ! La partie sur les monopoles est fascinante.", time: "il y a 1h", likes: 3 },
-    { id: 3, author: "Sophie L.", text: "Prochaine lecture du club : The Lean Startup. On commence lundi ?", time: "il y a 30min", likes: 8 },
-  ]);
+
 
   const tabs = [
     { id: "accueil", label: "🏠 Accueil" },
@@ -229,12 +225,6 @@ export default function ClubDetail() {
     mutationFn: () => base44.entities.ClubMember.create({ club_id: clubId, club_name: club.name, role: "member" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["my-memberships"] }); toast.success("Vous avez rejoint le club !"); },
   });
-
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
-    setMessages(prev => [...prev, { id: Date.now(), author: "Vous", text: newMessage, time: "à l'instant", likes: 0 }]);
-    setNewMessage("");
-  };
 
   return (
     // ── Layout élargi (max-w-5xl) ──
@@ -310,45 +300,7 @@ export default function ClubDetail() {
 
       {/* ── Tab: Discussion ── */}
       {activeTab === "chat" && (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="p-3 border-b border-border flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-accent" />
-            <span className="font-semibold text-sm">Discussion du club</span>
-          </div>
-          <div className="h-96 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex items-start gap-2 ${msg.author === "Vous" ? "flex-row-reverse" : ""}`}>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-xs font-bold shrink-0">
-                  {msg.author[0]}
-                </div>
-                <div className={`max-w-[75%] flex flex-col ${msg.author === "Vous" ? "items-end" : ""}`}>
-                  {msg.author !== "Vous" && <p className="text-xs text-accent font-medium mb-0.5">{msg.author}</p>}
-                  <div className={`rounded-2xl px-3 py-2 text-sm ${msg.author === "Vous" ? "bg-accent text-accent-foreground" : "bg-secondary"}`}>
-                    {msg.text}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">{msg.time}</p>
-                    <button className="text-xs text-muted-foreground hover:text-red-500 flex items-center gap-0.5">
-                      <Heart className="w-3 h-3" /> {msg.likes}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {isMember ? (
-            <div className="p-3 border-t border-border flex gap-2">
-              <Input placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSend()} className="text-sm" />
-              <Button size="icon" onClick={handleSend} disabled={!newMessage.trim()}><Send className="w-4 h-4" /></Button>
-            </div>
-          ) : (
-            <div className="p-4 text-center border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Rejoignez le club pour participer à la discussion</p>
-              <Button size="sm" onClick={() => joinMutation.mutate()}>Rejoindre le club</Button>
-            </div>
-          )}
-        </div>
+        <ClubChat isMember={isMember} onJoin={() => joinMutation.mutate()} joining={joinMutation.isPending} />
       )}
 
       {/* ── Tab: Membres ── */}
