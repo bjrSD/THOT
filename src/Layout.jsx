@@ -35,7 +35,7 @@ const NAV_GROUPS = [
     items: [
       { name: "Carte du savoir", page: "BrainMap", icon: Brain },
       { name: "Heatmap", page: "Heatmap", icon: Flame },
-      { name: "Rapports", page: "Reports", icon: FileBarChart },
+      { name: "Rapports", page: "Reports", icon: FileBarChart, soon: true },
     ],
   },
   {
@@ -53,7 +53,7 @@ const NAV_GROUPS = [
     items: [
       { name: "Mon Profil", page: "Profile", icon: User },
       { name: "Notifications", page: "Notifications", icon: Bell },
-      { name: "Intégrations", page: "Integrations", icon: Zap },
+      { name: "Intégrations", page: "Integrations", icon: Zap, soon: true },
       { name: "Paramètres", page: "Settings", icon: Settings },
     ],
   },
@@ -308,7 +308,10 @@ export default function Layout({ children, currentPageName }) {
                       }`}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
-                      {item.name}
+                      <span className="flex-1">{item.name}</span>
+                      {item.soon && (
+                        <span className="text-[9px] bg-orange-500 text-white font-bold px-1.5 py-0.5 rounded-full leading-none">BIENTÔT</span>
+                      )}
                     </Link>
                   );
                 })}

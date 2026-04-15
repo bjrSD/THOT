@@ -1223,7 +1223,22 @@ Rédige en français, ton premium, encourageant, intelligent, non culpabilisant.
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 relative">
+      {/* Filigrane */}
+      <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center overflow-hidden">
+        <p className="text-8xl font-black text-orange-500/10 rotate-[-35deg] select-none whitespace-nowrap">EN DÉVELOPPEMENT</p>
+      </div>
+
+      {/* Bannière top */}
+      <div className="flex items-center gap-3 bg-orange-500/10 border-2 border-orange-500/40 rounded-2xl p-4 sticky top-0 z-30 backdrop-blur-sm">
+        <span className="text-2xl">🚧</span>
+        <div className="flex-1">
+          <p className="font-bold text-orange-600 text-sm">Page en cours de développement</p>
+          <p className="text-xs text-orange-500/80">Les rapports ne sont pas encore disponibles. Revenez bientôt !</p>
+        </div>
+        <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse">BIENTÔT</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div>
