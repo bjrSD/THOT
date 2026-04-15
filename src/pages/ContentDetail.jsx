@@ -513,70 +513,71 @@ export default function ContentDetail() {
                   <Star className="w-5 h-5 text-accent" /> Notes & Avis THOT
                 </h2>
                 <div className="space-y-4">
-                  {/* Note moyenne communauté */}
-                  <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold text-foreground">
-                        {communityAvg ? communityAvg.toFixed(1) : "—"}
-                      </p>
-                      <div className="flex items-center justify-center gap-0.5 mt-1">
-                        {[1, 2, 3, 4, 5].map(s => (
-                          <Star key={s} className={`w-3.5 h-3.5 ${communityAvg && communityAvg >= s ? "fill-yellow-400 text-yellow-400" : communityAvg && communityAvg >= s - 0.5 ? "fill-yellow-200 text-yellow-400" : "text-border"}`} />
+                  {/* Note moyenne + distribution */}
+                  <div className="flex gap-4 items-stretch">
+                    {/* Score moyen */}
+                    <div className="flex flex-col items-center justify-center bg-secondary/50 rounded-xl px-5 py-4 shrink-0">
+                      <p className="text-4xl font-bold">{communityAvg ? communityAvg.toFixed(1) : "—"}</p>
+                      <div className="flex gap-0.5 mt-1">
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} className={`w-3.5 h-3.5 ${communityAvg && communityAvg >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
                         ))}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-1">{communityReviews.length} avis</p>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Note communauté THOT</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5" />
-                        {communityReviews.length > 0
-                          ? `${communityReviews.length} membre${communityReviews.length > 1 ? "s" : ""} ont noté ce contenu`
-                          : "Aucune note pour l'instant — soyez le premier !"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Distribution des notes */}
-                  {communityReviews.length > 0 && (
-                    <div className="space-y-1.5">
-                      {[5, 4, 3, 2, 1].map(star => {
+                    {/* Distribution */}
+                    <div className="flex-1 space-y-1.5 justify-center flex flex-col">
+                      {[5,4,3,2,1].map(star => {
                         const count = communityReviews.filter(c => Math.round(c.rating) === star).length;
                         const pct = communityReviews.length > 0 ? Math.round((count / communityReviews.length) * 100) : 0;
                         return (
                           <div key={star} className="flex items-center gap-2 text-xs">
-                            <span className="w-4 text-right text-muted-foreground">{star}</span>
+                            <span className="w-3 text-right text-muted-foreground shrink-0">{star}</span>
                             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 shrink-0" />
                             <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                               <div className="h-full bg-yellow-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
                             </div>
-                            <span className="w-6 text-muted-foreground">{count}</span>
+                            <span className="w-4 text-right text-muted-foreground shrink-0">{count}</span>
                           </div>
                         );
                       })}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Avis textuels */}
-                  {communityReviews.filter(c => c.community_review).length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Avis des membres</p>
-                      {communityReviews.filter(c => c.community_review).slice(0, 5).map((c, i) => (
-                        <div key={i} className="bg-secondary/40 rounded-xl p-3">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            {[1, 2, 3, 4, 5].map(s => (
-                              <Star key={s} className={`w-3 h-3 ${c.rating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                            ))}
-                            <span className="text-xs text-muted-foreground ml-auto">{c.created_by?.split("@")[0]}</span>
+                  {/* Avis textuels des membres */}
+                  {communityReviews.filter(c => c.community_review).length > 0 ? (
+                    <div className="space-y-3 pt-2 border-t border-border">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        {communityReviews.filter(c => c.community_review).length} avis rédigé{communityReviews.filter(c => c.community_review).length > 1 ? "s" : ""}
+                      </p>
+                      {communityReviews.filter(c => c.community_review).map((c, i) => (
+                        <div key={i} className="bg-secondary/40 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            {/* Avatar initiale */}
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold shrink-0">
+                              {(c.created_by?.split("@")[0] || "?")[0].toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold truncate">{c.created_by?.split("@")[0]}</p>
+                              <div className="flex gap-0.5 mt-0.5">
+                                {[1,2,3,4,5].map(s => (
+                                  <Star key={s} className={`w-3 h-3 ${c.rating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+                                ))}
+                              </div>
+                            </div>
+                            {c.updated_date && (
+                              <span className="text-[10px] text-muted-foreground shrink-0">
+                                {new Date(c.updated_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                              </span>
+                            )}
                           </div>
-                          <p className="text-xs text-muted-foreground italic">"{c.community_review}"</p>
+                          <p className="text-sm text-foreground/80 leading-relaxed">"{c.community_review}"</p>
                         </div>
                       ))}
                     </div>
-                  )}
-
-                  {communityReviews.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      💬 Ajoutez votre avis dans l'onglet "Mon Suivi" pour alimenter la communauté !
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-3 border-t border-border pt-4">
+                      💬 Soyez le premier à laisser un avis — notez ce contenu dans "Mon Suivi" !
                     </p>
                   )}
                 </div>
@@ -696,19 +697,19 @@ export default function ContentDetail() {
             </div>
           </div>
 
-          {/* Ma note */}
+          {/* Ma note & avis */}
           <div className="bg-card rounded-2xl border border-border p-6">
             <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-accent" /> Ma note personnelle
+              <Star className="w-5 h-5 text-accent" /> Ma note & avis
             </h2>
             <div className="space-y-4">
               <div>
-                <Label className="mb-2 block">Note (sur 5)</Label>
+                <Label className="mb-2 block">Ma note (sur 5)</Label>
                 <StarRow value={form.rating} onChange={v => updateForm(f => ({ ...f, rating: v }))} size="w-8 h-8" />
                 {form.rating > 0 && <p className="text-sm text-muted-foreground mt-2">{["", "Pas aimé", "Passable", "Bien", "Très bien", "Chef-d'œuvre"][form.rating]}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Mon humeur de lecture</Label>
+                <Label>Mon humeur</Label>
                 <div className="flex flex-wrap gap-2">
                   {MOODS.map(m => (
                     <button key={m} onClick={() => updateForm(f => ({ ...f, mood: m }))}
@@ -717,6 +718,20 @@ export default function ContentDetail() {
                     </button>
                   ))}
                 </div>
+              </div>
+              {/* Avis public communauté — intégré ici */}
+              <div className="space-y-2 pt-3 border-t border-border">
+                <Label className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-accent" /> Mon avis pour la communauté
+                  <span className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium ml-1">public</span>
+                </Label>
+                <Textarea
+                  value={form.community_review}
+                  rows={3}
+                  placeholder="Recommanderiez-vous ce contenu ? Qu'avez-vous appris ? Votre avis sera visible par tous…"
+                  onChange={e => updateForm(f => ({ ...f, community_review: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Votre avis sera visible dans l'onglet "Descriptif" par la communauté THOT.</p>
               </div>
             </div>
           </div>
@@ -787,11 +802,6 @@ export default function ContentDetail() {
                 <Label>Note personnelle (privée)</Label>
                 <Textarea value={form.personal_note} rows={4} placeholder="Mes réflexions, apprentissages, idées clés…"
                   onChange={e => updateForm(f => ({ ...f, personal_note: e.target.value }))} />
-              </div>
-              <div className="space-y-2">
-                <Label>Avis pour la communauté (public)</Label>
-                <Textarea value={form.community_review} rows={3} placeholder="Recommanderiez-vous ce livre ? Pourquoi ?"
-                  onChange={e => updateForm(f => ({ ...f, community_review: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label>Tags personnels</Label>
