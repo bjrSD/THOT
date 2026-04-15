@@ -241,8 +241,15 @@ export default function Discover() {
   }, [loading, loadingMore, hasMore, loadItems]);
 
   const handleOpen = (item) => {
-    const itemData = encodeURIComponent(JSON.stringify(item));
-    navigate(`/SearchResultDetail?data=${itemData}`);
+    const existing = findExisting(item);
+    if (existing) {
+      // Already in library → go to ContentDetail
+      navigate(`/ContentDetail?id=${existing.id}`);
+    } else {
+      // Not in library → go to SearchResultDetail
+      const itemData = encodeURIComponent(JSON.stringify(item));
+      navigate(`/SearchResultDetail?data=${itemData}`);
+    }
   };
 
   return (
