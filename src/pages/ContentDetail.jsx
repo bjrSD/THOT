@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2,
   Star, Save, Globe, TrendingUp, BookMarked, BarChart3, CheckCircle2,
-  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube, Plus, Check, Users, ListMusic
+  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube, Plus, Check, Users, ListMusic, Send, Pencil
 } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 import VideoDescriptif from "@/components/content/VideoDescriptif";
@@ -130,6 +130,8 @@ export default function ContentDetail() {
   const [quotes, setQuotes] = useState([]);
   const [newQuote, setNewQuote] = useState("");
   const [saved, setSaved] = useState(false);
+  const [publishingReview, setPublishingReview] = useState(false);
+  const [reviewPublished, setReviewPublished] = useState(false);
   const [addingBook, setAddingBook] = useState({});
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [addingToLibrary, setAddingToLibrary] = useState(false);
@@ -720,18 +722,55 @@ export default function ContentDetail() {
                 </div>
               </div>
               {/* Avis public communauté — intégré ici */}
-              <div className="space-y-2 pt-3 border-t border-border">
-                <Label className="flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-accent" /> Mon avis pour la communauté
-                  <span className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium ml-1">public</span>
-                </Label>
+              <div className="space-y-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-accent" /> Mon avis communauté
+                    <span className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium ml-1">public</span>
+                  </Label>
+                  {content.community_review && (
+                    <span className="text-[10px] text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      ✓ Avis publié
+                    </span>
+                  )}
+                </div>
                 <Textarea
                   value={form.community_review}
                   rows={3}
                   placeholder="Recommanderiez-vous ce contenu ? Qu'avez-vous appris ? Votre avis sera visible par tous…"
                   onChange={e => updateForm(f => ({ ...f, community_review: e.target.value }))}
                 />
-                <p className="text-xs text-muted-foreground">Votre avis sera visible dans l'onglet "Descriptif" par la communauté THOT.</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">Visible par la communauté dans l'onglet Descriptif.</p>
+                  <Button
+                    size="sm"
+                    variant={reviewPublished || content.community_review ? "outline" : "default"}
+                    disabled={publishingReview || !form.community_review?.trim()}
+                    onClick={async () => {
+                      setPublishingReview(true);
+                      await base44.entities.Content.update(content.id, {
+                        rating: form.rating || undefined,
+                        community_review: form.community_review,
+                      });
+                      queryClient.invalidateQueries({ queryKey: ["content", contentId] });
+                      queryClient.invalidateQueries({ queryKey: ["contents-public"] });
+                      setPublishingReview(false);
+                      setReviewPublished(true);
+                      setTimeout(() => setReviewPublished(false), 3000);
+                    }}
+                    className={`shrink-0 gap-1.5 transition-all ${reviewPublished ? "border-green-500 text-green-600 bg-green-500/10" : ""}`}
+                  >
+                    {publishingReview ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : reviewPublished ? (
+                      <><Check className="w-3.5 h-3.5" /> Publié !</>
+                    ) : content.community_review ? (
+                      <><Pencil className="w-3.5 h-3.5" /> Modifier l'avis</>
+                    ) : (
+                      <><Send className="w-3.5 h-3.5" /> Publier mon avis</>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
