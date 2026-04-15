@@ -64,7 +64,7 @@ export default function GoogleBooksSearch({ onSelect }) {
         <Input
           value={query}
           onChange={(e) => handleChange(e.target.value)}
-          placeholder="Rechercher un contenu (livres, vidéos, podcasts, articles)…"
+          placeholder="Rechercher livres, vidéos, podcasts…"
           className="pl-9 pr-9"
         />
         {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}

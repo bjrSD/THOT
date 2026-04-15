@@ -167,9 +167,8 @@ export default function Library() {
             const Icon = v.icon;
             return (
               <button key={v.id} onClick={() => setView(v.id)} title={v.label}
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                <Icon className="w-3.5 h-3.5" />
-                <span>{v.label}</span>
+                className={`flex items-center justify-center p-2 rounded-lg transition-all ${view === v.id ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                <Icon className="w-4 h-4" />
               </button>
             );
           })}
