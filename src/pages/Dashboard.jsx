@@ -16,6 +16,7 @@ import Suggestions from "@/components/dashboard/Suggestions";
 import VocabStatsRow from "@/components/dashboard/VocabStatsRow";
 import ContentStatsTab from "@/components/dashboard/ContentStatsTab";
 import VocabAI from "@/components/dashboard/VocabAI";
+import TopAuthors from "@/components/dashboard/TopAuthors";
 import { getUserLevel, getNextLevel, getLevelProgress } from "@/components/shared/KPUtils";
 import { Progress } from "@/components/ui/progress";
 
@@ -170,7 +171,7 @@ export default function Dashboard() {
       </div>
 
       {/* Activity feed */}
-      <ActivityFeed activities={activities} />
+      <ActivityFeed activities={activities} contents={contents} />
 
       {/* Detailed stats by content type */}
       <ContentStatsTab contents={contents} />
@@ -179,7 +180,7 @@ export default function Dashboard() {
       <VocabStatsRow contents={contents} />
 
       {/* Profil Intellectuel */}
-      <RadarDomains user={user} />
+      <RadarDomains user={user} contents={contents} />
 
       {/* En cours — 2 colonnes */}
       {(() => {
@@ -247,11 +248,12 @@ export default function Dashboard() {
         );
       })()}
 
-      {/* Vocab AI + Suggestions */}
+      {/* Vocab AI + Suggestions + Top Authors */}
       <div className="grid lg:grid-cols-2 gap-4">
         <VocabAI contents={contents} />
         <Suggestions contents={contents} />
       </div>
+      <TopAuthors contents={contents} />
     </div>
   );
 }

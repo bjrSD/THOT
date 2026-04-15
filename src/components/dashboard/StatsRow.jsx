@@ -45,19 +45,19 @@ export default function StatsRow({ user }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {stats.map((s, i) => (
-        <div key={i} className="bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.label}</p>
-            <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
-              <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
+        <div key={i} className="bg-card rounded-xl border border-border p-3 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">{s.label}</p>
+            <div className={`w-6 h-6 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
+              <s.icon className={`w-3 h-3 ${s.color}`} />
             </div>
           </div>
-          <p className="text-xl font-bold leading-none">{s.value}</p>
+          <p className="text-lg font-bold leading-none">{s.value}</p>
           {s.progress !== undefined && s.nextLevel && (
-            <div className="mt-2.5">
+            <div className="mt-2">
               <Progress value={s.progress} className="h-1" />
-              <p className="text-xs text-muted-foreground mt-1">
-                Prochain : {s.nextLevel.icon} {s.nextLevel.name} ({s.progress}%)
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                → {s.nextLevel.icon} {s.nextLevel.name} ({s.progress}%)
               </p>
             </div>
           )}
