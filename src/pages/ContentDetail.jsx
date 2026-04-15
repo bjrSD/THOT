@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2,
   Star, Save, Globe, TrendingUp, BookMarked, BarChart3, CheckCircle2,
-  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube, Plus, Check, Users
+  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube, Plus, Check, Users, ListMusic
 } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 import VideoDescriptif from "@/components/content/VideoDescriptif";
@@ -131,6 +131,10 @@ export default function ContentDetail() {
   const [newQuote, setNewQuote] = useState("");
   const [saved, setSaved] = useState(false);
   const [addingBook, setAddingBook] = useState({});
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [addingToLibrary, setAddingToLibrary] = useState(false);
+  const [addingToPlaylist, setAddingToPlaylist] = useState(null);
+  const addMenuRef = useRef(null);
 
   // Warn on browser/tab close if unsaved
   useEffect(() => {
@@ -201,6 +205,45 @@ export default function ContentDetail() {
     queryKey: ["contents"],
     queryFn: () => base44.entities.Content.list("-updated_date", 200),
   });
+
+  const { data: playlists = [] } = useQuery({
+    queryKey: ["playlists"],
+    queryFn: () => base44.entities.Playlist.list("-updated_date", 50),
+  });
+
+  // Close add menu on outside click
+  useEffect(() => {
+    if (!showAddMenu) return;
+    const handler = (e) => { if (addMenuRef.current && !addMenuRef.current.contains(e.target)) setShowAddMenu(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showAddMenu]);
+
+  const isCurrentContentInLibrary = myLibrary.some(c => c.id === contentId);
+
+  const handleAddToLibrary = async () => {
+    if (isCurrentContentInLibrary || addingToLibrary) return;
+    setAddingToLibrary(true);
+    // Content already exists in library (we're ON the detail page), just update status to to_consume if needed
+    await base44.entities.Content.update(contentId, { status: "to_consume" });
+    queryClient.invalidateQueries({ queryKey: ["contents"] });
+    setAddingToLibrary(false);
+    setShowAddMenu(false);
+  };
+
+  const handleAddToPlaylist = async (playlistId) => {
+    setAddingToPlaylist(playlistId);
+    const playlist = playlists.find(p => p.id === playlistId);
+    const ids = playlist?.content_ids || [];
+    if (!ids.includes(contentId)) {
+      await base44.entities.Playlist.update(playlistId, { content_ids: [...ids, contentId] });
+    }
+    queryClient.invalidateQueries({ queryKey: ["playlists"] });
+    setAddingToPlaylist(null);
+    setShowAddMenu(false);
+  };
+
+  const isInAnyPlaylist = playlists.some(p => p.content_ids?.includes(contentId));
 
   const isBookInLibrary = (title) => myLibrary.some(c => c.title === title && c.type === "book");
 
@@ -335,18 +378,68 @@ export default function ContentDetail() {
           </div>
         )}
 
-        {/* Bouton + ajouter à la bibliothèque */}
-        <button
-          onClick={() => setActiveTab("suivi")}
-          title="Ajouter à ma bibliothèque / playlists"
-          className="absolute bottom-4 right-4 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-          style={{
-            background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
-            boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
-          }}
-        >
-          <Plus className="w-5 h-5 text-white" />
-        </button>
+        {/* Bouton + ajouter à la bibliothèque / playlist */}
+        <div className="absolute bottom-4 right-4" ref={addMenuRef}>
+          <button
+            onClick={() => setShowAddMenu(v => !v)}
+            title="Ajouter à ma bibliothèque / playlists"
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            style={isCurrentContentInLibrary || isInAnyPlaylist ? {
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              boxShadow: "0 0 16px rgba(16,185,129,0.6), 0 4px 12px rgba(0,0,0,0.3)"
+            } : {
+              background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+              boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
+            }}
+          >
+            {isCurrentContentInLibrary || isInAnyPlaylist
+              ? <Check className="w-5 h-5 text-white" />
+              : <Plus className="w-5 h-5 text-white" />
+            }
+          </button>
+
+          {showAddMenu && (
+            <div className="absolute bottom-full right-0 mb-2 w-56 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+              <div className="p-2 space-y-0.5">
+                {/* Ajouter à la liste */}
+                <button
+                  onClick={handleAddToLibrary}
+                  disabled={isCurrentContentInLibrary || addingToLibrary}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-secondary transition-colors text-left text-sm font-medium disabled:opacity-60"
+                >
+                  {addingToLibrary ? <Loader2 className="w-4 h-4 animate-spin text-accent shrink-0" />
+                    : isCurrentContentInLibrary ? <Check className="w-4 h-4 text-green-500 shrink-0" />
+                    : <BookOpen className="w-4 h-4 text-accent shrink-0" />}
+                  <span>{isCurrentContentInLibrary ? "Déjà dans ma liste" : "Ajouter à ma liste"}</span>
+                </button>
+
+                {/* Playlists */}
+                {playlists.length > 0 && (
+                  <>
+                    <div className="px-3 pt-1 pb-0.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Ajouter à une playlist</p>
+                    </div>
+                    {playlists.slice(0, 6).map(p => {
+                      const inPlaylist = p.content_ids?.includes(contentId);
+                      return (
+                        <button key={p.id}
+                          onClick={() => !inPlaylist && handleAddToPlaylist(p.id)}
+                          disabled={inPlaylist || addingToPlaylist === p.id}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-secondary transition-colors text-left text-sm disabled:opacity-60"
+                        >
+                          {addingToPlaylist === p.id ? <Loader2 className="w-3.5 h-3.5 text-purple-500 shrink-0 animate-spin" />
+                            : inPlaylist ? <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                            : <ListMusic className="w-3.5 h-3.5 text-purple-500 shrink-0" />}
+                          <span className="truncate">{p.emoji || "🎵"} {p.name}</span>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Tab buttons */}
