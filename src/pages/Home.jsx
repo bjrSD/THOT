@@ -359,26 +359,22 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {(() => {
-                    const data = LEADERBOARD_MOCK[lbTab] || [];
-                    const podium = [data[1], data[0], data[2]].filter(Boolean);
-                    return podium.map((user, i) => {
-                      const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
-                      const style = RANK_STYLES[realRank];
-                      return (
-                        <motion.div key={user.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                        className={`flex flex-col items-center p-2 rounded-xl border ${style.bg} ${style.border}`}>
-                          <span className="text-lg">{style.badge}</span>
-                          {user.photo ?
-                          <img src={user.photo} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/20 my-1" /> :
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user.name[0]}</div>
-                          }
-                          <p className="text-xs font-semibold text-white text-center truncate w-full">{user.name.split(" ")[0]}</p>
-                          <p className={`text-sm font-black ${style.color}`}>{user.kp.toLocaleString()}</p>
-                          <p className="text-xs text-white/40">KP</p>
-                        </motion.div>);
-                    });
-                  })()}
+                  {[LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].map((user, i) => {
+                    const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
+                    const style = RANK_STYLES[realRank];
+                    return (
+                      <motion.div key={user.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                      className={`flex flex-col items-center p-2 rounded-xl border ${style.bg} ${style.border}`}>
+                        <span className="text-lg">{style.badge}</span>
+                        {user.photo ?
+                        <img src={user.photo} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/20 my-1" /> :
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user.name[0]}</div>
+                        }
+                        <p className="text-xs font-semibold text-white text-center truncate w-full">{user.name.split(" ")[0]}</p>
+                        <p className={`text-sm font-black ${style.color}`}>{user.kp.toLocaleString()}</p>
+                        <p className="text-xs text-white/40">KP</p>
+                      </motion.div>);
+                  })}
                 </div>
                 <div className="space-y-2">
                   {LEADERBOARD_MOCK[lbTab].slice(3).map((user, i) =>
@@ -442,10 +438,10 @@ export default function Home() {
                     <h3 className="font-heading font-bold text-lg">Évolution du Capital Savoir</h3>
                     <p className="text-sm text-muted-foreground">30 derniers jours</p>
                   </div>
-                  <span className="text-2xl font-black text-fuchsia-500">{CAPITAL_DATA?.[29]?.kp?.toLocaleString() || "0"} KP</span>
+                  <span className="text-2xl font-black text-fuchsia-500">{CAPITAL_DATA[29].kp.toLocaleString()} KP</span>
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={CAPITAL_DATA && CAPITAL_DATA.length > 0 ? CAPITAL_DATA : [{ day: 1, kp: 0 }]} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <AreaChart data={CAPITAL_DATA} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="kpGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#d946ef" stopOpacity={0.4} />
@@ -499,8 +495,8 @@ export default function Home() {
                   <h3 className="font-heading font-bold text-lg mb-4 text-center">Répartition de votre consommation</h3>
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
-                      <Pie data={CONSOMMATION_DATA && CONSOMMATION_DATA.length > 0 ? CONSOMMATION_DATA : [{ name: "Aucune donnée", value: 100, color: "#ccc" }]} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
-                        {(CONSOMMATION_DATA && CONSOMMATION_DATA.length > 0 ? CONSOMMATION_DATA : [{ name: "Aucune donnée", value: 100, color: "#ccc" }]).map((entry, index) =>
+                      <Pie data={CONSOMMATION_DATA} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value">
+                        {CONSOMMATION_DATA.map((entry, index) =>
                         <Cell key={index} fill={entry.color} />
                         )}
                       </Pie>
