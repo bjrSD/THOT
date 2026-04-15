@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 import VideoDescriptif from "@/components/content/VideoDescriptif";
+import ArticleDescriptif from "@/components/content/ArticleDescriptif";
+import PodcastDescriptif from "@/components/content/PodcastDescriptif";
+import CommunityReviews from "@/components/content/CommunityReviews";
 
 const TYPE_ICON_MAP = { book: BookOpen, podcast: Headphones, video: Play, article: FileText };
 
@@ -75,6 +78,23 @@ function StarRow({ value, onChange, size = "w-5 h-5" }) {
           <Star className={`${size} transition-colors ${(value || 0) >= s ? "fill-yellow-400 text-yellow-400" : "text-border hover:text-yellow-300"}`} />
         </button>
       ))}
+    </div>
+  );
+}
+
+function BookSummary({ text }) {
+  const [expanded, setExpanded] = React.useState(false);
+  return (
+    <div className="bg-card rounded-2xl border border-border p-6">
+      <h2 className="font-heading font-bold text-lg mb-3 flex items-center gap-2">
+        <BookOpen className="w-5 h-5 text-accent" /> Résumé
+      </h2>
+      <p className={`text-sm text-muted-foreground leading-relaxed ${!expanded ? "line-clamp-5" : ""}`}>{text}</p>
+      {text.length > 300 && (
+        <button onClick={() => setExpanded(v => !v)} className="flex items-center gap-1 text-xs text-accent hover:underline mt-2 font-medium">
+          {expanded ? "Voir moins" : "Voir plus →"}
+        </button>
+      )}
     </div>
   );
 }
@@ -338,8 +358,8 @@ export default function ContentDetail() {
   return (
     <div className="space-y-5">
       {/* Back */}
-      <button onClick={() => window.history.back()} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
-        <ArrowLeft className="w-4 h-4" /> Retour
+      <button onClick={() => { window.location.href = "/Library"; }} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+        <ArrowLeft className="w-4 h-4" /> Retour à la bibliothèque
       </button>
 
       {/* Hero banner */}
@@ -391,7 +411,7 @@ export default function ContentDetail() {
               )}
               {progress > 0 && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-orange-500" /> {progress}% lu
+                  <Flame className="w-3 h-3 text-orange-500" /> {progress}% {{ book: "lu", podcast: "écouté", video: "visionné", article: "lu" }[content.type] || "complété"}
                 </span>
               )}
             </div>
@@ -494,21 +514,23 @@ export default function ContentDetail() {
       {/* ─── TAB 1: DESCRIPTIF ─────────────────────────────────────── */}
       {activeTab === "descriptif" && (
         <div className="space-y-5">
-          {/* VIDEO: use dedicated component */}
-          {content.type === "video" ? (
-            <VideoDescriptif content={content} />
-          ) : (
+          {content.type === "video" && (
+            <VideoDescriptif content={content} liveReviews={liveReviews} communityAvg={communityAvg} progress={progress} />
+          )}
+
+          {content.type === "article" && (
+            <ArticleDescriptif content={content} liveReviews={liveReviews} communityAvg={communityAvg} progress={progress} form={form} />
+          )}
+
+          {content.type === "podcast" && (
+            <PodcastDescriptif content={content} liveReviews={liveReviews} communityAvg={communityAvg} progress={progress} form={form} />
+          )}
+
+          {content.type === "book" && (
             <>
-              {/* Résumé complet */}
+              {/* Résumé */}
               {(googleData?.description || content.summary) && (
-                <div className="bg-card rounded-2xl border border-border p-6">
-                  <h2 className="font-heading font-bold text-lg mb-3 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-accent" /> Résumé
-                  </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {googleData?.description || content.summary}
-                  </p>
-                </div>
+                <BookSummary text={googleData?.description || content.summary} />
               )}
 
               {/* Fiche technique */}
@@ -524,6 +546,7 @@ export default function ContentDetail() {
                     { label: "Pages", value: content.total_pages || googleData?.pageCount },
                     { label: "Langue", value: googleData?.language?.toUpperCase() },
                     { label: "Catégorie", value: googleData?.categories?.[0] || CATEGORY_LABELS[content.category] },
+                    { label: "Progression", value: progress > 0 ? `${progress}%` : null },
                   ].filter(f => f.value).map(f => (
                     <div key={f.label} className="bg-secondary/50 rounded-xl p-3">
                       <p className="text-xs text-muted-foreground mb-1">{f.label}</p>
@@ -533,137 +556,54 @@ export default function ContentDetail() {
                 </div>
               </div>
 
-              {/* Notes & Avis communauté THOT */}
+              {/* Notes & Avis */}
+              <CommunityReviews liveReviews={liveReviews} communityAvg={communityAvg} />
+
+              {/* Où trouver */}
               <div className="bg-card rounded-2xl border border-border p-6">
                 <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-accent" /> Notes & Avis THOT
+                  <ShoppingCart className="w-5 h-5 text-accent" /> Où trouver ce livre
                 </h2>
-                <div className="space-y-4">
-                  {/* Note moyenne + distribution */}
-                  <div className="flex gap-4 items-stretch">
-                    {/* Score moyen */}
-                    <div className="flex flex-col items-center justify-center bg-secondary/50 rounded-xl px-5 py-4 shrink-0">
-                      <p className="text-4xl font-bold">{communityAvg ? communityAvg.toFixed(1) : "—"}</p>
-                      <div className="flex gap-0.5 mt-1">
-                        {[1,2,3,4,5].map(s => (
-                          <Star key={s} className={`w-3.5 h-3.5 ${communityAvg && communityAvg >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{liveReviews.length} avis</p>
-                    </div>
-                    {/* Distribution */}
-                    <div className="flex-1 space-y-1.5 justify-center flex flex-col">
-                      {[5,4,3,2,1].map(star => {
-                        const count = liveReviews.filter(c => Math.round(c.rating) === star).length;
-                        const pct = liveReviews.length > 0 ? Math.round((count / liveReviews.length) * 100) : 0;
-                        return (
-                          <div key={star} className="flex items-center gap-2 text-xs">
-                            <span className="w-3 text-right text-muted-foreground shrink-0">{star}</span>
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 shrink-0" />
-                            <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                              <div className="h-full bg-yellow-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="w-4 text-right text-muted-foreground shrink-0">{count}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Avis textuels des membres */}
-                  {liveReviews.filter(c => c.community_review).length > 0 ? (
-                    <div className="space-y-3 pt-2 border-t border-border">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                        {liveReviews.filter(c => c.community_review).length} avis rédigé{liveReviews.filter(c => c.community_review).length > 1 ? "s" : ""}
-                      </p>
-                      {liveReviews.filter(c => c.community_review).map((c, i) => (
-                        <div key={i} className="bg-secondary/40 rounded-xl p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            {/* Avatar initiale */}
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold shrink-0">
-                              {(c.created_by?.split("@")[0] || "?")[0].toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold truncate">{c.created_by?.split("@")[0]}</p>
-                              <div className="flex gap-0.5 mt-0.5">
-                                {[1,2,3,4,5].map(s => (
-                                  <Star key={s} className={`w-3 h-3 ${c.rating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                                ))}
-                              </div>
-                            </div>
-                            {c.updated_date && (
-                              <span className="text-[10px] text-muted-foreground shrink-0">
-                                {new Date(c.updated_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-foreground/80 leading-relaxed">"{c.community_review}"</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-3 border-t border-border pt-4">
-                      💬 Soyez le premier à laisser un avis — allez dans "Mon Suivi" !
-                    </p>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { name: "Amazon", url: `https://www.amazon.fr/s?k=${encodeURIComponent(content.title + " " + content.author)}`, emoji: "📦" },
+                    { name: "Fnac", url: `https://www.fnac.com/SearchResult/ResultList.aspx?SCat=0!1&sft=1&sa=0&sf=1&Search=${encodeURIComponent(content.title)}`, emoji: "🏪" },
+                    { name: "Google Books", url: googleData?.infoLink || `https://books.google.com/books?q=${encodeURIComponent(content.title)}`, emoji: "📚" },
+                    { name: "Cultura", url: `https://www.cultura.com/recherche?text=${encodeURIComponent(content.title)}`, emoji: "🎨" },
+                    content.buy_link && { name: "Lien direct", url: content.buy_link, emoji: "🔗" },
+                  ].filter(Boolean).map(shop => (
+                    <a key={shop.name} href={shop.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium">
+                      <span className="text-lg">{shop.emoji}</span> {shop.name}
+                      <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
+                    </a>
+                  ))}
                 </div>
               </div>
 
-              {/* Où trouver (books only) */}
-              {content.type === "book" && (
-                <div className="bg-card rounded-2xl border border-border p-6">
-                  <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5 text-accent" /> Où trouver ce livre
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { name: "Amazon", url: `https://www.amazon.fr/s?k=${encodeURIComponent(content.title + " " + content.author)}`, emoji: "📦" },
-                      { name: "Fnac", url: `https://www.fnac.com/SearchResult/ResultList.aspx?SCat=0!1&sft=1&sa=0&sf=1&Search=${encodeURIComponent(content.title)}`, emoji: "🏪" },
-                      { name: "Google Books", url: googleData?.infoLink || `https://books.google.com/books?q=${encodeURIComponent(content.title)}`, emoji: "📚" },
-                      { name: "Cultura", url: `https://www.cultura.com/recherche?text=${encodeURIComponent(content.title)}`, emoji: "🎨" },
-                      content.buy_link && { name: "Lien direct", url: content.buy_link, emoji: "🔗" },
-                    ].filter(Boolean).map(shop => (
-                      <a key={shop.name} href={shop.url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-accent/40 hover:bg-accent/5 transition-all text-sm font-medium">
-                        <span className="text-lg">{shop.emoji}</span> {shop.name}
-                        <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Du même auteur */}
+              {/* Du même auteur — grille plus compacte */}
               {similar.byAuthor.length > 0 && (
                 <div className="bg-card rounded-2xl border border-border p-6">
                   <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
                   </h2>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                    {similar.byAuthor.map((b, i) => (
-                      <BookMiniCard key={i} book={b}
-                        isAdded={isBookInLibrary(b.title)}
-                        adding={!!addingBook[b.title]}
-                        onAdd={() => handleAddBook(b)}
-                      />
+                  <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
+                    {similar.byAuthor.slice(0, 5).map((b, i) => (
+                      <BookMiniCard key={i} book={b} isAdded={isBookInLibrary(b.title)} adding={!!addingBook[b.title]} onAdd={() => handleAddBook(b)} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Dans le même genre */}
+              {/* Dans le même genre — grille plus compacte */}
               {similar.bySubject.length > 0 && (
                 <div className="bg-card rounded-2xl border border-border p-6">
                   <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
                     <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
                   </h2>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                    {similar.bySubject.map((b, i) => (
-                      <BookMiniCard key={i} book={b}
-                        isAdded={isBookInLibrary(b.title)}
-                        adding={!!addingBook[b.title]}
-                        onAdd={() => handleAddBook(b)}
-                      />
+                  <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
+                    {similar.bySubject.slice(0, 5).map((b, i) => (
+                      <BookMiniCard key={i} book={b} isAdded={isBookInLibrary(b.title)} adding={!!addingBook[b.title]} onAdd={() => handleAddBook(b)} />
                     ))}
                   </div>
                 </div>
