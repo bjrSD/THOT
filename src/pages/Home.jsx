@@ -359,41 +359,38 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {LEADERBOARD_MOCK[lbTab] && [LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].filter(Boolean).map((user, i) => {
+                  {[LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].map((user, i) => {
                     const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
                     const style = RANK_STYLES[realRank];
                     return (
-                      <motion.div key={user?.name || i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                      <motion.div key={user.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                       className={`flex flex-col items-center p-2 rounded-xl border ${style.bg} ${style.border}`}>
                         <span className="text-lg">{style.badge}</span>
-                        {user?.photo ?
+                        {user.photo ?
                         <img src={user.photo} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/20 my-1" /> :
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user?.name?.[0] || "?"}</div>
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user.name[0]}</div>
                         }
-                        <p className="text-xs font-semibold text-white text-center truncate w-full">{user?.name?.split(" ")?.[0] || ""}</p>
-                        <p className={`text-sm font-black ${style.color}`}>{user?.kp?.toLocaleString?.() || 0}</p>
+                        <p className="text-xs font-semibold text-white text-center truncate w-full">{user.name.split(" ")[0]}</p>
+                        <p className={`text-sm font-black ${style.color}`}>{user.kp.toLocaleString()}</p>
                         <p className="text-xs text-white/40">KP</p>
                       </motion.div>);
                   })}
                 </div>
                 <div className="space-y-2">
-                  {LEADERBOARD_MOCK[lbTab]?.slice(3).map((user, i) => {
-                    if (!user) return null;
-                    return (
-                    <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                  {LEADERBOARD_MOCK[lbTab].slice(3).map((user, i) =>
+                  <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                       <span className="text-sm font-bold text-white/40 w-6">#{i + 4}</span>
-                      {user?.photo ?
+                      {user.photo ?
                     <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover" /> :
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user?.name?.[0] || "?"}</div>
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user.name[0]}</div>
                     }
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{user?.name}</p>
-                        <p className="text-xs text-white/40">{user?.level} · 🔥 {user?.streak}j</p>
+                        <p className="text-sm font-medium text-white">{user.name}</p>
+                        <p className="text-xs text-white/40">{user.level} · 🔥 {user.streak}j</p>
                       </div>
-                      <span className="text-accent font-black text-sm">{user?.kp?.toLocaleString?.()} KP</span>
+                      <span className="text-accent font-black text-sm">{user.kp.toLocaleString()} KP</span>
                     </div>
-                    );
-                  })}
+                  )}
                 </div>
               </div>
             </motion.div>

@@ -240,20 +240,15 @@ export default function Discover() {
     return () => observer.disconnect();
   }, [loading, loadingMore, hasMore, loadItems]);
 
-  const handleOpen = async (item) => {
+  const handleOpen = (item) => {
     const existing = findExisting(item);
     if (existing) {
       // Already in library → go to ContentDetail
       navigate(`/ContentDetail?id=${existing.id}`);
     } else {
-      // Create it first, then go to ContentDetail
-      try {
-        const created = await base44.entities.Content.create(mapToContent(item));
-        qc.invalidateQueries({ queryKey: ["contents"] });
-        navigate(`/ContentDetail?id=${created.id}`);
-      } catch (e) {
-        console.error('Error creating content:', e);
-      }
+      // Not in library → go to SearchResultDetail
+      const itemData = encodeURIComponent(JSON.stringify(item));
+      navigate(`/SearchResultDetail?data=${itemData}`);
     }
   };
 
