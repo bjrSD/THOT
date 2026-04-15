@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Music, Plus, Check, Loader2, ChevronDown } from "lucide-react";
+import { ListMusic, Plus, Check, Loader2, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -70,11 +70,10 @@ export default function AddToPlaylistMenu({ contentId }) {
     <div className="relative" ref={menuRef}>
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
         onClick={() => setOpen(!open)}
-        className="gap-1.5">
-        <Music className="w-4 h-4" />
-        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+        className="h-7 w-7">
+        <ListMusic className="w-3.5 h-3.5" />
       </Button>
 
       {open && (
