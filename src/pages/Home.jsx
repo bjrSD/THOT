@@ -360,19 +360,20 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {[currentLeaderboard[1], currentLeaderboard[0], currentLeaderboard[2]].filter(Boolean).map((user, i) => {
-                    const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
-                    const style = RANK_STYLES[realRank];
+                  {[currentLeaderboard[1], currentLeaderboard[0], currentLeaderboard[2]].filter(Boolean).map((user) => {
+                    if (!user) return null;
+                    const rankIdx = currentLeaderboard.indexOf(user);
+                    const style = RANK_STYLES[rankIdx === 1 ? 1 : rankIdx === 0 ? 0 : 2];
                     return (
-                      <motion.div key={user.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                      <motion.div key={user?.name} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: rankIdx * 0.1 }}
                       className={`flex flex-col items-center p-2 rounded-xl border ${style.bg} ${style.border}`}>
                         <span className="text-lg">{style.badge}</span>
-                        {user.photo ?
+                        {user?.photo ?
                         <img src={user.photo} alt={user.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/20 my-1" /> :
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user.name[0]}</div>
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 flex items-center justify-center font-bold text-white text-lg my-1">{user?.name?.[0]}</div>
                         }
-                        <p className="text-xs font-semibold text-white text-center truncate w-full">{user.name.split(" ")[0]}</p>
-                        <p className={`text-sm font-black ${style.color}`}>{user.kp.toLocaleString()}</p>
+                        <p className="text-xs font-semibold text-white text-center truncate w-full">{user?.name?.split(" ")?.[0]}</p>
+                        <p className={`text-sm font-black ${style.color}`}>{user?.kp?.toLocaleString()}</p>
                         <p className="text-xs text-white/40">KP</p>
                       </motion.div>);
                   })}
