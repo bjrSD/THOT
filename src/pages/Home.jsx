@@ -377,20 +377,23 @@ export default function Home() {
                   })}
                 </div>
                 <div className="space-y-2">
-                  {LEADERBOARD_MOCK[lbTab].slice(3).map((user, i) =>
-                  <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                  {LEADERBOARD_MOCK[lbTab]?.slice(3).map((user, i) => {
+                    if (!user) return null;
+                    return (
+                    <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
                       <span className="text-sm font-bold text-white/40 w-6">#{i + 4}</span>
-                      {user.photo ?
+                      {user?.photo ?
                     <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover" /> :
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user.name[0]}</div>
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user?.name?.[0] || "?"}</div>
                     }
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{user.name}</p>
-                        <p className="text-xs text-white/40">{user.level} · 🔥 {user.streak}j</p>
+                        <p className="text-sm font-medium text-white">{user?.name}</p>
+                        <p className="text-xs text-white/40">{user?.level} · 🔥 {user?.streak}j</p>
                       </div>
-                      <span className="text-accent font-black text-sm">{user.kp.toLocaleString()} KP</span>
+                      <span className="text-accent font-black text-sm">{user?.kp?.toLocaleString?.()} KP</span>
                     </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
