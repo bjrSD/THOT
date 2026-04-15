@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Plus, Loader2, Crown, ChevronRight, Settings, BookOpen,
-  Headphones, Play, FileText, Shield, Sparkles
+  Headphones, Play, FileText, Shield, Sparkles, Search, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import CreateClubModal from "@/components/clubs/CreateClubModal";
@@ -152,6 +153,7 @@ function ClubCard({ club, isMember, isAdmin, onJoin, onLeave }) {
 export default function Clubs() {
   const [localMemberships, setLocalMemberships] = useState({});
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const qc = useQueryClient();
 
@@ -222,7 +224,8 @@ export default function Clubs() {
   const myClubs = allClubs.filter(c => isMember(String(c.id)) || isAdmin(String(c.id)));
 
   const filtered = (filter === "all" ? allClubs : allClubs.filter(c => c.category === filter))
-    .filter(c => !myClubs.find(mc => String(mc.id) === String(c.id)));
+    .filter(c => !myClubs.find(mc => String(mc.id) === String(c.id)))
+    .filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.description?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -278,6 +281,22 @@ export default function Clubs() {
         {myClubs.length > 0 && (
           <h2 className="font-heading font-bold text-lg mb-3">Découvrir d'autres clubs</h2>
         )}
+
+        {/* Search bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher un club par nom..."
+            className="pl-10 pr-10 h-10"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
 
         {/* Category filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 mb-4" style={{ scrollbarWidth: "none" }}>
