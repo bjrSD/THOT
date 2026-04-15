@@ -33,7 +33,12 @@ export default function Clubs() {
 
   const allClubs = [
     ...DEFAULT_CLUBS,
-    ...userClubs.map(c => ({ ...c, isUserCreated: true })),
+    ...userClubs.map(c => ({
+      ...c,
+      isUserCreated: true,
+      members: c.members_count || 1,
+      top: c.created_by || "Vous",
+    })),
   ];
 
   const filtered = filter === "all" ? allClubs : allClubs.filter(c => c.category === filter);
@@ -56,10 +61,15 @@ export default function Clubs() {
           <h1 className="font-heading text-2xl font-bold">Clubs de savoir</h1>
         </div>
         <p className="text-muted-foreground text-sm">Rejoignez des communautés d'apprenants partageant vos intérêts</p>
-        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-          <span>🌍 6 clubs actifs</span>
-          <span>·</span>
-          <span>👥 6,180 membres</span>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>🌍 {allClubs.length} clubs actifs</span>
+            <span>·</span>
+            <span>👥 6,180+ membres</span>
+          </div>
+          <Button size="sm" onClick={() => setShowCreateModal(true)} className="gap-1.5 h-7 text-xs ml-auto">
+            <Plus className="w-3.5 h-3.5" /> Créer un club
+          </Button>
         </div>
       </div>
 
@@ -110,8 +120,8 @@ export default function Clubs() {
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{club.description}</p>
               
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {club.members.toLocaleString()} membres</span>
-                <span className="flex items-center gap-1"><Crown className="w-3.5 h-3.5 text-yellow-500" /> {club.top}</span>
+                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {(club.members || club.members_count || 0).toLocaleString()} membres</span>
+                <span className="flex items-center gap-1"><Crown className="w-3.5 h-3.5 text-yellow-500" /> {club.top || "—"}</span>
               </div>
 
               {/* Top members */}
@@ -122,7 +132,7 @@ export default function Clubs() {
                   </div>
                 ))}
                 <div className="w-7 h-7 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-xs text-muted-foreground">
-                  +{(club.members - 5).toLocaleString()}
+                  +{Math.max(0, (club.members || club.members_count || 5) - 5).toLocaleString()}
                 </div>
               </div>
 
