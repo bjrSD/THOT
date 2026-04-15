@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ArrowLeft, BookOpen, Headphones, Play, FileText, ExternalLink, Loader2,
   Star, Save, Globe, TrendingUp, BookMarked, BarChart3, CheckCircle2,
-  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube
+  Quote, Heart, Tag, Calendar, Clock, Flame, MessageSquare, Award, Share2, ShoppingCart, Youtube, Plus, Check, Users
 } from "lucide-react";
 import { TYPE_LABELS, CATEGORY_LABELS, STATUS_LABELS } from "@/components/shared/KPUtils";
 import VideoDescriptif from "@/components/content/VideoDescriptif";
@@ -79,25 +79,39 @@ function StarRow({ value, onChange, size = "w-5 h-5" }) {
   );
 }
 
-function BookMiniCard({ book }) {
+function BookMiniCard({ book, onAdd, isAdded, adding }) {
   return (
-    <a href={book.link || `https://www.google.com/search?q=${encodeURIComponent(book.title)}`} target="_blank" rel="noopener noreferrer"
-      className="group flex flex-col">
-      <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-secondary mb-2 border border-border">
-        {book.cover
-          ? <img src={book.cover} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-6 h-6 text-muted-foreground" /></div>
-        }
+    <div className="group flex flex-col">
+      <div className="relative w-full rounded-lg overflow-hidden bg-secondary mb-1.5 border border-border" style={{ aspectRatio: "2/3" }}>
+        <a href={book.link || `https://www.google.com/search?q=${encodeURIComponent(book.title)}`} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+          {book.cover
+            ? <img src={book.cover} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-4 h-4 text-muted-foreground" /></div>
+          }
+        </a>
+        {/* Add button */}
+        <button
+          onClick={onAdd}
+          disabled={isAdded || adding}
+          title={isAdded ? "Déjà dans la bibliothèque" : "Ajouter à ma bibliothèque"}
+          className={`absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-all ${
+            isAdded
+              ? "bg-green-500 text-white cursor-default"
+              : "bg-white/90 text-accent hover:bg-accent hover:text-white"
+          }`}
+        >
+          {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : isAdded ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+        </button>
       </div>
       <p className="text-xs font-semibold leading-tight line-clamp-2">{book.title}</p>
       <p className="text-xs text-muted-foreground truncate mt-0.5">{book.author}</p>
       {book.rating && (
-        <div className="flex items-center gap-1 mt-1">
+        <div className="flex items-center gap-1 mt-0.5">
           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
           <span className="text-xs font-semibold">{book.rating.toFixed(1)}</span>
         </div>
       )}
-    </a>
+    </div>
   );
 }
 
@@ -115,6 +129,7 @@ export default function ContentDetail() {
   const [quotes, setQuotes] = useState([]);
   const [newQuote, setNewQuote] = useState("");
   const [saved, setSaved] = useState(false);
+  const [addingBook, setAddingBook] = useState({});
 
   // Warn on browser/tab close if unsaved
   useEffect(() => {
@@ -165,6 +180,43 @@ export default function ContentDetail() {
       }
     }
   }, [content]);
+
+  // Fetch all public contents to compute community stats for this title
+  const { data: allContents = [] } = useQuery({
+    queryKey: ["contents-public"],
+    queryFn: () => base44.entities.Content.list("-updated_date", 500),
+    enabled: !!content,
+  });
+
+  // Community stats: all users who have this same content (by title+type) with a rating
+  const communityReviews = allContents.filter(c =>
+    c.title === content?.title && c.type === content?.type && c.rating > 0
+  );
+  const communityAvg = communityReviews.length > 0
+    ? (communityReviews.reduce((sum, c) => sum + c.rating, 0) / communityReviews.length)
+    : null;
+
+  const { data: myLibrary = [] } = useQuery({
+    queryKey: ["contents"],
+    queryFn: () => base44.entities.Content.list("-updated_date", 200),
+  });
+
+  const isBookInLibrary = (title) => myLibrary.some(c => c.title === title && c.type === "book");
+
+  const handleAddBook = async (book) => {
+    const key = book.title;
+    if (isBookInLibrary(key) || addingBook[key]) return;
+    setAddingBook(prev => ({ ...prev, [key]: true }));
+    await base44.entities.Content.create({
+      title: book.title,
+      author: book.author,
+      cover_url: book.cover || undefined,
+      type: "book",
+      status: "to_consume",
+    });
+    queryClient.invalidateQueries({ queryKey: ["contents"] });
+    setAddingBook(prev => ({ ...prev, [key]: false }));
+  };
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.Content.update(contentId, data),
@@ -348,51 +400,78 @@ export default function ContentDetail() {
                 </div>
               </div>
 
-              {/* Notes & Avis */}
+              {/* Notes & Avis communauté THOT */}
               <div className="bg-card rounded-2xl border border-border p-6">
                 <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-accent" /> Notes & Avis
+                  <Star className="w-5 h-5 text-accent" /> Notes & Avis THOT
                 </h2>
                 <div className="space-y-4">
-                  {googleData?.googleRating ? (
-                    <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Google Books</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex">{[1,2,3,4,5].map(s => (
-                            <Star key={s} className={`w-4 h-4 ${googleData.googleRating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                          ))}</div>
-                          <span className="font-bold">{googleData.googleRating.toFixed(1)}</span>
-                          <span className="text-xs text-muted-foreground">({googleData.googleRatingsCount.toLocaleString()} avis)</span>
-                        </div>
+                  {/* Note moyenne communauté */}
+                  <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-foreground">
+                        {communityAvg ? communityAvg.toFixed(1) : "—"}
+                      </p>
+                      <div className="flex items-center justify-center gap-0.5 mt-1">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <Star key={s} className={`w-3.5 h-3.5 ${communityAvg && communityAvg >= s ? "fill-yellow-400 text-yellow-400" : communityAvg && communityAvg >= s - 0.5 ? "fill-yellow-200 text-yellow-400" : "text-border"}`} />
+                        ))}
                       </div>
-                      {googleData.infoLink && (
-                        <a href={googleData.infoLink} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline flex items-center gap-1">
-                          <Globe className="w-3 h-3" /> Voir les avis
-                        </a>
-                      )}
                     </div>
-                  ) : loadingGoogle ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement des notes Google Books…
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Note communauté THOT</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5" />
+                        {communityReviews.length > 0
+                          ? `${communityReviews.length} membre${communityReviews.length > 1 ? "s" : ""} ont noté ce contenu`
+                          : "Aucune note pour l'instant — soyez le premier !"}
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Aucune note Google Books disponible.</p>
+                  </div>
+
+                  {/* Distribution des notes */}
+                  {communityReviews.length > 0 && (
+                    <div className="space-y-1.5">
+                      {[5, 4, 3, 2, 1].map(star => {
+                        const count = communityReviews.filter(c => Math.round(c.rating) === star).length;
+                        const pct = communityReviews.length > 0 ? Math.round((count / communityReviews.length) * 100) : 0;
+                        return (
+                          <div key={star} className="flex items-center gap-2 text-xs">
+                            <span className="w-4 text-right text-muted-foreground">{star}</span>
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 shrink-0" />
+                            <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+                              <div className="h-full bg-yellow-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="w-6 text-muted-foreground">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
-                  <a href={`https://www.goodreads.com/search?q=${encodeURIComponent(content.title + " " + content.author)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Voir les avis sur <strong>Goodreads</strong></span>
-                    <ExternalLink className="w-3.5 h-3.5 ml-auto" />
-                  </a>
-                  <a href={`https://www.babelio.com/recherche.php?Recherche=${encodeURIComponent(content.title)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors p-3 bg-secondary/30 rounded-xl border border-border hover:border-accent/30">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Voir les avis sur <strong>Babelio</strong></span>
-                    <ExternalLink className="w-3.5 h-3.5 ml-auto" />
-                  </a>
+
+                  {/* Avis textuels */}
+                  {communityReviews.filter(c => c.community_review).length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Avis des membres</p>
+                      {communityReviews.filter(c => c.community_review).slice(0, 5).map((c, i) => (
+                        <div key={i} className="bg-secondary/40 rounded-xl p-3">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`w-3 h-3 ${c.rating >= s ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+                            ))}
+                            <span className="text-xs text-muted-foreground ml-auto">{c.created_by?.split("@")[0]}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground italic">"{c.community_review}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {communityReviews.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      💬 Ajoutez votre avis dans l'onglet "Mon Suivi" pour alimenter la communauté !
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -426,8 +505,14 @@ export default function ContentDetail() {
                   <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-accent" /> Du même auteur
                   </h2>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                    {similar.byAuthor.map((b, i) => <BookMiniCard key={i} book={b} />)}
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                    {similar.byAuthor.map((b, i) => (
+                      <BookMiniCard key={i} book={b}
+                        isAdded={isBookInLibrary(b.title)}
+                        adding={!!addingBook[b.title]}
+                        onAdd={() => handleAddBook(b)}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
@@ -438,8 +523,14 @@ export default function ContentDetail() {
                   <h2 className="font-heading font-bold text-lg mb-4 flex items-center gap-2">
                     <BookMarked className="w-5 h-5 text-accent" /> Dans le même genre
                   </h2>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                    {similar.bySubject.map((b, i) => <BookMiniCard key={i} book={b} />)}
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                    {similar.bySubject.map((b, i) => (
+                      <BookMiniCard key={i} book={b}
+                        isAdded={isBookInLibrary(b.title)}
+                        adding={!!addingBook[b.title]}
+                        onAdd={() => handleAddBook(b)}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
