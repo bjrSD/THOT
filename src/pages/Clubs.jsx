@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Loader2, Crown, TrendingUp, BookOpen, ChevronRight } from "lucide-react";
+import { Users, Plus, Loader2, Crown, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import CreateClubModal from "@/components/clubs/CreateClubModal";
 
 const DEFAULT_CLUBS = [
   { id: "entrepreneurs", name: "Entrepreneurs", emoji: "🚀", category: "business", description: "Livres, podcasts et vidéos pour entrepreneurs & startuppers", members: 1240, top: "Karim B." },
@@ -20,10 +20,23 @@ const DEFAULT_CLUBS = [
 export default function Clubs() {
   const [joined, setJoined] = useState({});
   const [filter, setFilter] = useState("all");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const qc = useQueryClient();
 
-  const categories = ["all", "business", "science", "philosophie", "technologie", "psychologie", "etudiants"];
+  const categories = ["all", "business", "science", "philosophie", "technologie", "psychologie", "etudiants", "autre"];
 
-  const filtered = filter === "all" ? DEFAULT_CLUBS : DEFAULT_CLUBS.filter(c => c.category === filter);
+  // Fetch user-created clubs from DB
+  const { data: userClubs = [] } = useQuery({
+    queryKey: ["clubs"],
+    queryFn: () => base44.entities.Club.list("-created_date", 50),
+  });
+
+  const allClubs = [
+    ...DEFAULT_CLUBS,
+    ...userClubs.map(c => ({ ...c, isUserCreated: true })),
+  ];
+
+  const filtered = filter === "all" ? allClubs : allClubs.filter(c => c.category === filter);
 
   const handleJoin = (clubId) => {
     setJoined(prev => ({ ...prev, [clubId]: !prev[clubId] }));
@@ -76,11 +89,22 @@ export default function Clubs() {
                 joined[club.id] ? "border-accent/40 bg-accent/5" : "border-border"
               }`}
             >
+              {/* Cover photo if user-created club */}
+              {club.isUserCreated && club.cover_url && (
+                <div className="-mx-5 -mt-5 mb-3 h-20 overflow-hidden rounded-t-2xl">
+                  <img src={club.cover_url} alt={club.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="flex items-start justify-between mb-3">
                 <div className="text-4xl">{club.emoji}</div>
-                {joined[club.id] && (
-                  <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">Membre ✓</span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {club.isUserCreated && (
+                    <span className="text-[10px] bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 px-2 py-0.5 rounded-full font-semibold">✦ Custom</span>
+                  )}
+                  {joined[club.id] && (
+                    <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">Membre ✓</span>
+                  )}
+                </div>
               </div>
               <h3 className="font-heading font-bold text-lg mb-1">{club.name}</h3>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{club.description}</p>
@@ -123,14 +147,26 @@ export default function Clubs() {
       </div>
 
       {/* Create club CTA */}
-      <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-accent/50 transition-colors">
-        <div className="text-4xl mb-3">✨</div>
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="w-full border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-accent/50 hover:bg-accent/5 transition-all group"
+      >
+        <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">✨</div>
         <h3 className="font-semibold mb-1">Créer votre propre club</h3>
         <p className="text-sm text-muted-foreground mb-4">Rassemblez des apprenants autour de votre passion.</p>
-        <Button variant="outline" className="gap-2">
-          <Plus className="w-4 h-4" /> Créer un club — bientôt disponible
-        </Button>
-      </div>
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium">
+          <Plus className="w-4 h-4" /> Créer un club
+        </span>
+      </button>
+
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateClubModal
+            onClose={() => setShowCreateModal(false)}
+            onCreated={() => qc.invalidateQueries({ queryKey: ["clubs"] })}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
