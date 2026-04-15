@@ -220,6 +220,7 @@ export default function ClubDetail() {
     ...(isAdmin ? [{ id: "gerer", label: "⚙️ Gérer" }] : []),
   ];
   const [activeTab, setActiveTab] = useState("accueil");
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
 
   const joinMutation = useMutation({
     mutationFn: () => base44.entities.ClubMember.create({ club_id: clubId, club_name: club.name, role: "member" }),
@@ -263,25 +264,34 @@ export default function ClubDetail() {
         </div>
       </div>
 
-      {/* Content type + theme badges */}
-      {(club.content_types?.length > 0 || club.themes?.length > 0) && (
-        <div className="flex flex-wrap gap-2">
-          {club.content_types?.map(ct => {
-            const info = CONTENT_TYPE_ICONS[ct];
-            if (!info) return null;
-            const Icon = info.Icon;
-            return (
-              <span key={ct} className="inline-flex items-center gap-1.5 text-xs bg-secondary px-3 py-1 rounded-full">
-                <Icon className={`w-3.5 h-3.5 ${info.color}`} /> {info.label}
-              </span>
-            );
-          })}
-          {club.themes?.slice(0, 4).map(t => (
-            <span key={t} className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full">{t}</span>
-          ))}
-          {club.themes?.length > 4 && <span className="text-xs text-muted-foreground py-1">+{club.themes.length - 4} thèmes</span>}
-        </div>
-      )}
+      {/* À propos — juste sous la photo */}
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">{club.longDescription || club.description}</p>
+        {(club.content_types?.length > 0 || club.themes?.length > 0) && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {club.content_types?.map(ct => {
+              const info = CONTENT_TYPE_ICONS[ct];
+              if (!info) return null;
+              const Icon = info.Icon;
+              return (
+                <span key={ct} className="inline-flex items-center gap-1.5 text-xs bg-secondary px-2.5 py-1 rounded-full">
+                  <Icon className={`w-3 h-3 ${info.color}`} /> {info.label}
+                </span>
+              );
+            })}
+            {club.themes?.slice(0, 4).map(t => (
+              <span key={t} className="text-xs bg-accent/10 text-accent px-2.5 py-1 rounded-full">{t}</span>
+            ))}
+            {club.themes?.length > 4 && <span className="text-xs text-muted-foreground py-1">+{club.themes.length - 4}</span>}
+          </div>
+        )}
+        {club.rules && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">📜 Règles</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{club.rules}</p>
+          </div>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-secondary p-1 rounded-xl overflow-x-auto" style={{ scrollbarWidth: "none" }}>
@@ -300,6 +310,7 @@ export default function ClubDetail() {
           myMembership={myMembership}
           clubChallengesCount={clubChallenges.filter(c => c.description?.includes(`[Club: ${club.name}]`) || club.challenges?.includes(c.title)).length}
           clubId={clubId}
+          myEmail={me?.email}
         />
       )}
 
