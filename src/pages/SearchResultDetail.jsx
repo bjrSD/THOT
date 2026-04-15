@@ -3,24 +3,23 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Loader2, BookOpen, Play, Headphones, FileText } from "lucide-react";
+import { ArrowLeft, BookOpen, Play, Headphones, FileText } from "lucide-react";
 import { mapToContent } from "@/lib/contentSearchService";
 import { createPageUrl } from "@/utils";
-import AddToPlaylistMenu from "@/components/library/AddToPlaylistMenu";
+import AddButton from "@/components/discover/AddButton";
 
 const TYPE_ICON = { book: BookOpen, video: Play, podcast: Headphones, article: FileText };
 
 export default function SearchResultDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const itemData = urlParams.get("data");
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(null); // contentId after add
+  const [added, setAdded] = useState(false);
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
     mutationFn: (contentData) => base44.entities.Content.create(contentData),
-    onSuccess: (created) => {
-      setAdded(created.id);
+    onSuccess: () => {
+      setAdded(true);
       queryClient.invalidateQueries({ queryKey: ["contents"] });
     },
   });
@@ -51,10 +50,8 @@ export default function SearchResultDetail() {
   const Icon = TYPE_ICON[item.type] || FileText;
   const isVideo = item.type === "video";
 
-  const handleAdd = async () => {
-    setAdding(true);
-    const contentData = mapToContent(item);
-    createMutation.mutate(contentData);
+  const handleAdd = () => {
+    createMutation.mutate(mapToContent(item));
   };
 
   return (
@@ -65,7 +62,7 @@ export default function SearchResultDetail() {
       </button>
 
       {/* Hero section */}
-      <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 rounded-2xl border border-border p-6 md:p-8">
+      <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 rounded-2xl border border-border p-6 md:p-8 relative">
         <div className="flex items-start gap-5">
           {/* Thumbnail */}
           <div className={`rounded-xl overflow-hidden bg-card border border-border shrink-0 shadow-md flex items-center justify-center ${isVideo ? "w-40 h-24" : "w-24 h-36"}`}>
@@ -91,31 +88,25 @@ export default function SearchResultDetail() {
             {item.publishedAt && (
               <p className="text-xs text-muted-foreground mt-1">Publié le {new Date(item.publishedAt).toLocaleDateString("fr")}</p>
             )}
-
-            {/* Action buttons */}
-            <div className="flex gap-2 mt-4 flex-wrap">
-              {added ? (
-                <Button variant="outline" disabled className="gap-1.5">
-                  ✓ Ajouté à la bibliothèque
-                </Button>
-              ) : (
-                <Button onClick={handleAdd} disabled={createMutation.isPending} className="gap-1.5">
-                  {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  Ajouter à ma bibliothèque
-                </Button>
-              )}
-              {added && (
-                <AddToPlaylistMenu contentId={added} />
-              )}
-              {item.externalUrl && (
-                <a href={item.externalUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-1.5">
-                    Voir sur {item.sourceName || "la source"}
-                  </Button>
-                </a>
-              )}
-            </div>
+            {item.externalUrl && (
+              <a href={item.externalUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-accent hover:underline mt-3">
+                Voir sur {item.sourceName || "la source"} →
+              </a>
+            )}
           </div>
+        </div>
+
+        {/* Add button — bottom right like in Discover */}
+        <div className="absolute bottom-4 right-4">
+          <AddButton
+            item={item}
+            isAdded={added}
+            adding={createMutation.isPending}
+            removing={false}
+            onAdd={handleAdd}
+            onRemove={() => {}}
+          />
         </div>
       </div>
 
