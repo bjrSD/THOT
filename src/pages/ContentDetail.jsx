@@ -279,7 +279,7 @@ export default function ContentDetail() {
       </button>
 
       {/* Hero banner */}
-      <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 rounded-2xl border border-border p-6 md:p-8">
+      <div className="relative bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 rounded-2xl border border-border p-6 md:p-8">
         <div className="flex items-start gap-5">
           <div className={`rounded-xl overflow-hidden bg-card border border-border shrink-0 shadow-md flex items-center justify-center ${content.type === 'video' ? 'w-40 h-24' : 'w-24 h-36'}`}>
             {coverUrl
@@ -334,6 +334,19 @@ export default function ContentDetail() {
             <Progress value={progress} className="h-1.5" />
           </div>
         )}
+
+        {/* Bouton + ajouter à la bibliothèque */}
+        <button
+          onClick={() => setActiveTab("suivi")}
+          title="Ajouter à ma bibliothèque / playlists"
+          className="absolute bottom-4 right-4 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{
+            background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+            boxShadow: "0 0 16px rgba(59,130,246,0.6), 0 0 32px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.3)"
+          }}
+        >
+          <Plus className="w-5 h-5 text-white" />
+        </button>
       </div>
 
       {/* Tab buttons */}
