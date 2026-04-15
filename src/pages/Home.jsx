@@ -93,6 +93,7 @@ const CONSOMMATION_DATA = [
 
 export default function Home() {
   const [lbTab, setLbTab] = React.useState("week");
+  const currentLeaderboard = LEADERBOARD_MOCK?.[lbTab] || LEADERBOARD_MOCK?.week || [];
 
   return (
     <div className="bg-background overflow-x-hidden">
@@ -359,7 +360,7 @@ export default function Home() {
                   )}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {LEADERBOARD_MOCK[lbTab] && [LEADERBOARD_MOCK[lbTab][1], LEADERBOARD_MOCK[lbTab][0], LEADERBOARD_MOCK[lbTab][2]].filter(Boolean).map((user, i) => {
+                  {[currentLeaderboard[1], currentLeaderboard[0], currentLeaderboard[2]].filter(Boolean).map((user, i) => {
                     const realRank = i === 0 ? 1 : i === 1 ? 0 : 2;
                     const style = RANK_STYLES[realRank];
                     return (
@@ -377,21 +378,21 @@ export default function Home() {
                   })}
                 </div>
                 <div className="space-y-2">
-                  {LEADERBOARD_MOCK[lbTab].slice(3).map((user, i) => {
+                  {currentLeaderboard.slice(3).map((user, i) => {
                     if (!user) return null;
                     return (
-                    <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                      <span className="text-sm font-bold text-white/40 w-6">#{i + 4}</span>
-                      {user.photo ?
-                    <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover" /> :
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user.name[0]}</div>
-                    }
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{user.name}</p>
-                        <p className="text-xs text-white/40">{user.level} · 🔥 {user.streak}j</p>
+                      <div key={user.name} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                        <span className="text-sm font-bold text-white/40 w-6">#{i + 4}</span>
+                        {user.photo ?
+                          <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full object-cover" /> :
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-sm">{user.name[0]}</div>
+                        }
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-white">{user.name}</p>
+                          <p className="text-xs text-white/40">{user.level} · 🔥 {user.streak}j</p>
+                        </div>
+                        <span className="text-accent font-black text-sm">{user.kp.toLocaleString()} KP</span>
                       </div>
-                      <span className="text-accent font-black text-sm">{user.kp.toLocaleString()} KP</span>
-                    </div>
                     );
                   })}
                 </div>
