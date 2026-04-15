@@ -194,11 +194,11 @@ export default function Library() {
                 <StatusFilter value={statusFilter} onChange={setStatusFilter} />
               </div>
             )}
-            {/* Playlist filter */}
+            {/* Playlist filter — pushed to the far right */}
             {playlists.length > 0 && (
-              <div className="shrink-0">
+              <div className="ml-auto shrink-0">
                 <select value={playlistFilter} onChange={(e) => setPlaylistFilter(e.target.value)}
-                  className="text-xs px-3 py-2 rounded-xl border border-border bg-card hover:border-accent/40 transition-colors font-medium cursor-pointer">
+                  className="text-[11px] px-2 py-1.5 rounded-lg border border-border bg-card hover:border-accent/40 transition-colors font-medium cursor-pointer">
                   <option value="all">Tous les contenus</option>
                   {playlists.map(p => (
                     <option key={p.id} value={p.id}>{p.emoji || "🎵"} {p.name}</option>
