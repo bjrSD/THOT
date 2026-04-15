@@ -182,7 +182,7 @@ export default function Library() {
           <GoogleBooksSearch onSelect={handleSelectBook} />
           
           {/* Type and status filters — horizontal scroll on mobile */}
-          <div className="flex gap-1.5 items-center overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-1.5 items-center overflow-x-auto pb-1 pt-1" style={{ scrollbarWidth: "none" }}>
             {TYPES.map((t) => (
               <Button key={t.value} variant={typeFilter === t.value ? "default" : "outline"} size="sm"
                 onClick={() => setTypeFilter(t.value)} className="shrink-0 text-[10px] h-6 px-2">
@@ -198,7 +198,8 @@ export default function Library() {
             {playlists.length > 0 && (
               <div className="shrink-0 ml-auto">
                 <select value={playlistFilter} onChange={(e) => setPlaylistFilter(e.target.value)}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-card hover:border-accent/40 transition-colors font-medium cursor-pointer h-7">
+                  className="text-xs px-2.5 py-1.5 rounded-xl border border-border bg-card text-foreground hover:border-accent/40 transition-colors font-medium cursor-pointer appearance-none outline-none focus:ring-1 focus:ring-ring"
+                  style={{ height: "32px" }}>
                   <option value="all">🎵 Playlists</option>
                   {playlists.map(p => (
                     <option key={p.id} value={p.id}>{p.emoji || "🎵"} {p.name}</option>
